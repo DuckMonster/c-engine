@@ -1,0 +1,6 @@
+.vs/
+build/
+*.sublime-project
+*.sublime-workspace
+*.user
+bin/
