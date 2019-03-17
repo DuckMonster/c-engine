@@ -7,11 +7,7 @@
 
 void player_init(Entity_Player* player)
 {
-	for(u32 i=0; i<20000; ++i)
-	{
-		mesh_load_file(&player->mesh, "res/Mesh/sphere.fbx");
-		mesh_free(&player->mesh);
-	}
+	mesh_load_file(&player->mesh, "res/Mesh/sphere.fbx");
 	material_load_standard(&player->material, "res/default.vert", "res/default.frag");
 }
 
