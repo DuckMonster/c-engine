@@ -19,6 +19,6 @@ void main()
 	pos.x = a_Position.x * c_time - a_Position.z * s_time;
 	pos.z = a_Position.z * c_time + a_Position.x * s_time;
 
-	gl_Position = u_ViewProjection * u_Model * vec4(pos, 1.0);
+	gl_Position = u_ViewProjection * u_Model * vec4(a_Position, 1.0);
 	f_Normal = a_Normal;
 }

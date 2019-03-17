@@ -39,11 +39,11 @@ void player_render(Entity_Player* player)
 		player->vert_velocity = 10.f;
 
 	player->vert_velocity -= 20.f * time_delta();
-	player->position.y += player->vert_velocity * time_delta();
+	player->position.z += player->vert_velocity * time_delta();
 
-	if (player->position.y < -2.f)
+	if (player->position.z < -2.f)
 	{
-		player->position.y += (-2.f - player->position.y) * 2.f;
+		player->position.z += (-2.f - player->position.z) * 2.f;
 		player->vert_velocity *= -0.6f;
 	}
 

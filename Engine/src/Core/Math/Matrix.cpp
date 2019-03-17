@@ -46,7 +46,7 @@ void mat_ortho(Mat4* out_mat, float left, float right, float bottom, float top, 
 	*out_mat = Mat4(
 		2.f / (right - left),				0.f,								0.f,							0.f,
 		0.f,								2.f / (top - bottom),				0.f,							0.f,
-		0.f,								0.f,								2.f / (far - near),				0.f,
+		0.f,								0.f,								-2.f / (far - near),			0.f,
 		-((right + left) / (right - left)),	-((top + bottom) / (top - bottom)), -((far + near) / (far - near)), 1.f
 	);
 }
@@ -56,13 +56,13 @@ void mat_look_at(Mat4* out_mat, const Vec3& eye, const Vec3& target, const Vec3&
 	Vec3 to_target = target - eye;
 
 	Vec3 z_axis = normalize(-to_target);
-	Vec3 x_axis = normalize(cross(z_axis, up));
+	Vec3 x_axis = normalize(cross(up, z_axis));
 	Vec3 y_axis = cross(z_axis, x_axis);
 
 	*out_mat = Mat4(
-		x_axis.x, y_axis.x,	z_axis.z, 0.f,
-		x_axis.y, y_axis.y,	z_axis.z, 0.f,
+		x_axis.x, y_axis.x,	z_axis.x, 0.f,
+		x_axis.y, y_axis.y,	z_axis.y, 0.f,
 		x_axis.z, y_axis.z,	z_axis.z, 0.f,
-		dot(eye, x_axis), dot(eye, y_axis), dot(eye, z_axis), 0.f
+		-dot(eye, x_axis), -dot(eye, y_axis), -dot(eye, z_axis), 1.f
 	);
 }

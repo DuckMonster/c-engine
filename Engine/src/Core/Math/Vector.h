@@ -153,3 +153,19 @@ inline Vec3 cross(const Vec3& a, const Vec3& b)
 		a.x * b.y - a.y * b.x
 	);
 }
+
+// Vector constants
+const Vec2 Vec2_X = Vec2(1.f, 0.f);
+const Vec2 Vec2_Y = Vec2(0.f, 1.f);
+const Vec2 Vec2_Zero = Vec2(0.f, 0.f);
+
+const Vec3 Vec3_X = Vec3(1.f, 0.f, 0.f);
+const Vec3 Vec3_Y = Vec3(0.f, 1.f, 0.f);
+const Vec3 Vec3_Z = Vec3(0.f, 0.f, 1.f);
+const Vec3 Vec3_Zero = Vec3(0.f, 0.f, 0.f);
+
+const Vec4 Vec4_X = Vec4(1.f, 0.f, 0.f, 0.f);
+const Vec4 Vec4_Y = Vec4(0.f, 1.f, 0.f, 0.f);
+const Vec4 Vec4_Z = Vec4(0.f, 0.f, 1.f, 0.f);
+const Vec4 Vec4_W = Vec4(0.f, 0.f, 0.f, 1.f);
+const Vec4 Vec4_Zero = Vec4(0.f, 0.f, 0.f, 0.f);

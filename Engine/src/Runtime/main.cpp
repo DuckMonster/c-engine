@@ -8,19 +8,6 @@
 #include "Core/Import/Fbx.h"
 #include "Core/Compress/Huffman.h"
 
-struct Pos_Test
-{
-	union
-	{
-		u32 position;
-		struct
-		{
-			u32 bit : 3;
-			u32 byte : 29;
-		} split;
-	};
-};
-
 int main(int argc, char** argv)
 {
 	Vec4 a;
@@ -32,8 +19,11 @@ int main(int argc, char** argv)
 
 	float aspect = (float)context.width / context.height;
 
-	Mat4 vp;
-	mat_ortho(&vp, -5.f * aspect, 5.f * aspect, -5.f, 5.f, -5.f, 5.f);
+	Mat4 view, projection;
+	mat_look_at(&view, Vec3(0.f, 0.f, 1.f), Vec3(0.f, 0.f, 0.f), Vec3(0.f, 1.f, 0.f));
+	mat_ortho(&projection, -5.f * aspect, 5.f * aspect, -5.f, 5.f, -5.f, 5.f);
+
+	Mat4 vp = projection * view;
 
 	game_init();
 	time_init();
@@ -43,6 +33,16 @@ int main(int argc, char** argv)
 	{
 		context_begin_frame();
 		time_update_delta();
+
+		Vec3 camera_pos = Vec3(
+			cos(time_duration()),
+			sin(time_duration()),
+			1.f
+		);
+
+		mat_look_at(&view, camera_pos, Vec3_Zero, Vec3_Z);
+
+		vp = projection * view;
 
 		render_set_vp(vp);
 
