@@ -33,7 +33,7 @@ int main(int argc, char** argv)
 	float aspect = (float)context.width / context.height;
 
 	Mat4 vp;
-	ortho(&vp, -5.f * aspect, 5.f * aspect, -5.f, 5.f, -5.f, 5.f);
+	mat_ortho(&vp, -5.f * aspect, 5.f * aspect, -5.f, 5.f, -5.f, 5.f);
 
 	game_init();
 	time_init();

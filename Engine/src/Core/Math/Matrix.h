@@ -24,11 +24,14 @@ struct Mat4
 	float m20, m21, m22, m23;
 	float m30, m31, m32, m33;
 
+	// Returns the n-th row (basis vector) from a matrix
 	Vec4& operator[](u32 row)
 	{
 		return ((Vec4*)this)[row];
 	}
 };
 
-void ortho(Mat4* out_mat, float left, float right, float bottom, float top, float near, float far);
-void look_at(Mat4* out_mat, const Vec3& eye, const Vec3& target, const Vec3& up);
+Mat4 operator*(const Mat4& a, const Mat4& b);
+
+void mat_ortho(Mat4* out_mat, float left, float right, float bottom, float top, float near, float far);
+void mat_look_at(Mat4* out_mat, const Vec3& eye, const Vec3& target, const Vec3& up);

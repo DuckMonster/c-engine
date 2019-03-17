@@ -1,4 +1,5 @@
 #pragma once
+#include <math.h>
 
 struct Vec2
 {
@@ -32,62 +33,123 @@ struct Vec4
 };
 
 // Operators
-Vec2 operator+(const Vec2& a, const Vec2& b);
-Vec3 operator+(const Vec3& a, const Vec3& b);
-Vec4 operator+(const Vec4& a, const Vec4& b);
+inline Vec2 operator+(const Vec2& a, const Vec2& b) { return Vec2(a.x + b.x, a.y + b.y); }
+inline Vec3 operator+(const Vec3& a, const Vec3& b) { return Vec3(a.x + b.x, a.y + b.y, a.z + b.z); }
+inline Vec4 operator+(const Vec4& a, const Vec4& b) { return Vec4(a.x + b.x, a.y + b.y, a.z + b.z, a.w + b.w); }
 
-Vec2 operator-(const Vec2& a, const Vec2& b);
-Vec3 operator-(const Vec3& a, const Vec3& b);
-Vec4 operator-(const Vec4& a, const Vec4& b);
+inline Vec2 operator-(const Vec2& a, const Vec2& b) { return Vec2(a.x - b.x, a.y - b.y); }
+inline Vec3 operator-(const Vec3& a, const Vec3& b) { return Vec3(a.x - b.x, a.y - b.y, a.z - b.z); }
+inline Vec4 operator-(const Vec4& a, const Vec4& b) { return Vec4(a.x - b.x, a.y - b.y, a.z - b.z, a.w - b.w); }
 
-Vec2 operator*(const Vec2& a, float scalar);
-Vec3 operator*(const Vec3& a, float scalar);
-Vec4 operator*(const Vec4& a, float scalar);
+inline Vec2 operator*(const Vec2& a, float scalar) { return Vec2(a.x * scalar, a.y * scalar); }
+inline Vec3 operator*(const Vec3& a, float scalar) { return Vec3(a.x * scalar, a.y * scalar, a.z * scalar); }
+inline Vec4 operator*(const Vec4& a, float scalar) { return Vec4(a.x * scalar, a.y * scalar, a.z * scalar, a.w * scalar); }
 
-Vec2 operator/(const Vec2& a, float scalar);
-Vec3 operator/(const Vec3& a, float scalar);
-Vec4 operator/(const Vec4& a, float scalar);
+inline Vec2 operator/(const Vec2& a, float scalar) { return Vec2(a.x / scalar, a.y / scalar); }
+inline Vec3 operator/(const Vec3& a, float scalar) { return Vec3(a.x / scalar, a.y / scalar, a.z / scalar); }
+inline Vec4 operator/(const Vec4& a, float scalar) { return Vec4(a.x / scalar, a.y / scalar, a.z / scalar, a.w / scalar); }
 
-Vec2 operator+(const Vec2& a, float scalar);
-Vec3 operator+(const Vec3& a, float scalar);
-Vec4 operator+(const Vec4& a, float scalar);
+inline Vec2 operator+(const Vec2& a, float scalar) { return Vec2(a.x + scalar, a.y + scalar); }
+inline Vec3 operator+(const Vec3& a, float scalar) { return Vec3(a.x + scalar, a.y + scalar, a.z + scalar); }
+inline Vec4 operator+(const Vec4& a, float scalar) { return Vec4(a.x + scalar, a.y + scalar, a.z + scalar, a.w + scalar); }
 
-Vec2 operator-(const Vec2& a, float scalar);
-Vec3 operator-(const Vec3& a, float scalar);
-Vec4 operator-(const Vec4& a, float scalar);
+inline Vec2 operator-(const Vec2& a, float scalar) { return Vec2(a.x - scalar, a.y - scalar); }
+inline Vec3 operator-(const Vec3& a, float scalar) { return Vec3(a.x - scalar, a.y - scalar, a.z - scalar); }
+inline Vec4 operator-(const Vec4& a, float scalar) { return Vec4(a.x - scalar, a.y - scalar, a.z - scalar, a.w - scalar); }
 
-Vec2& operator+=(Vec2& a, const Vec2& b);
-Vec3& operator+=(Vec3& a, const Vec3& b);
-Vec4& operator+=(Vec4& a, const Vec4& b);
+inline Vec2& operator+=(Vec2& a, const Vec2& b) { a.x += b.x; a.y += b.y; return a; }
+inline Vec3& operator+=(Vec3& a, const Vec3& b) { a.x += b.x; a.y += b.y; a.z += b.z; return a; }
+inline Vec4& operator+=(Vec4& a, const Vec4& b) { a.x += b.x; a.y += b.y; a.z += b.z; a.w += b.w; return a; }
 
-Vec2& operator-=(Vec2& a, const Vec2& b);
-Vec3& operator-=(Vec3& a, const Vec3& b);
-Vec4& operator-=(Vec4& a, const Vec4& b);
+inline Vec2& operator-=(Vec2& a, const Vec2& b) { a.x -= b.x; a.y -= b.y; return a; }
+inline Vec3& operator-=(Vec3& a, const Vec3& b) { a.x -= b.x; a.y -= b.y; a.z -= b.z; return a; }
+inline Vec4& operator-=(Vec4& a, const Vec4& b) { a.x -= b.x; a.y -= b.y; a.z -= b.z; a.w -= b.w; return a; }
 
-Vec2& operator*=(Vec2& a, float scalar);
-Vec3& operator*=(Vec3& a, float scalar);
-Vec4& operator*=(Vec4& a, float scalar);
+inline Vec2& operator*=(Vec2& a, float scalar) { a.x *= scalar; a.y *= scalar; return a; }
+inline Vec3& operator*=(Vec3& a, float scalar) { a.x *= scalar; a.y *= scalar; a.z *= scalar; return a; }
+inline Vec4& operator*=(Vec4& a, float scalar) { a.x *= scalar; a.y *= scalar; a.z *= scalar; a.w *= scalar; return a; }
 
-Vec2& operator/=(Vec2& a, float scalar);
-Vec3& operator/=(Vec3& a, float scalar);
-Vec4& operator/=(Vec4& a, float scalar);
+inline Vec2& operator/=(Vec2& a, float scalar) { a.x /= scalar; a.y /= scalar; return a; }
+inline Vec3& operator/=(Vec3& a, float scalar) { a.x /= scalar; a.y /= scalar; a.z /= scalar; return a; }
+inline Vec4& operator/=(Vec4& a, float scalar) { a.x /= scalar; a.y /= scalar; a.z /= scalar; a.w /= scalar; return a; }
 
-Vec2& operator+=(Vec2& a, float scalar);
-Vec3& operator+=(Vec3& a, float scalar);
-Vec4& operator+=(Vec4& a, float scalar);
+inline Vec2& operator+=(Vec2& a, float scalar) { a.x += scalar; a.y += scalar; return a; }
+inline Vec3& operator+=(Vec3& a, float scalar) { a.x += scalar; a.y += scalar; a.z += scalar; return a; }
+inline Vec4& operator+=(Vec4& a, float scalar) { a.x += scalar; a.y += scalar; a.z += scalar; a.w += scalar; return a; }
 
-Vec2& operator-=(Vec2& a, float scalar);
-Vec3& operator-=(Vec3& a, float scalar);
-Vec4& operator-=(Vec4& a, float scalar);
+inline Vec2& operator-=(Vec2& a, float scalar) { a.x -= scalar; a.y -= scalar; return a; }
+inline Vec3& operator-=(Vec3& a, float scalar) { a.x -= scalar; a.y -= scalar; a.z -= scalar; return a; }
+inline Vec4& operator-=(Vec4& a, float scalar) { a.x -= scalar; a.y -= scalar; a.z -= scalar; a.w -= scalar; return a; }
 
-Vec2 normalize(const Vec2& v);
-Vec3 normalize(const Vec3& v);
-Vec4 normalize(const Vec4& v);
+// Unary operators
+inline Vec2 operator-(const Vec2& v) { return Vec2(-v.x, -v.y); }
+inline Vec3 operator-(const Vec3& v) { return Vec3(-v.x, -v.y, -v.z); }
+inline Vec4 operator-(const Vec4& v) { return Vec4(-v.x, -v.y, -v.z, -v.w); }
 
-float length(const Vec2& v);
-float length(const Vec3& v);
-float length(const Vec4& v);
+inline Vec2 normalize(const Vec2& v)
+{
+	float len = sqrt(v.x * v.x + v.y * v.y);
+	return v / len;
+}
+inline Vec3 normalize(const Vec3& v)
+{
+	float len = sqrt(v.x * v.x + v.y * v.y + v.z * v.z);
+	return v / len;
+}
+inline Vec4 normalize(const Vec4& v)
+{
+	float len = sqrt(v.x * v.x + v.y * v.y + v.z * v.z + v.w * v.w);
+	return v / len;
+}
 
-float length_sqrd(const Vec2& v);
-float length_sqrd(const Vec3& v);
-float length_sqrd(const Vec4& v);
+inline float length(const Vec2& v)
+{
+	return sqrt(v.x * v.x + v.y * v.y);
+}
+inline float length(const Vec3& v)
+{
+	return sqrt(v.x * v.x + v.y * v.y + v.z * v.z);
+}
+inline float length(const Vec4& v)
+{
+	return sqrt(v.x * v.x + v.y * v.y + v.z * v.z + v.w * v.w);
+}
+
+inline float length_sqrd(const Vec2& v)
+{
+	return sqrt(v.x * v.x + v.y * v.y);
+}
+inline float length_sqrd(const Vec3& v)
+{
+	return sqrt(v.x * v.x + v.y * v.y + v.z * v.z);
+}
+inline float length_sqrd(const Vec4& v)
+{
+	return sqrt(v.x * v.x + v.y * v.y + v.z * v.z + v.w * v.w);
+}
+
+inline float dot(const Vec2& a, const Vec2& b)
+{
+	return a.x * b.x + a.y * b.y;
+}
+inline float dot(const Vec3& a, const Vec3& b)
+{
+	return a.x * b.x + a.y * b.y + a.z * b.z;
+}
+inline float dot(const Vec4& a, const Vec4& b)
+{
+	return a.x * b.x + a.y * b.y + a.z * b.z + a.w * b.w;
+}
+
+inline float cross(const Vec2& a, const Vec2& b)
+{
+	return a.x * b.y - a.y * b.x;
+}
+inline Vec3 cross(const Vec3& a, const Vec3& b)
+{
+	return Vec3(
+		a.y * b.z - a.z * b.y,
+		a.z * b.x - a.x * b.z,
+		a.x * b.y - a.y * b.x
+	);
+}
