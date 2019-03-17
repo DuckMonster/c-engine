@@ -167,13 +167,14 @@ void decode_dynamic_huffman_trees_from_stream(Inflate_Stream* stream, Huffman_Tr
 		huffman_build(&code_length_tree, code_lengths, 19);
 
 		// Step 2: Decode the lit/length tree code lengths by using the above tree
-		u16* lit_length_code_lengths = (u16*)malloc(sizeof(u16) * num_lit_length_codes);
+		u16 length_buffer[286];
+		u16* lit_length_code_lengths = length_buffer;
 		decode_dynamic_huffman_codes(stream, lit_length_code_lengths, num_lit_length_codes, &code_length_tree);
 
 		huffman_build(lit_length_tree, lit_length_code_lengths, num_lit_length_codes);
 
 		// Step 3: Decode the distance tree code lengths by using the above tree
-		u16* distance_code_lengths = (u16*)malloc(sizeof(u16) * num_distance_codes);
+		u16* distance_code_lengths = length_buffer;
 		decode_dynamic_huffman_codes(stream, distance_code_lengths, num_distance_codes, &code_length_tree);
 
 		huffman_build(distance_tree, distance_code_lengths, num_distance_codes);

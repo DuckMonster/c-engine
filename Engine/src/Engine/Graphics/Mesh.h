@@ -17,3 +17,4 @@ struct Mesh
 void mesh_load_triangle(Mesh* mesh);
 void mesh_load_verts(Mesh* mesh, void* v_ptr, u32 size);
 void mesh_load_file(Mesh* mesh, const char* path);
+void mesh_free(Mesh* mesh);

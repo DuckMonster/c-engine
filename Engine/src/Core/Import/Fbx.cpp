@@ -12,7 +12,7 @@ void fbx_convert_double_to_float(f64* in_ptr, f32* out_ptr, u32 count)
 	}
 }
 
-Fbx_Mesh* fbx_process_mesh(Fbx_Node* mesh_node)
+Fbx_Mesh* fbx_process_mesh(Fbx_Node* mesh_node, Mem_Arena* mem_arena)
 {
 	struct Vertex
 	{
@@ -21,7 +21,7 @@ Fbx_Mesh* fbx_process_mesh(Fbx_Node* mesh_node)
 		Vec2 uv;
 	};
 
-	Fbx_Mesh* mesh = new Fbx_Mesh();
+	Fbx_Mesh* mesh = arena_malloc_t(mem_arena, Fbx_Mesh, 1);
 	Fbx_String* mesh_name = fbx_get_property(Fbx_String, mesh_node, 1);
 
 	u32 num_indicies;
@@ -35,7 +35,7 @@ Fbx_Mesh* fbx_process_mesh(Fbx_Node* mesh_node)
 
 		// Vector data
 		u32 num_positions = pos_array->length / 3;
-		Vec3* position_data = malloc_t(Vec3, num_positions);
+		Vec3* position_data = arena_malloc_t(mem_arena, Vec3, num_positions);
 		fbx_convert_double_to_float(position_float_data, (f32*)position_data, pos_array->length);
 
 		// Index data
@@ -45,8 +45,8 @@ Fbx_Mesh* fbx_process_mesh(Fbx_Node* mesh_node)
 		num_indicies = index_array->length;
 		i32* index_data = (i32*)index_array->data;
 
-		mesh->indicies = malloc_t(u32, num_indicies);
-		mesh->positions = malloc_t(Vec3, num_indicies);
+		mesh->indicies = arena_malloc_t(mem_arena, u32, num_indicies);
+		mesh->positions = arena_malloc_t(mem_arena, Vec3, num_indicies);
 
 		// Count number of faces
 		// (in the index data, a negative number denotes the last index of a face)
@@ -59,7 +59,7 @@ Fbx_Mesh* fbx_process_mesh(Fbx_Node* mesh_node)
 
 		mesh->num_faces = num_faces;
 		mesh->num_verts = num_indicies;
-		mesh->faces = malloc_t(Fbx_Face, num_faces);
+		mesh->faces = arena_malloc_t(mem_arena, Fbx_Face, num_faces);
 
 		Fbx_Face* current_face = mesh->faces;
 		current_face->index_offset = 0;
@@ -103,7 +103,7 @@ Fbx_Mesh* fbx_process_mesh(Fbx_Node* mesh_node)
 		Fbx_Array* norm_array = fbx_get_property(Fbx_Array, norm_node, 0);
 		f64* norm_data = (f64*)norm_array->data;
 
-		mesh->normals = malloc_t(Vec3, num_indicies);
+		mesh->normals = arena_malloc_t(mem_arena, Vec3, num_indicies);
 
 		if (ref_type == Fbx_Reference_Type::Direct)
 		{
@@ -145,7 +145,7 @@ Fbx_Mesh* fbx_process_mesh(Fbx_Node* mesh_node)
 		Fbx_Array* uv_array = fbx_get_property(Fbx_Array, uv_node, 0);
 		f64* uv_data = (f64*)uv_array->data;
 
-		mesh->uvs = malloc_t(Vec2, num_indicies);
+		mesh->uvs = arena_malloc_t(mem_arena, Vec2, num_indicies);
 
 		if (ref_type == Fbx_Reference_Type::Direct)
 		{
@@ -203,16 +203,19 @@ Fbx_Mesh* fbx_process_mesh(Fbx_Node* mesh_node)
 Fbx_Scene* fbx_import(const char* path)
 {
 	Fbx_Scene* scene = new Fbx_Scene();
-	Fbx_Node* root = fbx_parse_node_tree(path);
-	//fbx_print_node(root);
+	Fbx_Node* root = fbx_parse_node_tree(path, &scene->mem_arena);
 
 	Fbx_Node* objects = fbx_find_child(root, "Objects");
 	Fbx_Node* object = fbx_find_child(objects, "Geometry");
 
-	//fbx_log_node(objects);
-
 	scene->num_meshes = 1;
-	scene->meshes = fbx_process_mesh(object);
+	scene->meshes = fbx_process_mesh(object, &scene->mem_arena);
 
 	return scene;
+}
+
+void fbx_free(Fbx_Scene* scene)
+{
+	arena_free(&scene->mem_arena);
+	delete scene;
 }

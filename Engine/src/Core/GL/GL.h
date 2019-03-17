@@ -23,8 +23,10 @@ extern fn_ ## name name
 /******* GL functions ******/
 // Vertex-buffers and stuff
 DECL_FUN(PFNGLGENVERTEXARRAYSPROC,	glGenVertexArrays);
+DECL_FUN(PFNGLDELETEVERTEXARRAYSPROC,	glDeleteVertexArrays);
 DECL_FUN(PFNGLBINDVERTEXARRAYPROC,	glBindVertexArray);
 DECL_FUN(PFNGLGENBUFFERSPROC,		glGenBuffers);
+DECL_FUN(PFNGLDELETEBUFFERSPROC,	glDeleteBuffers);
 DECL_FUN(PFNGLBUFFERDATAPROC,		glBufferData);
 DECL_FUN(PFNGLBINDBUFFERPROC,		glBindBuffer);
 

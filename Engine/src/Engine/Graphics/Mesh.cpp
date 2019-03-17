@@ -62,8 +62,7 @@ void mesh_load_file(Mesh* mesh, const char* path)
 			num_triangles += 1 + (face.vert_count - 3);
 		}
 
-		u32* indicies = malloc_t(u32, num_triangles * 3);
-		defer { free(indicies); };
+		u32* indicies = arena_malloc_t(&scene->mem_arena, u32, num_triangles * 3);
 
 		u32 i=0;
 		for(u32 f=0; f<f_mesh.num_faces; ++f)
@@ -89,6 +88,7 @@ void mesh_load_file(Mesh* mesh, const char* path)
 		mesh->use_elements = true;
 	}
 
+	fbx_free(scene);
 
 	glBindVertexArray(0);
 }
@@ -108,4 +108,10 @@ void mesh_load_verts(Mesh* mesh, void* v_ptr, u32 size)
 	glBindVertexArray(0);
 	mesh->num_buffers = 1;
 	mesh->draw_count = 3;
+}
+
+void mesh_free(Mesh* mesh)
+{
+	glDeleteVertexArrays(1, &mesh->vao);
+	glDeleteBuffers(mesh->num_buffers, mesh->buffers);
 }

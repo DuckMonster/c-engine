@@ -8,9 +8,11 @@ assert(name != nullptr)
 void load_opengl_functions()
 {
 	IMPORT_FUN(glGenVertexArrays);
+	IMPORT_FUN(glDeleteVertexArrays);
 	IMPORT_FUN(glBindVertexArray);
 
 	IMPORT_FUN(glGenBuffers);
+	IMPORT_FUN(glDeleteBuffers);
 	IMPORT_FUN(glBufferData);
 	IMPORT_FUN(glBindBuffer);
 

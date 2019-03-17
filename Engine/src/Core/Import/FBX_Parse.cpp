@@ -65,7 +65,7 @@ bool is_null_node(const Fbx_Node_Header& header)
 	return !memcmp(zero_header, &header, sizeof(header));
 }
 
-bool fbx_read_property(Fbx_Buffer* buffer, Fbx_Property* prop)
+bool fbx_read_property(Fbx_Buffer* buffer, Fbx_Property* prop, Mem_Arena* mem_arena)
 {
 	// Read property type
 	fbx_read_t(buffer, prop->type);
@@ -79,7 +79,7 @@ bool fbx_read_property(Fbx_Buffer* buffer, Fbx_Property* prop)
 		fbx_read_t(buffer, header);
 
 		// Allocate string
-		Fbx_String* string = (Fbx_String*)malloc(sizeof(Fbx_String));
+		Fbx_String* string = arena_malloc_t(mem_arena, Fbx_String, 1);
 		prop->data = string;
 
 		string->length = header.length;
@@ -90,7 +90,7 @@ bool fbx_read_property(Fbx_Buffer* buffer, Fbx_Property* prop)
 		}
 
 		// Read data
-		string->data = (char*)malloc(header.length);
+		string->data = arena_malloc_t(mem_arena, char, header.length);
 		fbx_read(buffer, string->data, string->length);
 
 		return true;
@@ -125,9 +125,9 @@ bool fbx_read_property(Fbx_Buffer* buffer, Fbx_Property* prop)
 		fbx_read_t(buffer, header);
 
 		// Allocate array structure
-		Fbx_Array* array = (Fbx_Array*)malloc(sizeof(Fbx_Array));
+		Fbx_Array* array = arena_malloc_t(mem_arena, Fbx_Array, 1);
 		array->length = header.length;
-		array->data = malloc(header.length * size);
+		array->data = arena_malloc(mem_arena, header.length * size);
 
 		if (header.encoding)
 		{
@@ -136,13 +136,11 @@ bool fbx_read_property(Fbx_Buffer* buffer, Fbx_Property* prop)
 			buffer->pointer += 2;
 
 			// Allocate and read compressed data into separate buffer
-			void* compressed_data = malloc(header.length_compressed - 2);
+			void* compressed_data = arena_malloc(mem_arena, header.length_compressed - 2);
 			fbx_read(buffer, compressed_data, header.length_compressed - 2);
 
 			// ... and inflate the compressed data
 			inflate(array->data, array->length * size, compressed_data, header.length_compressed - 2);
-
-			free(compressed_data);
 		}
 		else
 		{
@@ -155,14 +153,14 @@ bool fbx_read_property(Fbx_Buffer* buffer, Fbx_Property* prop)
 	else
 	{
 		// Otherwise, it's just a plain ole variable!
-		prop->data = malloc(size);
+		prop->data = arena_malloc(mem_arena, size);
 		fbx_read(buffer, prop->data, size);
 	}
 
 	return true;
 }
 
-Fbx_Node* fbx_read_node(Fbx_Buffer* buffer)
+Fbx_Node* fbx_read_node(Fbx_Buffer* buffer, Mem_Arena* mem_arena)
 {
 	Fbx_Node_Header header;
 	fbx_read_t(buffer, header);
@@ -171,13 +169,13 @@ Fbx_Node* fbx_read_node(Fbx_Buffer* buffer)
 		return nullptr;
 
 	// Allocate node
-	Fbx_Node* node = new Fbx_Node();
+	Fbx_Node* node = arena_malloc_t(mem_arena, Fbx_Node, 1);
 	node->name_len = header.name_len;
 	node->property_count = header.property_count;
-	node->properties = (Fbx_Property*)malloc(sizeof(Fbx_Property) * header.property_count);
+	node->properties = arena_malloc_t(mem_arena, Fbx_Property, header.property_count);
 
 	// Read name
-	node->name = (char*)malloc(header.name_len);
+	node->name = (char*)arena_malloc(mem_arena, header.name_len);
 
 	fbx_read(buffer, node->name, header.name_len);
 	Fbx_Node* last_child = nullptr;
@@ -185,13 +183,13 @@ Fbx_Node* fbx_read_node(Fbx_Buffer* buffer)
 	// Read properties
 	for(u32 i=0; i<node->property_count; ++i)
 	{
-		fbx_read_property(buffer, node->properties + i);
+		fbx_read_property(buffer, node->properties + i, mem_arena);
 	}
 
 	// Read nested list
 	while (buffer->pointer < header.end_offset)
 	{
-		Fbx_Node* child = fbx_read_node(buffer);
+		Fbx_Node* child = fbx_read_node(buffer, mem_arena);
 
 		// Last child, this node is finished
 		if (child == nullptr)
@@ -214,7 +212,7 @@ Fbx_Node* fbx_read_node(Fbx_Buffer* buffer)
 	return node;
 }
 
-Fbx_Node* fbx_parse_node_tree(const char* path)
+Fbx_Node* fbx_parse_node_tree(const char* path, Mem_Arena* mem_arena)
 {
 	FILE* file = fopen(path, "rb");
 	if (file == nullptr)
@@ -229,7 +227,7 @@ Fbx_Node* fbx_parse_node_tree(const char* path)
 	u32 file_length = ftell(file);
 	fseek(file, 0, SEEK_SET);
 
-	buffer.data = (u8*)malloc(file_length);
+	buffer.data = arena_malloc_t(mem_arena, u8, file_length);
 	buffer.pointer = 0;
 	buffer.length = file_length;
 	fread(buffer.data, 1, file_length, file);
@@ -240,12 +238,12 @@ Fbx_Node* fbx_parse_node_tree(const char* path)
 	fbx_read_t(&buffer, header);
 
 	// Create the root node
-	Fbx_Node* root_node = new Fbx_Node();
+	Fbx_Node* root_node = arena_malloc_t(mem_arena, Fbx_Node, 1);
 	Fbx_Node* last_child = nullptr;
 
 	while(true)
 	{
-		Fbx_Node* child = fbx_read_node(&buffer);
+		Fbx_Node* child = fbx_read_node(&buffer, mem_arena);
 
 		// We're done here
 		if (child == nullptr)

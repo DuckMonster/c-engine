@@ -44,7 +44,7 @@ void arena_free(Mem_Arena* arena)
 	while(buffer != nullptr)
 	{
 		Arena_Buffer* prev = buffer->previous;
-		free(buffer);
+		free((void*)buffer);
 		buffer = prev;
 	}
 

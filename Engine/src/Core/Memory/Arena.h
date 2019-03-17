@@ -15,6 +15,6 @@ struct Mem_Arena
 
 void arena_init(Mem_Arena* arena);
 
-#define arena_malloc_t(arena, type, count) (type*)arena_malloc(arena, sizeof(type) * count)
+#define arena_malloc_t(arena, type, count) new(arena_malloc(arena, sizeof(type) * count)) type()
 void* arena_malloc(Mem_Arena* arena, u32 size);
 void arena_free(Mem_Arena* arena);

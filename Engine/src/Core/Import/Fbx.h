@@ -1,4 +1,5 @@
 #pragma once
+#include "Core/Memory/Arena.h"
 
 struct Fbx_Face
 {
@@ -21,8 +22,12 @@ struct Fbx_Mesh
 
 struct Fbx_Scene
 {
+	// Memory storage used by everything during loading
+	Mem_Arena mem_arena;
+
 	u32 num_meshes;
 	Fbx_Mesh* meshes;
 };
 
 Fbx_Scene* fbx_import(const char* path);
+void fbx_free(Fbx_Scene* scene);
