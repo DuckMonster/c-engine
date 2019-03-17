@@ -7,14 +7,10 @@
 #include "Runtime/Game/Game.h"
 #include "Core/Import/Fbx.h"
 #include "Core/Compress/Huffman.h"
+#include "Core/Memory/Arena.h"
 
 int main(int argc, char** argv)
 {
-	Vec4 a;
-	Vec4 b;
-
-	a += b;
-
 	context_open("My Game!", 600, 600, 1024, 768);
 
 	float aspect = (float)context.width / context.height;
