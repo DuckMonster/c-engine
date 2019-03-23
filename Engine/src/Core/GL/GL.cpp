@@ -16,6 +16,7 @@ void load_opengl_functions()
 	IMPORT_FUN(glBufferData);
 	IMPORT_FUN(glBindBuffer);
 
+	IMPORT_FUN(glGetAttribLocation);
 	IMPORT_FUN(glEnableVertexAttribArray);
 	IMPORT_FUN(glVertexAttribPointer);
 

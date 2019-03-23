@@ -1,3 +1,5 @@
+#pragma once
+
 #define RENDER_QUEUE_SIZE 1024
 #include "Core/GL/GL.h"
 #include "Material.h"
@@ -18,13 +20,18 @@ enum class Render_Entry_Type : u8
 
 	/** Draw mesh **/
 	Draw_Mesh,
+
+	/** Draw Immediate **/
+	Draw_Immediate,
 };
 
-// Structure for containing a queue of rendering commands
-struct Render_Queue
+// Command for immediately drawing some vertices
+struct Render_Immediate
 {
-	u8 data[RENDER_QUEUE_SIZE];
-	u32 pointer = 0;
+	u32 vert_count;
+	float* positions = nullptr;
+	float* uvs = nullptr;
+	float* normals = nullptr;
 };
 
 // Command for setting a float uniform
@@ -41,17 +48,23 @@ struct Render_Uniform_Mat
 	Mat4 value;
 };
 
+// Structure for containing a queue of rendering commands
+struct Render_Queue
+{
+	u8 data[RENDER_QUEUE_SIZE];
+	u32 pointer = 0;
+};
+
 // Allocates an object onto the render queue and returns a pointer
 #define render_alloc(type) (type*)(_render_alloc(sizeof(type)))
 void* _render_alloc(u32 size);
 
 // Push some value onto the render queue and advance the pointer
-#define render_push(type, data) _render_push(&data, sizeof(type))
+#define render_push(data) _render_push(&data, sizeof(data))
 void _render_push(const void* ptr, u32 size);
 
 // Pushes an entry enum onto the render queue
 void render_push_type(Render_Entry_Type type);
-
 
 // Change onto some generic material without standard uniform values
 void render_begin_material(const Material& material);
@@ -69,8 +82,11 @@ void render_set_vp(const Mat4& vp);
 // Draw a mesh
 void render_draw_mesh(const Mesh& mesh);
 
+// For drawing immidiate mode style brother
+void render_draw_immediate(u32 num_verts, float* positions, float* uvs, float* normals);
+
 // Advance through a queue and draw to screen
-void render_draw();
+void render_flush();
 
 // Reset a render queue
 void render_reset();

@@ -1,7 +1,7 @@
 #pragma once
 #include "Engine/Graphics/Material.h"
 #include "Engine/Graphics/Mesh.h"
-#include "EntityType.h"
+#include "Entity.h"
 
 struct Entity_Player
 {

@@ -1,4 +1,5 @@
 #pragma once
+#include "EntityType.h"
 
 struct Entity
 {

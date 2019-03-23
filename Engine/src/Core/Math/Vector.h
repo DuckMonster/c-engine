@@ -4,6 +4,7 @@
 struct Vec2
 {
 	Vec2() : x(0.f), y(0.f) {}
+	Vec2(float v) : x(v), y(v) {}
 	Vec2(float x, float y) : x(x), y(y) {}
 	float x;
 	float y;
@@ -12,6 +13,7 @@ struct Vec2
 struct Vec3
 {
 	Vec3() : x(0.f), y(0.f), z(0.f) {}
+	Vec3(float v) : x(v), y(v), z(v) {}
 	Vec3(float x, float y, float z) : x(x), y(y), z(z) {}
 	Vec3(const Vec2& vec, float z) : x(vec.x), y(vec.y), z(z) {}
 	float x;
@@ -22,6 +24,7 @@ struct Vec3
 struct Vec4
 {
 	Vec4() : x(0.f), y(0.f), z(0.f), w(0.f) {}
+	Vec4(float v) : x(v), y(v), z(v), w(v) {}
 	Vec4(float x, float y, float z, float w) : x(x), y(y), z(z), w(w) {}
 	Vec4(const Vec2& vec, float z, float w) : x(vec.x), y(vec.y), z(z), w(w) {}
 	Vec4(const Vec3& vec, float w) : x(vec.x), y(vec.y), z(vec.z), w(w) {}

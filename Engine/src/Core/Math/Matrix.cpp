@@ -53,9 +53,12 @@ void mat_ortho(Mat4* out_mat, float left, float right, float bottom, float top, 
 
 void mat_look_at(Mat4* out_mat, const Vec3& eye, const Vec3& target, const Vec3& up)
 {
-	Vec3 to_target = target - eye;
+	mat_look_forward(out_mat, eye, target - eye, up);
+}
 
-	Vec3 z_axis = normalize(-to_target);
+void mat_look_forward(Mat4* out_mat, const Vec3& eye, const Vec3& forward, const Vec3& up)
+{
+	Vec3 z_axis = normalize(-forward);
 	Vec3 x_axis = normalize(cross(up, z_axis));
 	Vec3 y_axis = cross(z_axis, x_axis);
 

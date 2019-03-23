@@ -35,3 +35,4 @@ Mat4 operator*(const Mat4& a, const Mat4& b);
 
 void mat_ortho(Mat4* out_mat, float left, float right, float bottom, float top, float near, float far);
 void mat_look_at(Mat4* out_mat, const Vec3& eye, const Vec3& target, const Vec3& up);
+void mat_look_forward(Mat4* out_mat, const Vec3& eye, const Vec3& forward, const Vec3& up);
