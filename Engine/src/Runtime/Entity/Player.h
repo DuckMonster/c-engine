@@ -11,6 +11,7 @@ struct Entity_Player
 	Mesh mesh;
 	Material_Standard material;
 	Vec3 position;
+	Quat rotation;
 
 	float vert_velocity = 0.f;
 };

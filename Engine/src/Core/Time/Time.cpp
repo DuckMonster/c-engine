@@ -33,6 +33,9 @@ void time_update_delta()
 
 	frame_delta = time_get_delta(timepoint_last_frame, now);
 	timepoint_last_frame = now;
+
+	if (frame_delta > 0.1f)
+		frame_delta = 0.1f;
 }
 
 float time_delta() { return frame_delta; }

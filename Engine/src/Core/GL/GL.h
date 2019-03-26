@@ -6,6 +6,24 @@
 #include <GL/wglext.h>
 #include <GL/glext.h>
 
+/* Undefine goddamn windows stuff */
+#ifdef NEAR
+#undef NEAR
+#endif
+
+#ifdef near
+#undef near
+#endif
+
+#ifdef FAR
+#undef FAR
+#endif
+
+#ifdef far
+#undef far
+#endif
+/* **** */
+
 #ifdef IMPLEMENT_GL
 
 // Define this macro if the .cpp is IMPLEMENTING GL-functions (GL_Bind.cpp)
@@ -49,6 +67,13 @@ DECL_FUN(PFNGLGETPROGRAMINFOLOGPROC,glGetProgramInfoLog);
 DECL_FUN(PFNGLGETUNIFORMLOCATIONPROC,	glGetUniformLocation);
 DECL_FUN(PFNGLUNIFORM1FPROC,			glUniform1f);
 DECL_FUN(PFNGLUNIFORMMATRIX4FVPROC,		glUniformMatrix4fv);
+
+// Frame buffers
+DECL_FUN(PFNGLCREATEFRAMEBUFFERSPROC,	glCreateFramebuffers);
+DECL_FUN(PFNGLBINDFRAMEBUFFERPROC,		glBindFramebuffer);
+DECL_FUN(PFNGLDELETEFRAMEBUFFERSPROC,	glDeleteFramebuffers);
+DECL_FUN(PFNGLFRAMEBUFFERTEXTURE2DPROC, glFramebufferTexture2D);
+DECL_FUN(PFNGLCHECKFRAMEBUFFERSTATUSPROC, glCheckFramebufferStatus);
 
 /******* WGL Extension Functions *******/
 DECL_FUN(PFNWGLCHOOSEPIXELFORMATARBPROC,	wglChoosePixelFormatARB);

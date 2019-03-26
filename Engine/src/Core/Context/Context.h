@@ -7,6 +7,7 @@ struct Context
 	i32 height;
 
 	bool is_open = false;
+	bool has_focus = false;
 };
 
 extern Context context;

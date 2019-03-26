@@ -28,6 +28,9 @@ void enemy_spawn(const Vec3& position)
 
 void enemies_update()
 {
+	static float time = 0.f;
+	time += time_delta();
+
 	Entity_Player& player = scene.player;
 
 	for(u32 i=0; i<MAX_ENEMIES; ++i)
@@ -37,8 +40,10 @@ void enemies_update()
 		if (!enemy.is_active)
 			continue;
 
-		Vec3 direction = normalize(player.position - enemy.position);
-		enemy.position += direction * 3.f * time_delta();
+		Vec3 to_player = player.position - enemy.position;
+		Vec3 direction = normalize(constrain_to_plane(to_player, Vec3_Z));
+
+		enemy.rotation = quat_from_x(normalize(to_player));
 	}
 }
 
@@ -50,7 +55,7 @@ void enemies_render()
 
 	if (!is_loaded)
 	{
-		mesh_load_file(&mesh, "res/Mesh/player.fbx");
+		mesh_load_file(&mesh, "res/Mesh/cube.fbx");
 		material_load_standard(&material, "res/default.vert", "res/default.frag");
 		is_loaded = true;
 	}
@@ -65,8 +70,7 @@ void enemies_render()
 		if (!enemy.is_active)
 			continue;
 
-		debug_log("Drawing enemy at (%f, %f, %f)", enemy.position.x, enemy.position.y, enemy.position.z);
-
+		mat = quat_to_mat(enemy.rotation);
 		mat[3] = Vec4(enemy.position, 1.f);
 		render_uniform(material.u_model, mat);
 		render_draw_mesh(mesh);

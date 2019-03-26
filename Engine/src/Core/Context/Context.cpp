@@ -38,6 +38,13 @@ struct Win_MouseMove_Params
 	u16 y;
 };
 
+// WM_SIZE
+struct Win_Size_Params
+{
+	u16 width;
+	u16 height;
+};
+
 // Global context
 Context context;
 Window_Data window;
@@ -50,6 +57,9 @@ LRESULT CALLBACK wnd_proc(HWND wnd, UINT msg, WPARAM wparam, LPARAM lparam)
 		// Key down
 		case WM_KEYDOWN:
 		{
+			if (!context.has_focus)
+				break;
+
 			Win_Key_Params* key = (Win_Key_Params*)&lparam;
 
 			// Ignore if this is a repeat key
@@ -69,6 +79,9 @@ LRESULT CALLBACK wnd_proc(HWND wnd, UINT msg, WPARAM wparam, LPARAM lparam)
 		// Key up
 		case WM_KEYUP:
 		{
+			if (!context.has_focus)
+				break;
+
 			Win_Key_Params* key = (Win_Key_Params*)&lparam;
 
 			Key_State& key_state = input.keyboard[(u32)key->scancode];
@@ -80,10 +93,32 @@ LRESULT CALLBACK wnd_proc(HWND wnd, UINT msg, WPARAM wparam, LPARAM lparam)
 		// Mouse move
 		case WM_MOUSEMOVE:
 		{
+			if (!context.has_focus)
+				break;
+
 			Win_MouseMove_Params* mouse = (Win_MouseMove_Params*)&lparam;
 
 			input.mouse.x = mouse->x;
 			input.mouse.y = mouse->y;
+			break;
+		}
+
+		// Focus
+		case WM_ACTIVATE:
+		{
+			context.has_focus = wparam > 0;
+			break;
+		}
+
+		// Size
+		case WM_SIZE:
+		{
+			Win_Size_Params* size = (Win_Size_Params*)&lparam;
+
+			context.width = size->width;
+			context.height = size->height;
+
+			glViewport(0, 0, context.width, context.height);
 			break;
 		}
 

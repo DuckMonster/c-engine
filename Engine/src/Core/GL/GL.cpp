@@ -34,6 +34,12 @@ void load_opengl_functions()
 	IMPORT_FUN(glUniform1f);
 	IMPORT_FUN(glUniformMatrix4fv);
 
+	IMPORT_FUN(glCreateFramebuffers);
+	IMPORT_FUN(glBindFramebuffer);
+	IMPORT_FUN(glDeleteFramebuffers);
+	IMPORT_FUN(glFramebufferTexture2D);
+	IMPORT_FUN(glCheckFramebufferStatus);
+
 	IMPORT_FUN(wglChoosePixelFormatARB);
 	IMPORT_FUN(wglCreateContextAttribsARB);
 	IMPORT_FUN(wglSwapIntervalEXT);

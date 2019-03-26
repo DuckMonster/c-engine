@@ -1,8 +1,32 @@
 #include "Render.h"
 #include <cstring>
 #include "Core/Time/Time.h"
+#include "Core/Context/Context.h"
+#include "FrameBuffer.h"
 
 Render_Queue render_queue;
+
+Frame_Buffer get_render_framebuffer()
+{
+	static Frame_Buffer buffer;
+	static bool loaded = false;
+
+	if (!loaded)
+	{
+		int width = context.width / 4;
+		int height = context.height / 4;
+
+		framebuffer_create(&buffer, width, height);
+		framebuffer_add_color_texture(&buffer);
+		framebuffer_add_depth_texture(&buffer);
+
+		assert(framebuffer_is_complete(&buffer));
+
+		loaded = true;
+	}
+
+	return buffer;
+}
 
 GLuint get_immediate_vao()
 {
@@ -38,15 +62,15 @@ GLuint get_immediate_vbo(u32 index)
 
 		glBindBuffer(GL_ARRAY_BUFFER, vbo[1]);
 		glEnableVertexAttribArray(1);
-		glVertexAttribPointer(1, 3, GL_FLOAT, false, 0, 0);
+		glVertexAttribPointer(1, 2, GL_FLOAT, false, 0, 0);
 
 		glBindBuffer(GL_ARRAY_BUFFER, vbo[2]);
 		glEnableVertexAttribArray(2);
-		glVertexAttribPointer(2, 2, GL_FLOAT, false, 0, 0);
+		glVertexAttribPointer(2, 3, GL_FLOAT, false, 0, 0);
 
 		glBindBuffer(GL_ARRAY_BUFFER, vbo[3]);
 		glEnableVertexAttribArray(3);
-		glVertexAttribPointer(3, 3, GL_FLOAT, false, 0, 0);
+		glVertexAttribPointer(3, 4, GL_FLOAT, false, 0, 0);
 
 		glBindVertexArray(0);
 		loaded = true;
@@ -159,6 +183,9 @@ void render_flush()
 	Mat4* current_vp = nullptr;
 	float time = time_duration();
 
+	Frame_Buffer framebuffer = get_render_framebuffer();
+	framebuffer_bind(&framebuffer);
+
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glEnable(GL_DEPTH_TEST);
 
@@ -255,6 +282,50 @@ void render_flush()
 			}
 		}
 	}
+
+	framebuffer_reset();
+
+	glClearColor(0.1f, 0.f, 0.f, 1.f);
+	glDisable(GL_DEPTH_TEST);
+	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+
+	// TEMP VAO
+	float quad_verts[] = {
+		-1.f, -1.f, 0.f,
+		1.f, -1.f, 0.f,
+		1.f, 1.f, 0.f,
+		-1.f, 1.f, 0.f
+	};
+	float quad_uvs[] = {
+		0.f, 0.f,
+		1.f, 0.f,
+		1.f, 1.f,
+		0.f, 1.f
+	};
+
+	glBindVertexArray(get_immediate_vao());
+
+	glBindBuffer(GL_ARRAY_BUFFER, get_immediate_vbo(0));
+	glBufferData(GL_ARRAY_BUFFER, sizeof(quad_verts), quad_verts, GL_STATIC_DRAW);
+
+	glBindBuffer(GL_ARRAY_BUFFER, get_immediate_vbo(1));
+	glBufferData(GL_ARRAY_BUFFER, sizeof(quad_uvs), quad_uvs, GL_STATIC_DRAW);
+
+	// Draw the framebuffer texture to screen
+	static Material full_quad_material;
+	static bool full_quad_material_loaded = false;
+
+	if (!full_quad_material_loaded)
+	{
+		material_load(&full_quad_material, "res/full_quad.vert", "res/full_quad.frag");
+		full_quad_material_loaded = true;
+	}
+
+	glBindTexture(GL_TEXTURE_2D, framebuffer.textures[0].handle);
+	glUseProgram(full_quad_material.program);
+	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+
+	glBindVertexArray(0);
 
 	assert(render_queue.pointer == size);
 }

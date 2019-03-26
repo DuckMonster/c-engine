@@ -1,6 +1,5 @@
 #pragma once
 #include "Entity.h"
-#define MAX_ENEMIES 10
 
 struct Entity_Enemy
 {
@@ -9,6 +8,7 @@ struct Entity_Enemy
 
 	bool is_active = false;
 	Vec3 position;
+	Quat rotation;
 };
 
 void enemies_init();

@@ -4,6 +4,7 @@
 #include "Core/Types.h"
 #include "Core/Math/Vector.h"
 #include "Core/Math/Matrix.h"
+#include "Core/Math/Quaternion.h"
 #include "Core/Debug/Assert.h"
 #include "Core/Debug/Log.h"
 #include "Core/Time/Time.h"

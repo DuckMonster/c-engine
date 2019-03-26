@@ -11,7 +11,7 @@ void game_init()
 	// Initialize player
 	player_init(&scene.player);
 	enemies_init();
-	enemy_spawn(Vec3(5.f));
+	enemy_spawn(Vec3(5.f, 0.f, 2.f));
 	material_load_standard(&floor_mat, "res/floor.vert", "res/floor.frag");
 }
 

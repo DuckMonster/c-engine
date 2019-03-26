@@ -1,13 +1,21 @@
 #pragma once
 #include <math.h>
 
+struct Vec3;
+struct Vec4;
+
 struct Vec2
 {
 	Vec2() : x(0.f), y(0.f) {}
 	Vec2(float v) : x(v), y(v) {}
 	Vec2(float x, float y) : x(x), y(y) {}
+	inline Vec2(const Vec3& v);
+	inline Vec2(const Vec4& v);
+
 	float x;
 	float y;
+
+	Vec2& operator=(const Vec2& other) { x = other.x; y = other.y; return *this; }
 };
 
 struct Vec3
@@ -16,9 +24,13 @@ struct Vec3
 	Vec3(float v) : x(v), y(v), z(v) {}
 	Vec3(float x, float y, float z) : x(x), y(y), z(z) {}
 	Vec3(const Vec2& vec, float z) : x(vec.x), y(vec.y), z(z) {}
+	inline Vec3(const Vec4& v);
+
 	float x;
 	float y;
 	float z;
+
+	Vec3& operator=(const Vec3& other) { x = other.x; y = other.y; z = other.z; return *this; }
 };
 
 struct Vec4
@@ -28,12 +40,21 @@ struct Vec4
 	Vec4(float x, float y, float z, float w) : x(x), y(y), z(z), w(w) {}
 	Vec4(const Vec2& vec, float z, float w) : x(vec.x), y(vec.y), z(z), w(w) {}
 	Vec4(const Vec3& vec, float w) : x(vec.x), y(vec.y), z(vec.z), w(w) {}
+	Vec4(const Vec4& v) : x(v.x), y(v.y), z(v.z), w(v.w) {}
 
 	float x;
 	float y;
 	float z;
 	float w;
+
+	Vec4& operator=(const Vec4& other) { x = other.x; y = other.y; z = other.z; w = other.w; return *this; }
 };
+
+// Conversion operators
+inline Vec2::Vec2(const Vec3& v) : x(v.x), y(v.y) {}
+inline Vec2::Vec2(const Vec4& v) : x(v.x), y(v.y) {}
+
+inline Vec3::Vec3(const Vec4& v) : x(v.x), y(v.y), z(v.z) {}
 
 // Operators
 inline Vec2 operator+(const Vec2& a, const Vec2& b) { return Vec2(a.x + b.x, a.y + b.y); }
@@ -155,6 +176,16 @@ inline Vec3 cross(const Vec3& a, const Vec3& b)
 		a.z * b.x - a.x * b.z,
 		a.x * b.y - a.y * b.x
 	);
+}
+
+inline Vec3 constrain_to_plane(const Vec3& vec, const Vec3& plane)
+{
+	return vec - plane * dot(vec, plane);
+}
+
+inline Vec3 constrain_to_direction(const Vec3& vec, const Vec3& direction)
+{
+	return direction * dot(vec, direction);
 }
 
 // Vector constants
