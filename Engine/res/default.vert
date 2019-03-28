@@ -20,5 +20,5 @@ void main()
 	pos.z = a_Position.z * c_time + a_Position.x * s_time;
 
 	gl_Position = u_ViewProjection * u_Model * vec4(a_Position, 1.0);
-	f_Normal = a_Normal;
+	f_Normal = (u_Model * vec4(a_Normal, 0.0)).xyz;
 }

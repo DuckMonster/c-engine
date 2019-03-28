@@ -11,6 +11,23 @@ Quat operator*(const Quat& a, const Quat& b)
 	);
 }
 
+Vec3 operator*(const Quat& q, const Vec3& v)
+{
+	// http://people.csail.mit.edu/bkph/articles/Quaternions.pdf
+	// V' = V + 2w(Q x V) + (2Q x (Q x V))
+	// refactor:
+	// V' = V + w(2(Q x V)) + (Q x (2(Q x V)))
+	// T = 2(Q x V);
+	// V' = V + w*(T) + (Q x T)
+
+	const Vec3 q_v(q.x, q.y, q.z);
+	const Vec3 u = cross(q_v, v);
+	const Vec3 a = cross(q_v, u) * 2.f;
+	const Vec3 b = u * 2.f * q.w;
+
+	return v + a + b;
+}
+
 Mat4 quat_to_mat(const Quat& q)
 {
 	// Copied from Unreal! Read up on this!
@@ -103,4 +120,19 @@ Quat quat_from_x(const Vec3& x)
 	);
 
 	return mat_to_quat(mat);
+}
+
+Vec3 quat_x(const Quat& q)
+{
+	return q * Vec3_X;
+}
+
+Vec3 quat_y(const Quat& q)
+{
+	return q * Vec3_Y;
+}
+
+Vec3 quat_z(const Quat& q)
+{
+	return q * Vec3_Z;
 }

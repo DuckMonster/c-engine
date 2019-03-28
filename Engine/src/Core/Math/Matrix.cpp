@@ -75,6 +75,18 @@ void mat_ortho(Mat4* out_mat, float left, float right, float bottom, float top, 
 	);
 }
 
+void mat_perspective(Mat4* out_mat, float fov, float aspect, float near, float far)
+{
+	// Look this up :(
+	const float tan_half_fov = tan(fov / 2.f);
+	*out_mat = Mat4(
+		1.f / (aspect * tan_half_fov),					0.f, 0.f, 0.f,
+		0.f, 1.f / tan_half_fov,						0.f, 0.f,
+		0.f, 0.f, -((far + near) / (far - near)),		-1.f,
+		0.f, 0.f, -((2.f * far * near) / (far - near)),	0.f
+	);
+}
+
 void mat_look_at(Mat4* out_mat, const Vec3& eye, const Vec3& target, const Vec3& up)
 {
 	mat_look_forward(out_mat, eye, target - eye, up);

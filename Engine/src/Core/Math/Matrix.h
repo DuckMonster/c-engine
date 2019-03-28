@@ -36,6 +36,7 @@ Vec4 operator*(const Mat4& m, const Vec4& v);
 Vec3 operator*(const Mat4& m, const Vec3& v);
 
 void mat_ortho(Mat4* out_mat, float left, float right, float bottom, float top, float near, float far);
+void mat_perspective(Mat4* out_mat, float fov, float aspect, float near, float far);
 void mat_look_at(Mat4* out_mat, const Vec3& eye, const Vec3& target, const Vec3& up);
 void mat_look_forward(Mat4* out_mat, const Vec3& eye, const Vec3& forward, const Vec3& up);
 Mat4 inverse(const Mat4& mat);

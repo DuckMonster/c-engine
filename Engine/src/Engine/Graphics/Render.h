@@ -15,6 +15,9 @@ enum class Render_Entry_Type : u8
 	Uniform_1F,
 	Uniform_Mat,
 
+	/** Settings for depth testing and writing **/
+	Depth_Enable,
+
 	/** Settings global render variables **/
 	Set_VP,
 
@@ -75,6 +78,9 @@ void render_begin_material_standard(const Material_Standard& material);
 void render_uniform(GLuint location, float value);
 // Set a materix uniform
 void render_uniform(GLuint location, const Mat4& value);
+
+// Set if depth testing should be enabled or not
+void render_depth_enable(bool enabled);
 
 // Set the global ViewProjection matrix for rendering from now on
 void render_set_vp(const Mat4& vp);

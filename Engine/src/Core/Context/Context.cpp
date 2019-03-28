@@ -70,7 +70,7 @@ LRESULT CALLBACK wnd_proc(HWND wnd, UINT msg, WPARAM wparam, LPARAM lparam)
 			if (key->scancode == (u32)Key::Escape)
 				SendMessage(wnd, WM_CLOSE, 0, 0);
 
-			Key_State& key_state = input.keyboard[(u32)key->scancode];
+			Action_State& key_state = input.keyboard[(u32)key->scancode];
 			key_state.pressed = true;
 			key_state.frame_num = input.frame_num;
 			break;
@@ -84,7 +84,7 @@ LRESULT CALLBACK wnd_proc(HWND wnd, UINT msg, WPARAM wparam, LPARAM lparam)
 
 			Win_Key_Params* key = (Win_Key_Params*)&lparam;
 
-			Key_State& key_state = input.keyboard[(u32)key->scancode];
+			Action_State& key_state = input.keyboard[(u32)key->scancode];
 			key_state.pressed = false;
 			key_state.frame_num = input.frame_num;
 			break;
@@ -96,10 +96,85 @@ LRESULT CALLBACK wnd_proc(HWND wnd, UINT msg, WPARAM wparam, LPARAM lparam)
 			if (!context.has_focus)
 				break;
 
+			// Calculate delta first, since we want it even if the cursor is locked
 			Win_MouseMove_Params* mouse = (Win_MouseMove_Params*)&lparam;
+			input.mouse.delta_x += mouse->x - input.mouse.x;
+			input.mouse.delta_y += mouse->y - input.mouse.y;
+
+			if (context.cursor_lock)
+			{
+				// Convert last mouse position from client to screen
+				POINT mouse_point;
+				mouse_point.x = input.mouse.x;
+				mouse_point.y = input.mouse.y;
+
+				ClientToScreen(wnd, &mouse_point);
+
+				// And lock it there!
+				SetCursorPos(mouse_point.x, mouse_point.y);
+				break;
+			}
 
 			input.mouse.x = mouse->x;
 			input.mouse.y = mouse->y;
+			break;
+		}
+
+		/*** MOUSE BUTTON HELL ***/
+		case WM_LBUTTONDOWN:
+		{
+			Action_State& state = input.mouse.buttons[(u32)Mouse_Btn::Left];
+			state.pressed = true;
+			state.frame_num = input.frame_num;
+			break;
+		}
+		case WM_LBUTTONUP:
+		{
+			Action_State& state = input.mouse.buttons[(u32)Mouse_Btn::Left];
+			state.pressed = false;
+			state.frame_num = input.frame_num;
+			break;
+		}
+		case WM_RBUTTONDOWN:
+		{
+			Action_State& state = input.mouse.buttons[(u32)Mouse_Btn::Right];
+			state.pressed = true;
+			state.frame_num = input.frame_num;
+			break;
+		}
+		case WM_RBUTTONUP:
+		{
+			Action_State& state = input.mouse.buttons[(u32)Mouse_Btn::Right];
+			state.pressed = false;
+			state.frame_num = input.frame_num;
+			break;
+		}
+		case WM_MBUTTONDOWN:
+		{
+			Action_State& state = input.mouse.buttons[(u32)Mouse_Btn::Middle];
+			state.pressed = true;
+			state.frame_num = input.frame_num;
+			break;
+		}
+		case WM_MBUTTONUP:
+		{
+			Action_State& state = input.mouse.buttons[(u32)Mouse_Btn::Middle];
+			state.pressed = false;
+			state.frame_num = input.frame_num;
+			break;
+		}
+		case WM_XBUTTONDOWN:
+		{
+			Action_State& state = input.mouse.buttons[(u32)(wparam == 1 ? Mouse_Btn::X1 : Mouse_Btn::X2)];
+			state.pressed = true;
+			state.frame_num = input.frame_num;
+			break;
+		}
+		case WM_XBUTTONUP:
+		{
+			Action_State& state = input.mouse.buttons[(u32)(wparam == 1 ? Mouse_Btn::X1 : Mouse_Btn::X2)];
+			state.pressed = false;
+			state.frame_num = input.frame_num;
 			break;
 		}
 
@@ -107,6 +182,10 @@ LRESULT CALLBACK wnd_proc(HWND wnd, UINT msg, WPARAM wparam, LPARAM lparam)
 		case WM_ACTIVATE:
 		{
 			context.has_focus = wparam > 0;
+
+			if (context.cursor_hide)
+				ShowCursor(!context.has_focus);
+
 			break;
 		}
 
@@ -248,6 +327,8 @@ void context_begin_frame()
 {
 	Sleep(1);
 	input.frame_num++;
+	input.mouse.delta_x = 0;
+	input.mouse.delta_y = 0;
 
 	// Read events
 	MSG msg = { 0 };
@@ -261,4 +342,26 @@ void context_begin_frame()
 void context_end_frame()
 {
 	SwapBuffers(window.context);
+}
+
+void context_hide_cursor()
+{
+	context.cursor_hide = true;
+	ShowCursor(false);
+}
+
+void context_show_cursor()
+{
+	context.cursor_hide = false;
+	ShowCursor(true);
+}
+
+void context_lock_cursor()
+{
+	context.cursor_lock = true;
+}
+
+void context_unlock_cursor()
+{
+	context.cursor_lock = false;
 }

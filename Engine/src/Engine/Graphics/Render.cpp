@@ -135,6 +135,13 @@ void render_uniform(GLuint location, const Mat4& value)
 	render_push(uniform);
 }
 
+// SET DEPTH
+void render_depth_enable(bool enabled)
+{
+	render_push_type(Render_Entry_Type::Depth_Enable);
+	render_push(enabled);
+}
+
 // SET VP
 void render_set_vp(const Mat4& vp)
 {
@@ -265,6 +272,23 @@ void render_flush()
 			{
 				Render_Uniform_Mat* uniform = render_alloc(Render_Uniform_Mat);
 				glUniformMatrix4fv(uniform->location, 1, false, (float*)&uniform->value);
+				break;
+			}
+
+			/** DEPTH TESTING AND WRITING */
+			case Render_Entry_Type::Depth_Enable:
+			{
+				bool enabled = *render_alloc(bool);
+				if (enabled)
+				{
+					glEnable(GL_DEPTH_TEST);
+					debug_log("enabled depth");
+				}
+				else
+				{
+					glDisable(GL_DEPTH_TEST);
+					debug_log("disabled depth");
+				}
 				break;
 			}
 

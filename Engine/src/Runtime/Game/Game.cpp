@@ -4,7 +4,11 @@
 #include "Runtime/Scene/Scene.h"
 
 Game game;
-Material_Standard floor_mat;
+
+namespace
+{
+	Material_Standard floor_mat;
+}
 
 void game_init()
 {

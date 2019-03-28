@@ -7,11 +7,11 @@ struct Entity_Player
 {
 	// Type
 	const Entity_Type type = Entity_Type::Player;
+	Vec3 position;
+	Quat rotation;
 
 	Mesh mesh;
 	Material_Standard material;
-	Vec3 position;
-	Quat rotation;
 
 	float vert_velocity = 0.f;
 };

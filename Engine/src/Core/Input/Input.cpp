@@ -29,3 +29,31 @@ int input_mouse_y()
 {
 	return input.mouse.y;
 }
+
+int input_mouse_delta_x()
+{
+	return input.mouse.delta_x;
+}
+int input_mouse_delta_y()
+{
+	return input.mouse.delta_y;
+}
+
+bool input_mouse_button_down(Mouse_Btn btn)
+{
+	return input.mouse.buttons[(u32)btn].pressed;
+}
+
+bool input_mouse_button_pressed(Mouse_Btn btn)
+{
+	return
+		input.mouse.buttons[(u32)btn].pressed &&
+		input.mouse.buttons[(u32)btn].frame_num == input.frame_num;
+}
+
+bool input_mouse_button_released(Mouse_Btn btn)
+{
+	return
+		!input.mouse.buttons[(u32)btn].pressed &&
+		input.mouse.buttons[(u32)btn].frame_num == input.frame_num;
+}

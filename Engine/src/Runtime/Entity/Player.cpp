@@ -16,7 +16,6 @@ void player_update(Entity_Player* player)
 {
 	// Get mouse aim position
 	Ray mouse_ray = get_mouse_ray(&scene.camera);
-	debug_log("{ %f, %f, %f }", mouse_ray.origin.x, mouse_ray.origin.y, mouse_ray.origin.z);
 	Vec3 mouse_pos = ray_project_plane(mouse_ray, Vec3_Zero, Vec3_Z);
 
 	Vec3 to_mouse = normalize(mouse_pos - player->position);
@@ -28,7 +27,7 @@ void player_update(Entity_Player* player)
 	move_input.y += input_key_down(Key::W) ? 1.f : 0.f;
 	move_input.y -= input_key_down(Key::S) ? 1.f : 0.f;
 
-	Vec3 forward = normalize(constrain_to_plane(scene.camera.direction, Vec3_Z));
+	Vec3 forward = normalize(constrain_to_plane(quat_x(scene.camera.rotation), Vec3_Z));
 	Vec3 right = cross(forward, Vec3_Z);
 
 	player->position += right * move_input.x * 5.f * time_delta();

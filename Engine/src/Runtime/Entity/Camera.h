@@ -6,9 +6,9 @@ struct Entity_Camera
 {
 	// Entity type
 	const Entity_Type type = Entity_Type::Camera;
-
 	Vec3 position;
-	Vec3 direction;
+	Quat rotation;
+
 	float offset_angle = 0.f;
 };
 
