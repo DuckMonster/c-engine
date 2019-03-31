@@ -660,8 +660,6 @@ Dat_Array* dat_get_array(Dat_Object* root, const char* expr)
 	return (Dat_Array*)node;
 }
 
-void value_parse(Dat_Value_Raw* value, )
-
 bool dat_read(Dat_Object* root, const char* expr, int* value)
 {
 	Dat_Node* node = eval_expr(root, expr, strlen(expr));
@@ -677,7 +675,7 @@ bool dat_read(Dat_Object* root, const char* expr, int* value)
 
 bool dat_array_read(Dat_Array* array, int index, int* value)
 {
-	Dat_Value_Raw* node_value = (Dat_Value_Raw*)node;
-	sscanf(node_value->str, "%d", value);
+	//Dat_Value_Raw* node_value = (Dat_Value_Raw*)node;
+	//sscanf(node_value->str, "%d", value);
 	return true;
 }
