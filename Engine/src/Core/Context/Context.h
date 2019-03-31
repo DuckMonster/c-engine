@@ -26,3 +26,5 @@ void context_show_cursor();
 
 void context_lock_cursor();
 void context_unlock_cursor();
+
+void context_focus();

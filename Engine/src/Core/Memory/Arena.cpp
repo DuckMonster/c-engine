@@ -1,6 +1,11 @@
 #include "Arena.h"
 #include <stdlib.h>
 
+void arena_init(Mem_Arena* arena)
+{
+	
+}
+
 Arena_Buffer* alloc_buffer(u32 size)
 {
 	const u32 buffer_size = sizeof(Arena_Buffer);

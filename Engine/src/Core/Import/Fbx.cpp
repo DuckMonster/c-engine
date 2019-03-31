@@ -203,6 +203,8 @@ Fbx_Mesh* fbx_process_mesh(Fbx_Node* mesh_node, Mem_Arena* mem_arena)
 Fbx_Scene* fbx_import(const char* path)
 {
 	Fbx_Scene* scene = new Fbx_Scene();
+	arena_init(&scene->mem_arena);
+
 	Fbx_Node* root = fbx_parse_node_tree(path, &scene->mem_arena);
 
 	Fbx_Node* objects = fbx_find_child(root, "Objects");
