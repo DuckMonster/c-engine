@@ -1,6 +1,6 @@
 #include "Context.h"
-#include <windows.h>
 #include <stdio.h>
+#include "Core/Windows/WinMin.h"
 #include "Core/GL/GL.h"
 #include "Core/Input/Input.h"
 
@@ -325,7 +325,6 @@ void context_close()
 
 void context_begin_frame()
 {
-	Sleep(1);
 	input.frame_num++;
 	input.mouse.delta_x = 0;
 	input.mouse.delta_y = 0;
@@ -347,6 +346,7 @@ void context_focus()
 void context_end_frame()
 {
 	SwapBuffers(window.context);
+	Sleep(1);
 }
 
 void context_hide_cursor()
@@ -369,4 +369,13 @@ void context_lock_cursor()
 void context_unlock_cursor()
 {
 	context.cursor_lock = false;
+}
+
+void context_set_topmost(bool topmost)
+{
+	SetWindowPos(
+		window.handle, topmost ? HWND_TOPMOST : HWND_NOTOPMOST,
+		0, 0, 0, 0,
+		SWP_NOMOVE | SWP_NOSIZE
+	);
 }

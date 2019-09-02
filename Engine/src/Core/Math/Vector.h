@@ -16,6 +16,7 @@ struct Vec2
 	float y;
 
 	Vec2& operator=(const Vec2& other) { x = other.x; y = other.y; return *this; }
+	float& operator[](u32 index) { return ((float*)this)[index]; }
 };
 
 struct Vec3
@@ -31,6 +32,7 @@ struct Vec3
 	float z;
 
 	Vec3& operator=(const Vec3& other) { x = other.x; y = other.y; z = other.z; return *this; }
+	float& operator[](u32 index) { return ((float*)this)[index]; }
 };
 
 struct Vec4
@@ -48,6 +50,7 @@ struct Vec4
 	float w;
 
 	Vec4& operator=(const Vec4& other) { x = other.x; y = other.y; z = other.z; w = other.w; return *this; }
+	float& operator[](u32 index) { return ((float*)this)[index]; }
 };
 
 // Conversion operators
@@ -110,46 +113,72 @@ inline Vec2 operator-(const Vec2& v) { return Vec2(-v.x, -v.y); }
 inline Vec3 operator-(const Vec3& v) { return Vec3(-v.x, -v.y, -v.z); }
 inline Vec4 operator-(const Vec4& v) { return Vec4(-v.x, -v.y, -v.z, -v.w); }
 
+inline bool nearly_zero(float v, float margin = 0.0001f)
+{
+	return v < margin && v > -margin;
+}
+inline bool nearly_zero(const Vec2& v, float margin = 0.0001f)
+{
+	return
+		nearly_zero(v.x, margin) &&
+		nearly_zero(v.y, margin);
+}
+inline bool nearly_zero(const Vec3& v, float margin = 0.0001f)
+{
+	return
+		nearly_zero(v.x, margin) &&
+		nearly_zero(v.y, margin) &&
+		nearly_zero(v.z, margin);
+}
+inline bool nearly_zero(const Vec4& v, float margin = 0.0001f)
+{
+	return
+		nearly_zero(v.x, margin) &&
+		nearly_zero(v.y, margin) &&
+		nearly_zero(v.z, margin) &&
+		nearly_zero(v.w, margin);
+}
+
 inline Vec2 normalize(const Vec2& v)
 {
-	float len = sqrt(v.x * v.x + v.y * v.y);
+	float len = sqrtf(v.x * v.x + v.y * v.y);
 	return v / len;
 }
 inline Vec3 normalize(const Vec3& v)
 {
-	float len = sqrt(v.x * v.x + v.y * v.y + v.z * v.z);
+	float len = sqrtf(v.x * v.x + v.y * v.y + v.z * v.z);
 	return v / len;
 }
 inline Vec4 normalize(const Vec4& v)
 {
-	float len = sqrt(v.x * v.x + v.y * v.y + v.z * v.z + v.w * v.w);
+	float len = sqrtf(v.x * v.x + v.y * v.y + v.z * v.z + v.w * v.w);
 	return v / len;
 }
 
 inline float length(const Vec2& v)
 {
-	return sqrt(v.x * v.x + v.y * v.y);
+	return sqrtf(v.x * v.x + v.y * v.y);
 }
 inline float length(const Vec3& v)
 {
-	return sqrt(v.x * v.x + v.y * v.y + v.z * v.z);
+	return sqrtf(v.x * v.x + v.y * v.y + v.z * v.z);
 }
 inline float length(const Vec4& v)
 {
-	return sqrt(v.x * v.x + v.y * v.y + v.z * v.z + v.w * v.w);
+	return sqrtf(v.x * v.x + v.y * v.y + v.z * v.z + v.w * v.w);
 }
 
 inline float length_sqrd(const Vec2& v)
 {
-	return sqrt(v.x * v.x + v.y * v.y);
+	return v.x * v.x + v.y * v.y;
 }
 inline float length_sqrd(const Vec3& v)
 {
-	return sqrt(v.x * v.x + v.y * v.y + v.z * v.z);
+	return v.x * v.x + v.y * v.y + v.z * v.z;
 }
 inline float length_sqrd(const Vec4& v)
 {
-	return sqrt(v.x * v.x + v.y * v.y + v.z * v.z + v.w * v.w);
+	return v.x * v.x + v.y * v.y + v.z * v.z + v.w * v.w;
 }
 
 inline float dot(const Vec2& a, const Vec2& b)
@@ -192,14 +221,17 @@ inline Vec3 constrain_to_direction(const Vec3& vec, const Vec3& direction)
 const Vec2 Vec2_X = Vec2(1.f, 0.f);
 const Vec2 Vec2_Y = Vec2(0.f, 1.f);
 const Vec2 Vec2_Zero = Vec2(0.f, 0.f);
+const Vec2 Vec2_One = Vec2(1.f, 1.f);
 
 const Vec3 Vec3_X = Vec3(1.f, 0.f, 0.f);
 const Vec3 Vec3_Y = Vec3(0.f, 1.f, 0.f);
 const Vec3 Vec3_Z = Vec3(0.f, 0.f, 1.f);
 const Vec3 Vec3_Zero = Vec3(0.f, 0.f, 0.f);
+const Vec3 Vec3_One = Vec3(1.f, 1.f, 1.f);
 
 const Vec4 Vec4_X = Vec4(1.f, 0.f, 0.f, 0.f);
 const Vec4 Vec4_Y = Vec4(0.f, 1.f, 0.f, 0.f);
 const Vec4 Vec4_Z = Vec4(0.f, 0.f, 1.f, 0.f);
 const Vec4 Vec4_W = Vec4(0.f, 0.f, 0.f, 1.f);
 const Vec4 Vec4_Zero = Vec4(0.f, 0.f, 0.f, 0.f);
+const Vec4 Vec4_One = Vec4(1.f, 1.f, 1.f, 1.f);

@@ -14,6 +14,7 @@ struct Mouse_State
 	int y;
 	int delta_x;
 	int delta_y;
+	int scroll_delta;
 
 	Action_State buttons[(u32)Mouse_Btn::MAX];
 };

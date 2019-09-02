@@ -1,6 +1,8 @@
 #pragma once
 #include "Vector.h"
 
+struct Quat;
+
 struct Mat4
 {
 	Mat4() :
@@ -35,8 +37,11 @@ Mat4 operator*(const Mat4& a, const Mat4& b);
 Vec4 operator*(const Mat4& m, const Vec4& v);
 Vec3 operator*(const Mat4& m, const Vec3& v);
 
-void mat_ortho(Mat4* out_mat, float left, float right, float bottom, float top, float near, float far);
-void mat_perspective(Mat4* out_mat, float fov, float aspect, float near, float far);
-void mat_look_at(Mat4* out_mat, const Vec3& eye, const Vec3& target, const Vec3& up);
-void mat_look_forward(Mat4* out_mat, const Vec3& eye, const Vec3& forward, const Vec3& up);
+Mat4 mat_ortho(float left, float right, float bottom, float top, float near, float far);
+Mat4 mat_perspective(float fov, float aspect, float near, float far);
+Mat4 mat_look_at(const Vec3& eye, const Vec3& target, const Vec3& up);
+Mat4 mat_look_forward(const Vec3& eye, const Vec3& forward, const Vec3& up);
 Mat4 inverse(const Mat4& mat);
+
+Mat4 mat_position_rotation(const Vec3& position, const Quat& rotation);
+Mat4 mat_position_scale(const Vec3& position, const Vec3& scale);

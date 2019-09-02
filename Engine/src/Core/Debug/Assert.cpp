@@ -1,7 +1,5 @@
 #include "Assert.h"
-#define WIN_LEAN_AND_MEAN
-#include <windows.h>
-#undef WIN_LEAN_AND_MEAN
+#include "Core/Windows/WinMin.h"
 #include <stdio.h>
 #include <cstdarg>
 
@@ -14,7 +12,7 @@ namespace assert_helpers
 
 	bool trigger_assert(const char* expr, const char* file, u32 line)
 	{
-		error_box("Assert Failed", "%s (%d)\n\n%s", file, line, expr);
+		message_box("Assert Failed", "%s (%d)\n\n%s", file, line, expr);
 		return false;
 	}
 
@@ -29,10 +27,10 @@ namespace assert_helpers
 
 		vsprintf(msg_buffer, format, vl);
 		va_end(vl);
-		error_box("ERROR", "%s (%d)\n\n%s", file, line, msg_buffer);
+		message_box("ERROR", "%s (%d)\n\n%s", file, line, msg_buffer);
 	}
 
-	void error_box(const char* title, const char* format, ...)
+	void trigger_msg_box(const char* file, u32 line, const char* title, const char* format, ...)
 	{
 		va_list vl;
 		va_start(vl, format);
@@ -43,7 +41,21 @@ namespace assert_helpers
 
 		vsprintf(msg_buffer, format, vl);
 		va_end(vl);
-		MessageBox(NULL, msg_buffer, title, MB_OK);
+		message_box(title, "%s (%d)\n\n%s", file, line, msg_buffer);
+	}
+
+	void message_box(const char* title, const char* format, ...)
+	{
+		va_list vl;
+		va_start(vl, format);
+		int msg_length = vsnprintf(nullptr, 0, format, vl);
+
+		char* msg_buffer = (char*)malloc(msg_length + 1);
+		defer { free(msg_buffer); };
+
+		vsprintf(msg_buffer, format, vl);
+		va_end(vl);
+		MessageBox(NULL, msg_buffer, title, MB_OK | MB_SYSTEMMODAL);
 	}
 
 	void error_exit()

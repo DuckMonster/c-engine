@@ -1,6 +1,6 @@
 #include "Mesh.h"
 #include "Core/Import/Fbx.h"
-#include "Core/Memory/Mem.h"
+#include "Engine/Resource/Resource.h"
 
 void mesh_load_triangle(Mesh* mesh)
 {
@@ -25,14 +25,27 @@ void mesh_load_triangle(Mesh* mesh)
 	mesh->draw_count = 3;
 }
 
-void mesh_load_file(Mesh* mesh, const char* path)
+void mesh_res_create(Resource* resource)
 {
-	Fbx_Scene* scene = fbx_import(path);
+	Mesh* mesh = (Mesh*)resource->ptr;
+	if (mesh == nullptr)
+	{
+		mesh = new Mesh();
+		resource->ptr = mesh;
+	}
+
+	Fbx_Scene* scene = fbx_import(resource->path);
+	if (scene == nullptr)
+	{
+		return;
+	}
+
 	Fbx_Mesh& f_mesh = scene->meshes[0];
 
 	glGenVertexArrays(1, &mesh->vao);
 	glBindVertexArray(mesh->vao);
 
+	if (f_mesh.positions != nullptr)
 	{
 		GLuint& vbo = mesh->buffers[mesh->num_buffers++];
 		glGenBuffers(1, &vbo);
@@ -43,6 +56,7 @@ void mesh_load_file(Mesh* mesh, const char* path)
 		glVertexAttribPointer(0, 3, GL_FLOAT, false, 0, 0);
 	}
 
+	if (f_mesh.normals != nullptr)
 	{
 		GLuint& vbo = mesh->buffers[mesh->num_buffers++];
 		glGenBuffers(1, &vbo);
@@ -51,6 +65,17 @@ void mesh_load_file(Mesh* mesh, const char* path)
 
 		glEnableVertexAttribArray(1);
 		glVertexAttribPointer(1, 3, GL_FLOAT, false, 0, 0);
+	}
+
+	if (f_mesh.uvs != nullptr)
+	{
+		GLuint& vbo = mesh->buffers[mesh->num_buffers++];
+		glGenBuffers(1, &vbo);
+		glBindBuffer(GL_ARRAY_BUFFER, vbo);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(Vec2) * f_mesh.num_verts, f_mesh.uvs, GL_STATIC_DRAW);
+
+		glEnableVertexAttribArray(2);
+		glVertexAttribPointer(2, 2, GL_FLOAT, false, 0, 0);
 	}
 
 	{
@@ -89,8 +114,25 @@ void mesh_load_file(Mesh* mesh, const char* path)
 	}
 
 	fbx_free(scene);
-
 	glBindVertexArray(0);
+}
+
+void mesh_res_destroy(Resource* resource)
+{
+	Mesh* mesh = (Mesh*)resource->ptr;
+	glDeleteVertexArrays(1, &mesh->vao);
+	glDeleteBuffers(mesh->num_buffers, mesh->buffers);
+
+	mesh->num_buffers = 0;
+	mesh->use_elements = false;
+	mesh->draw_count = 0;
+}
+
+const Mesh* mesh_load(const char* path)
+{
+	// Load resource
+	Resource* resource =  resource_load(path, mesh_res_create, mesh_res_destroy);
+	return (Mesh*)resource->ptr;
 }
 
 void mesh_load_verts(Mesh* mesh, void* v_ptr, u32 size)
@@ -107,7 +149,7 @@ void mesh_load_verts(Mesh* mesh, void* v_ptr, u32 size)
 
 	glBindVertexArray(0);
 	mesh->num_buffers = 1;
-	mesh->draw_count = 3;
+	mesh->draw_count = (size / sizeof(float)) / 3;
 }
 
 void mesh_free(Mesh* mesh)

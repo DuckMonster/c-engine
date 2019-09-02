@@ -1,6 +1,7 @@
 #include "File.h"
 #include <stdio.h>
 #include <cstdlib>
+#include <sys/stat.h>
 
 // Reads all contents of a file into a buffer of size
 i32 file_read_all(const char* path, char* buffer, u32 size)
@@ -43,4 +44,16 @@ i32 file_read_all_dynamic(const char* path, char*& buffer)
 
 	size_t bytes_read = fread(buffer, 1, file_len, file);
 	return bytes_read;
+}
+
+// Get the last modified time of a file
+i64 file_modified_time(const char* path)
+{
+	struct stat s;
+	if (stat(path, &s) == 0)
+	{
+		return s.st_mtime;
+	}
+
+	return 0;
 }

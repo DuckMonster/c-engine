@@ -65,9 +65,9 @@ Vec3 operator*(const Mat4& m, const Vec3& v)
 	return result;
 }
 
-void mat_ortho(Mat4* out_mat, float left, float right, float bottom, float top, float near, float far)
+Mat4 mat_ortho(float left, float right, float bottom, float top, float near, float far)
 {
-	*out_mat = Mat4(
+	return Mat4(
 		2.f / (right - left),				0.f,								0.f,							0.f,
 		0.f,								2.f / (top - bottom),				0.f,							0.f,
 		0.f,								0.f,								-2.f / (far - near),			0.f,
@@ -75,11 +75,11 @@ void mat_ortho(Mat4* out_mat, float left, float right, float bottom, float top, 
 	);
 }
 
-void mat_perspective(Mat4* out_mat, float fov, float aspect, float near, float far)
+Mat4 mat_perspective(float fov, float aspect, float near, float far)
 {
 	// Look this up :(
 	const float tan_half_fov = tan(fov / 2.f);
-	*out_mat = Mat4(
+	return Mat4(
 		1.f / (aspect * tan_half_fov),					0.f, 0.f, 0.f,
 		0.f, 1.f / tan_half_fov,						0.f, 0.f,
 		0.f, 0.f, -((far + near) / (far - near)),		-1.f,
@@ -87,18 +87,18 @@ void mat_perspective(Mat4* out_mat, float fov, float aspect, float near, float f
 	);
 }
 
-void mat_look_at(Mat4* out_mat, const Vec3& eye, const Vec3& target, const Vec3& up)
+Mat4 mat_look_at(const Vec3& eye, const Vec3& target, const Vec3& up)
 {
-	mat_look_forward(out_mat, eye, target - eye, up);
+	return mat_look_forward(eye, target - eye, up);
 }
 
-void mat_look_forward(Mat4* out_mat, const Vec3& eye, const Vec3& forward, const Vec3& up)
+Mat4 mat_look_forward(const Vec3& eye, const Vec3& forward, const Vec3& up)
 {
 	Vec3 z_axis = normalize(-forward);
 	Vec3 x_axis = normalize(cross(up, z_axis));
 	Vec3 y_axis = cross(z_axis, x_axis);
 
-	*out_mat = Mat4(
+	return Mat4(
 		x_axis.x, y_axis.x,	z_axis.x, 0.f,
 		x_axis.y, y_axis.y,	z_axis.y, 0.f,
 		x_axis.z, y_axis.z,	z_axis.z, 0.f,
@@ -144,4 +144,22 @@ Mat4 inverse(const Mat4& mat)
 	}
 
 	return *(Mat4*)inv;
+}
+
+Mat4 mat_position_rotation(const Vec3& position, const Quat& rotation)
+{
+	Mat4 mat = quat_to_mat(rotation);
+	mat[3] = Vec4(position, 1.f);
+
+	return mat;
+}
+
+Mat4 mat_position_scale(const Vec3& position, const Vec3& scale)
+{
+	return Mat4(
+		scale.x, 0.f, 0.f, 0.f,
+		0.f, scale.y, 0.f, 0.f,
+		0.f, 0.f, scale.z, 0.f,
+		position.x, position.y, position.z, 1.f
+	);
 }

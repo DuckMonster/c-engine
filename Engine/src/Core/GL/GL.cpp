@@ -7,6 +7,7 @@ assert(name != nullptr)
 // Load all of those suckers!
 void load_opengl_functions()
 {
+	// Vertex buffers etc.
 	IMPORT_FUN(glGenVertexArrays);
 	IMPORT_FUN(glDeleteVertexArrays);
 	IMPORT_FUN(glBindVertexArray);
@@ -20,26 +21,40 @@ void load_opengl_functions()
 	IMPORT_FUN(glEnableVertexAttribArray);
 	IMPORT_FUN(glVertexAttribPointer);
 
+	// Textures
+	IMPORT_FUN(glActiveTexture);
+
+	// Shaders
 	IMPORT_FUN(glCreateShader);
+	IMPORT_FUN(glDeleteShader);
 	IMPORT_FUN(glShaderSource);
 	IMPORT_FUN(glCompileShader);
 	IMPORT_FUN(glAttachShader);
+	IMPORT_FUN(glDetachShader);
 	IMPORT_FUN(glCreateProgram);
+	IMPORT_FUN(glDeleteProgram);
 	IMPORT_FUN(glLinkProgram);
 	IMPORT_FUN(glUseProgram);
 	IMPORT_FUN(glGetProgramiv);
 	IMPORT_FUN(glGetProgramInfoLog);
 
+	// Uniforms
 	IMPORT_FUN(glGetUniformLocation);
+	IMPORT_FUN(glUniform1i);
 	IMPORT_FUN(glUniform1f);
+	IMPORT_FUN(glUniform2fv);
+	IMPORT_FUN(glUniform3fv);
+	IMPORT_FUN(glUniform4fv);
 	IMPORT_FUN(glUniformMatrix4fv);
 
+	// Framebuffers
 	IMPORT_FUN(glCreateFramebuffers);
 	IMPORT_FUN(glBindFramebuffer);
 	IMPORT_FUN(glDeleteFramebuffers);
 	IMPORT_FUN(glFramebufferTexture2D);
 	IMPORT_FUN(glCheckFramebufferStatus);
 
+	// WGL stuff
 	IMPORT_FUN(wglChoosePixelFormatARB);
 	IMPORT_FUN(wglCreateContextAttribsARB);
 	IMPORT_FUN(wglSwapIntervalEXT);

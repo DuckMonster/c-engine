@@ -2,95 +2,112 @@
 #include "Core/Context/Context.h"
 #include "Core/Time/Time.h"
 #include "Core/Import/Dat.h"
+#include "Core/Import/TGA.h"
 #include "Core/Input/Input.h"
-#include "Engine/Graphics/Render.h"
+#include "Core/Math/Random.h"
+#include "Engine/Render/Render.h"
+#include "Engine/Render/Drawable.h"
+#include "Engine/Render/Billboard.h"
+#include "Engine/Resource/Resource.h"
+#include "Engine/Tick/Tick.h"
+#include "Engine/Resource/HotReload.h"
+#include "Engine/Config/Config.h"
+#include "Runtime/Online/Online.h"
 #include "Runtime/Game/Game.h"
-#include "Runtime/Editor/Editor.h"
+#include <stdlib.h>
 
-int main(int argc, char** argv)
+void run_client()
 {
-	Dat_Document doc;
-	dat_load_file(&doc, "res/test.dat");
+	config_load("config.dat");
 
-	Dat_Object* obj;
-	obj = dat_get_object(&doc.root, "obj");
-	if (obj)
-	{
-		int member;
-		if (dat_read(obj, "member", &member))
-			debug_log("member = %d", member);
+	i32 x = 300;
+	i32 y = 300;
+	u32 width = 1024;
+	u32 height = 768;
 
-		Dat_Object* inner = dat_get_object(obj, "inner");
-		if (inner)
-		{
-			debug_log("inner baby!");
+	config_get("context.x", &x);
+	config_get("context.y", &y);
+	config_get("context.width", &width);
+	config_get("context.height", &height);
 
-			int inner_member;
-			if (dat_read(inner, "inner_member", &inner_member))
-				debug_log("inner_member = %d", inner_member);
-		}
-	}
-
-	int inner_member;
-	if (dat_read(&doc.root, "obj.inner.inner_member", &inner_member))
-	{
-		debug_log("inner_member = %d", inner_member);
-	}
-
-	/*
-
-	float test;
-	if (!dat_read(&doc.root, "test", &test))
-		debug_log("Failed to read test :(");
-	else
-		debug_log("test is %f", test);
-
-	char shit[50];
-	if (!dat_read(&doc.root, "shit", shit))
-		debug_log("Failed to read shit :(");
-	else
-		debug_log("shit is '%s'", shit);
-
-	*/
-
-
-	system("pause");
-	return 0;
-
-	context_open("My Game!", 600, 600, 1024, 768);
+	context_open("My Game!", x, y, width, height);
 
 	time_init();
+	random_seed();
+	resource_init();
+	render_init();
+	drawable_init();
+	billboard_init();
+
+	online_init();
 	game_init();
-	editor_init();
 
-	bool editor_mode = false;
+	float hot_reload_timer = 0.f;
 
-	int num = 0;
 	while(context.is_open)
 	{
 		context_begin_frame();
+		if (!context.is_open)
+			break;
+
 		time_update_delta();
 
-		if (input_key_pressed(Key::F4))
+#if DEBUG
+		if (input_key_pressed(Key::F5))
 		{
-			editor_mode = !editor_mode;
-
-			if (editor_mode)
-				editor_begin();
-			else
-				editor_end();
+			static bool window_topmost = false;
+			window_topmost = !window_topmost;
+			context_set_topmost(window_topmost);
 		}
 
-		if (editor_mode)
-			editor_update_and_render();
-		else
-			game_update_and_render();
+		hot_reload_timer += time_delta();
+		if (hot_reload_timer > 1.f)
+		{
+			resource_update_hotreload();
+			hot_reload_timer = 0.f;
+		}
+#endif
 
-		render_flush();
-		render_reset();
+		online_flush();
+		game_update();
 
+		render_draw();
 		context_end_frame();
 	}
 
 	context_close();
+}
+
+void run_server()
+{
+	config_load("config.dat");
+
+	time_init();
+	random_seed();
+	resource_init();
+
+	online_init();
+	game_init();
+
+	float hot_reload_timer = 0.f;
+
+	while(true)
+	{
+		time_update_delta();
+		online_flush();
+		game_update();
+
+		Sleep(1);
+	}
+}
+
+int main()
+{
+#if CLIENT
+	run_client();
+#elif SERVER
+	run_server();
+#else
+#error The program does not define SERVER or CLIENT
+#endif
 }

@@ -1,28 +1,8 @@
 #pragma once
-#define WIN_LEAN_AND_MEAN
-#include <windows.h>
-#undef WIN_LEAN_AND_MEAN
+#include "Core/Windows/WinMin.h"
 #include <GL/GL.h>
 #include <GL/wglext.h>
 #include <GL/glext.h>
-
-/* Undefine goddamn windows stuff */
-#ifdef NEAR
-#undef NEAR
-#endif
-
-#ifdef near
-#undef near
-#endif
-
-#ifdef FAR
-#undef FAR
-#endif
-
-#ifdef far
-#undef far
-#endif
-/* **** */
 
 #ifdef IMPLEMENT_GL
 
@@ -52,12 +32,18 @@ DECL_FUN(PFNGLGETATTRIBLOCATIONPROC,glGetAttribLocation);
 DECL_FUN(PFNGLENABLEVERTEXATTRIBARRAYPROC, glEnableVertexAttribArray);
 DECL_FUN(PFNGLVERTEXATTRIBPOINTERPROC, glVertexAttribPointer);
 
+// Textures
+DECL_FUN(PFNGLACTIVETEXTUREPROC,	glActiveTexture);
+
 // Shaders and programs
 DECL_FUN(PFNGLCREATESHADERPROC,		glCreateShader);
+DECL_FUN(PFNGLDELETESHADERPROC,		glDeleteShader);
 DECL_FUN(PFNGLSHADERSOURCEPROC,		glShaderSource);
 DECL_FUN(PFNGLCOMPILESHADERPROC,	glCompileShader);
 DECL_FUN(PFNGLATTACHSHADERPROC,		glAttachShader);
+DECL_FUN(PFNGLDETACHSHADERPROC,		glDetachShader);
 DECL_FUN(PFNGLCREATEPROGRAMPROC,	glCreateProgram);
+DECL_FUN(PFNGLDELETEPROGRAMPROC,	glDeleteProgram);
 DECL_FUN(PFNGLLINKPROGRAMPROC,		glLinkProgram);
 DECL_FUN(PFNGLUSEPROGRAMPROC,		glUseProgram);
 DECL_FUN(PFNGLGETPROGRAMIVPROC,		glGetProgramiv);
@@ -65,7 +51,11 @@ DECL_FUN(PFNGLGETPROGRAMINFOLOGPROC,glGetProgramInfoLog);
 
 // Uniforms!
 DECL_FUN(PFNGLGETUNIFORMLOCATIONPROC,	glGetUniformLocation);
+DECL_FUN(PFNGLUNIFORM1IPROC,			glUniform1i);
 DECL_FUN(PFNGLUNIFORM1FPROC,			glUniform1f);
+DECL_FUN(PFNGLUNIFORM2FVPROC,			glUniform2fv);
+DECL_FUN(PFNGLUNIFORM3FVPROC,			glUniform3fv);
+DECL_FUN(PFNGLUNIFORM4FVPROC,			glUniform4fv);
 DECL_FUN(PFNGLUNIFORMMATRIX4FVPROC,		glUniformMatrix4fv);
 
 // Frame buffers

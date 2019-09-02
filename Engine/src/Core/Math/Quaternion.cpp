@@ -54,7 +54,7 @@ Quat mat_to_quat(const Mat4& m)
 	float trace = m.m00 + m.m11 + m.m22;
 	if (trace > 0.f)
 	{
-		float s = sqrt(trace + 1.f) * 2.f;
+		float s = sqrtf(trace + 1.f) * 2.f;
 		return Quat(
 			(m.m12 - m.m21) / s,
 			(m.m20 - m.m02) / s,
@@ -65,7 +65,7 @@ Quat mat_to_quat(const Mat4& m)
 	// If the diagonal is less than 0, find the axis of least rotation
 	else if (m.m00 > m.m11 && m.m00 > m.m22)
 	{
-		float s = sqrt(1.f + m.m00 - m.m11 - m.m22) * 2.f;
+		float s = sqrtf(1.f + m.m00 - m.m11 - m.m22) * 2.f;
 		return Quat(
 			0.25f * s,
 			(m.m10 + m.m01) / s,
@@ -75,7 +75,7 @@ Quat mat_to_quat(const Mat4& m)
 	}
 	else if (m.m11 > m.m22)
 	{
-		float s = sqrt(1.f + m.m11 - m.m00 - m.m22) * 2.f;
+		float s = sqrtf(1.f + m.m11 - m.m00 - m.m22) * 2.f;
 		return Quat(
 			(m.m10 + m.m01) / s,
 			0.25f * s,
@@ -85,7 +85,7 @@ Quat mat_to_quat(const Mat4& m)
 	}
 	else
 	{
-		float s = sqrt(1.f + m.m22 - m.m00 - m.m11) * 2.f;
+		float s = sqrtf(1.f + m.m22 - m.m00 - m.m11) * 2.f;
 		return Quat(
 			(m.m20 + m.m02) / s,
 			(m.m21 + m.m12) / s,

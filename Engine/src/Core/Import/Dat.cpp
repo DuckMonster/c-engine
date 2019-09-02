@@ -72,7 +72,7 @@ struct Dat_Buffer
 };
 
 Dat_Buffer buffer;
-Dat_Document* doc;
+bool parse_has_error = false;
 
 void ptr_to_location(char* ptr, u32* out_row, u32* out_column)
 {
@@ -109,6 +109,8 @@ void doc_error(char* error_location, const char* format, ...)
 	va_end(vl);
 
 	printf("\n");
+
+	parse_has_error = true;
 }
 
 char* buffer_ptr()
@@ -157,7 +159,7 @@ bool eof()
 	return buffer.offset >= buffer.length;
 }
 
-bool read_token(char** out_token, u32* out_token_len, Token* out_token_type, bool skip_newline = false)
+bool read_token(char** out_token, i32* out_token_len, Token* out_token_type, bool skip_newline = false)
 {
 	skip_whitespace(skip_newline);
 
@@ -347,7 +349,7 @@ bool read_token(char** out_token, u32* out_token_len, Token* out_token_type, boo
 	return false;
 }
 
-bool read_token_expect(u32 token_filter, char** out_token, u32* out_token_len, Token* out_token_type = nullptr, bool skip_newline = false)
+bool read_token_expect(u32 token_filter, char** out_token, i32* out_token_len, Token* out_token_type = nullptr, bool skip_newline = false)
 {
 	Token type;
 
@@ -359,14 +361,14 @@ bool read_token_expect(u32 token_filter, char** out_token, u32* out_token_len, T
 	if (!result)
 	{
 		if (token_filter != TOKEN_None)
-			doc_error(*out_token, "Found '%.1s' when expecting %s", *out_token, token_type_str((Token)token_filter));
+			doc_error(*out_token, "Found '%.1s' when expecting (%s)", *out_token, token_type_str((Token)token_filter));
 
 		return false;
 	}
 
 	if (!(type & token_filter))
 	{
-		doc_error(*out_token, "Found invalid token %s; expected %s", token_type_str(type), token_type_str((Token)token_filter));
+		doc_error(*out_token, "Found invalid token (%s), expected (%s)", token_type_str(type), token_type_str((Token)token_filter));
 		return false;
 	}
 
@@ -377,7 +379,7 @@ bool read_token_expect(u32 token_filter, char** out_token, u32* out_token_len, T
 bool token_expect(u32 token_filter, Token* out_token_type = nullptr, bool skip_newline = false)
 {
 	char* ptr;
-	u32 len;
+	i32 len;
 	Token type;
 
 	bool result = read_token(&ptr, &len, &type, skip_newline);
@@ -408,7 +410,7 @@ bool token_peek(u32 token_filter, Token* out_token_type = nullptr, bool skip_new
 	u32 cur_offset = buffer.offset;
 
 	char* ptr;
-	u32 len;
+	i32 len;
 	Token type;
 
 	bool result = read_token(&ptr, &len, &type, skip_newline);
@@ -424,7 +426,7 @@ bool token_peek(u32 token_filter, Token* out_token_type = nullptr, bool skip_new
 bool token_find(u32 token_filter, Token* out_token_type = nullptr)
 {
 	char* ptr;
-	u32 len;
+	i32 len;
 	Token type;
 
 	// Keep reading tokens until we find what we're looking for
@@ -456,6 +458,8 @@ Dat_Node* dat_parse_value(Dat_Document* doc)
 	if (token & TOKEN_Value)
 	{
 		Dat_Value_Raw* value = arena_malloc_t(&doc->arena, Dat_Value_Raw, 1);
+		value->doc = doc;
+
 		if (!read_token_expect(TOKEN_Value, &value->str, &value->str_len, nullptr, true))
 			return nullptr;
 
@@ -466,6 +470,7 @@ Dat_Node* dat_parse_value(Dat_Document* doc)
 		token_expect(TOKEN_ObjectOpen, nullptr, true);
 
 		Dat_Object* object = arena_malloc_t(&doc->arena, Dat_Object, 1);
+		object->doc = doc;
 		object->first_key = dat_parse_key(doc);
 
 		token_expect(TOKEN_ObjectClose, nullptr, true);
@@ -477,14 +482,13 @@ Dat_Node* dat_parse_value(Dat_Document* doc)
 		token_expect(TOKEN_ArrayOpen, nullptr, true);
 
 		Dat_Array* array = arena_malloc_t(&doc->arena, Dat_Array, 1);
+		array->doc = doc;
 
 		if (token_peek(TOKEN_ArrayClose, nullptr, true))
 		{
 			// If the token immidiately after is array close, there are no elements
 			array->size = 0;
 			array->elements = nullptr;
-
-			debug_log("Empty array");
 		}
 		else
 		{
@@ -519,8 +523,6 @@ Dat_Node* dat_parse_value(Dat_Document* doc)
 				if (i != array->size - 1)
 					token_expect(TOKEN_ArraySeparator);
 			}
-
-			debug_log("Array size: %d", array->size);
 		}
 
 		token_find(TOKEN_ArrayClose);
@@ -540,7 +542,7 @@ Dat_Key* dat_parse_key(Dat_Document* doc)
 
 	// Read name
 	char* name;
-	u32 name_len;
+	i32 name_len;
 
 	if (!read_token_expect(TOKEN_Key, &name, &name_len, nullptr, true))
 		return nullptr;
@@ -555,6 +557,7 @@ Dat_Key* dat_parse_key(Dat_Document* doc)
 		return nullptr;
 
 	key->value = dat_parse_value(doc);
+	assert(key->value->doc != nullptr);
 
 	// Read sibling
 	key->next = dat_parse_key(doc);
@@ -562,15 +565,16 @@ Dat_Key* dat_parse_key(Dat_Document* doc)
 	return key;
 }
 
-void dat_load_file(Dat_Document* doc, const char* file_path)
+bool dat_load_file(Dat_Document* doc, const char* file_path)
 {
 	FILE* file = fopen(file_path, "rb");
 	if (file == nullptr)
 	{
 		debug_log("Failed to read dat file '%s': File doesn't exist.", file_path);
-		return;
+		return false;
 	}
 
+	parse_has_error = false;
 	arena_init(&doc->arena);
 
 	fseek(file, 0, SEEK_END);
@@ -583,11 +587,23 @@ void dat_load_file(Dat_Document* doc, const char* file_path)
 
 	fclose(file);
 
-	doc->root.first_key = dat_parse_key(doc);
+	doc->root = arena_malloc_t(&doc->arena, Dat_Object, 1);
+	doc->root->first_key = dat_parse_key(doc);
+
+	return !parse_has_error;
+}
+
+void dat_free(Dat_Document* doc)
+{
+	arena_free(&doc->arena);
+	doc->root = nullptr;
 }
 
 Dat_Node* eval_expr(Dat_Object* root, const char* expr, u32 expr_len)
 {
+	if (root == nullptr)
+		return nullptr;
+
 	assert(ALPHA(*expr));
 
 	// If it is a nested expression, find the first name
@@ -615,6 +631,10 @@ Dat_Node* eval_expr(Dat_Object* root, const char* expr, u32 expr_len)
 		result = key->value;
 		break;
 	}
+
+	// Early out here in case of nested expression
+	if (result == nullptr)
+		return result;
 
 	// This is a nested expression, so the found node must be an object
 	if (sep_len != expr_len)
@@ -660,7 +680,8 @@ Dat_Array* dat_get_array(Dat_Object* root, const char* expr)
 	return (Dat_Array*)node;
 }
 
-bool dat_read(Dat_Object* root, const char* expr, int* value)
+/* READING STUFF */
+bool dat_read_value(Dat_Object* root, const char* expr, const char* scan_str, void* value)
 {
 	Dat_Node* node = eval_expr(root, expr, strlen(expr));
 	if (node == nullptr)
@@ -669,7 +690,53 @@ bool dat_read(Dat_Object* root, const char* expr, int* value)
 	assert(node->type == Dat_Node_Type::ValueRaw);
 
 	Dat_Value_Raw* node_value = (Dat_Value_Raw*)node;
-	sscanf(node_value->str, "%d", value);
+	sscanf(node_value->str, scan_str, value);
+	return true;
+}
+
+bool dat_read(Dat_Object* root, const char* expr, i16* value)
+{
+	return dat_read_value(root, expr, "%hd", value);
+}
+
+bool dat_read(Dat_Object* root, const char* expr, u16* value)
+{
+	return dat_read_value(root, expr, "%uhd", value);
+}
+
+bool dat_read(Dat_Object* root, const char* expr, i32* value)
+{
+	return dat_read_value(root, expr, "%d", value);
+}
+
+bool dat_read(Dat_Object* root, const char* expr, u32* value)
+{
+	return dat_read_value(root, expr, "%ud", value);
+}
+
+bool dat_read(Dat_Object* root, const char* expr, const i8** value)
+{
+	Dat_Node* node = eval_expr(root, expr, strlen(expr));
+	if (node == nullptr)
+		return false;
+
+	assert(node->type == Dat_Node_Type::ValueRaw);
+
+	Dat_Value_Raw* node_value = (Dat_Value_Raw*)node;
+
+	// If it has a str-len, its not zero-terminated, so allocate and copy to a zero-terminated one
+	if (node_value->str_len != -1)
+	{
+		u32 len = node_value->str_len;
+		const char* old_ptr = node_value->str;
+
+		node_value->str = (char*)arena_malloc(&node_value->doc->arena, len + 1);
+		memcpy(node_value->str, old_ptr, len);
+		node_value->str[len] = 0;
+		node_value->str_len = -1;
+	}
+
+	*value = node_value->str;
 	return true;
 }
 

@@ -1,7 +1,5 @@
 #include "Time.h"
-#define WIN_LEAN_AND_MEAN
-#include <windows.h>
-#undef WIN_LEAN_AND_MEAN
+#include "Core/Windows/WinMin.h"
 
 namespace
 {

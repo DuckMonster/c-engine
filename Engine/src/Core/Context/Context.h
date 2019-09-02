@@ -27,4 +27,6 @@ void context_show_cursor();
 void context_lock_cursor();
 void context_unlock_cursor();
 
+void context_set_topmost(bool topmost);
+
 void context_focus();

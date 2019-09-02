@@ -1,35 +1,108 @@
 #include "Material.h"
 #include "Core/OS/File.h"
+#include "Core/Import/Dat.h"
+#include "Engine/Resource/Resource.h"
+#include "Engine/Resource/HotReload.h"
 #include <cstdlib>
 
-void shader_load(GLuint* shader, GLenum type, const char* path)
+/* SHADER */
+void shader_res_create(Resource* resource, GLenum type)
 {
 	char* source;
-	i32 source_length = file_read_all_dynamic(path, source);
+	i32 source_length = file_read_all_dynamic(resource->path, source);
 	if (source_length == -1)
 	{
-		error("Failed to load shader '%s', file not found", path);
-		return;
+		error("Failed to load shader '%s', file not found", resource->path);
 	}
 
 	defer { free(source); };
 
-	*shader = glCreateShader(type);
-	glShaderSource(*shader, 1, &source, &source_length);
-	glCompileShader(*shader);
+	Shader* shader = new Shader();
+	resource->ptr = shader;
 
-	debug_log("Loaded shader '%s'", path);
+	shader->handle = glCreateShader(type);
+	glShaderSource(shader->handle, 1, &source, &source_length);
+	glCompileShader(shader->handle);
 }
 
-bool material_load(Material* material, const char* vertex_path, const char* fragment_path)
+void shader_res_create_vert(Resource* resource) { shader_res_create(resource, GL_VERTEX_SHADER); }
+void shader_res_create_frag(Resource* resource) { shader_res_create(resource, GL_FRAGMENT_SHADER); }
+
+void shader_res_destroy(Resource* resource)
 {
-	shader_load(&material->vertex, GL_VERTEX_SHADER, vertex_path);
-	shader_load(&material->fragment, GL_FRAGMENT_SHADER, fragment_path);
+	Shader* shader = (Shader*)resource->ptr;
+
+	glDeleteShader(shader->handle);
+	delete shader;
+
+	resource->ptr = nullptr;
+}
+
+const Shader* shader_load(GLenum type, const char* path)
+{
+	Resource* resource = nullptr;
+	if (type == GL_VERTEX_SHADER)
+	{
+		resource = resource_load(path, shader_res_create_vert, shader_res_destroy);
+	}
+	else if (type == GL_FRAGMENT_SHADER)
+	{
+		resource = resource_load(path, shader_res_create_frag, shader_res_destroy);
+	}
+	else
+	{
+		error("'%s' trying to load invalid shader type %d", path, type);
+	}
+
+	return (Shader*)resource->ptr;
+}
+
+/* MATERIAL */
+void material_res_create(Resource* resource)
+{
+	Material* material = (Material*)resource->ptr;
+	if (material == nullptr)
+	{
+		material = new Material();
+		resource->ptr = material;
+	}
 
 	material->program = glCreateProgram();
-	glAttachShader(material->program, material->vertex);
-	glAttachShader(material->program, material->fragment);
+
+	// Read material dat file
+	Dat_Document doc;
+	if (!dat_load_file(&doc, resource->path))
+	{
+		error("Failed to load material file '%s'", resource->path);
+	}
+
+	defer { dat_free(&doc); };
+
+	// Read the vertex and fragment file paths
+	const char* vert_path;
+	const char* frag_path;
+	if (!dat_read(doc.root, "vertex", &vert_path))
+	{
+		msg_box("Material load failed", "Failed to load material '%s', vertex shader path not specified", resource->path);
+		return;
+	}
+	if (!dat_read(doc.root, "fragment", &frag_path))
+	{
+		msg_box("Material load failed", "Failed to load material '%s', fragment shader path not specified", resource->path);
+		return;
+	}
+
+	const Shader* vertex_shdr = shader_load(GL_VERTEX_SHADER, vert_path);
+	const Shader* fragment_shdr = shader_load(GL_FRAGMENT_SHADER, frag_path);
+
+	resource_add_dependency(resource, vert_path);
+	resource_add_dependency(resource, frag_path);
+	glAttachShader(material->program, vertex_shdr->handle);
+	glAttachShader(material->program, fragment_shdr->handle);
 	glLinkProgram(material->program);
+
+	glDetachShader(material->program, vertex_shdr->handle);
+	glDetachShader(material->program, fragment_shdr->handle);
 
 	// Check if everything succeeded
 	GLint success = 0;
@@ -44,7 +117,7 @@ bool material_load(Material* material, const char* vertex_path, const char* frag
 
 		if (buffer_len == 0)
 		{
-			error("Linking of program failed, but there was no info log...");
+			msg_box("Material load failed", "Linking of program failed, but there was no info log...");
 		}
 		else
 		{
@@ -53,28 +126,57 @@ bool material_load(Material* material, const char* vertex_path, const char* frag
 
 			// Get info log
 			glGetProgramInfoLog(material->program, buffer_len, nullptr, buffer);
-			error(buffer);
-
-			return false;
+			msg_box("Material error", buffer);
 		}
 	}
-
-	return true;
 }
 
-bool material_load_standard(Material_Standard* material, const char* vertex_path, const char* fragment_path)
+void material_res_destroy(Resource* resource)
 {
-	// Load material from source
-	bool result = material_load((Material*)material, vertex_path, fragment_path);
+	Material* material = (Material*)resource->ptr;
+	glDeleteProgram(material->program);
+}
 
-	if (!result)
-		return false;
+const Material* material_load(const char* path)
+{
+	// Load resource
+	Resource* resource = resource_load(path, material_res_create, material_res_destroy);
+	return (Material*)resource->ptr;
+}
 
-	// Load uniforms
-	glUseProgram(material->program);
-	material->u_viewprojection = glGetUniformLocation(material->program, "u_ViewProjection");
-	material->u_time = glGetUniformLocation(material->program, "u_Time");
-	material->u_model = glGetUniformLocation(material->program, "u_Model");
+/* MATERIAL UNIFORM SETTERS */
+void material_set(const Material* mat, const char* name, const int value)
+{
+	GLuint uniform = glGetUniformLocation(mat->program, name);
+	glUniform1i(uniform, value);
+}
 
-	return true;
+void material_set(const Material* mat, const char* name, const float value)
+{
+	GLuint uniform = glGetUniformLocation(mat->program, name);
+	glUniform1f(uniform, value);
+}
+
+void material_set(const Material* mat, const char* name, const Vec2& value)
+{
+	GLuint uniform = glGetUniformLocation(mat->program, name);
+	glUniform2fv(uniform, 1, (float*)&value);
+}
+
+void material_set(const Material* mat, const char* name, const Vec3& value)
+{
+	GLuint uniform = glGetUniformLocation(mat->program, name);
+	glUniform3fv(uniform, 1, (float*)&value);
+}
+
+void material_set(const Material* mat, const char* name, const Vec4& value)
+{
+	GLuint uniform = glGetUniformLocation(mat->program, name);
+	glUniform4fv(uniform, 1, (float*)&value);
+}
+
+void material_set(const Material* mat, const char* name, const Mat4& value)
+{
+	GLuint uniform = glGetUniformLocation(mat->program, name);
+	glUniformMatrix4fv(uniform, 1, false, (float*)&value);
 }

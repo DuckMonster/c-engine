@@ -1,6 +1,5 @@
 #include "FBX.h"
 #include "FBX_Parse.h"
-#include "Core/Memory/Mem.h"
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -206,6 +205,13 @@ Fbx_Scene* fbx_import(const char* path)
 	arena_init(&scene->mem_arena);
 
 	Fbx_Node* root = fbx_parse_node_tree(path, &scene->mem_arena);
+	if (root == nullptr)
+	{
+		arena_free(&scene->mem_arena);
+		delete scene;
+
+		return nullptr;
+	}
 
 	Fbx_Node* objects = fbx_find_child(root, "Objects");
 	Fbx_Node* object = fbx_find_child(objects, "Geometry");

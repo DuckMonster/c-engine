@@ -1,29 +1,23 @@
 #pragma once
 #include "Core/GL/GL.h"
 
+struct Shader
+{
+	GLuint handle;
+};
+
 struct Material
 {
-	// Handles to shaders and programs
-	// These must always be first in a material for memory alignment
 	GLuint program;
 	GLuint vertex;
 	GLuint fragment;
 };
 
-struct Material_Standard
-{
-	// Handles to shaders and programs
-	// These must always be first in a material for memory alignment
-	GLuint program;
-	GLuint vertex;
-	GLuint fragment;
+const Material* material_load(const char* path);
 
-	// Uniform locations
-	GLuint u_viewprojection;
-	GLuint u_model;
-	GLuint u_time;
-};
-
-void shader_load(GLuint* shader, GLenum type, const char* path);
-bool material_load(Material* material, const char* vertex_path, const char* fragment_path);
-bool material_load_standard(Material_Standard* material, const char* vertex_path, const char* fragment_path);
+void material_set(const Material* mat, const char* name, const int value);
+void material_set(const Material* mat, const char* name, const float value);
+void material_set(const Material* mat, const char* name, const Vec2& value);
+void material_set(const Material* mat, const char* name, const Vec3& value);
+void material_set(const Material* mat, const char* name, const Vec4& value);
+void material_set(const Material* mat, const char* name, const Mat4& value);

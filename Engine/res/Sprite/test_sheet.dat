@@ -1,0 +1,7 @@
+source: "Texture/units.tga"
+tile : {
+	width: 22
+	height: 22
+}
+offset: 0
+padding: 0

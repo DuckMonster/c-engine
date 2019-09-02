@@ -1,0 +1,13 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="Build" ToolsVersion="4.0">
+    <ItemGroup>
+        <ConfigList Include="$(Config.Split('+'))" />
+    </ItemGroup>
+
+    <Target Name="Build">
+        <MSBuild Projects="Engine\Engine.vcxproj" Properties="Configuration=%(ConfigList.Identity);Platform=x64" Targets="Build" />
+    </Target>
+
+    <Target Name="Rebuild">
+        <MSBuild Projects="Engine\Engine.vcxproj" Properties="Configuration=%(ConfigList.Identity);Platform=x64" Targets="Rebuild" />
+    </Target>
+</Project>
