@@ -2,6 +2,7 @@
 #include "Engine/Render/Billboard.h"
 #include "Core/Input/Input.h"
 #include "Runtime/Scene/Scene.h"
+#include "Runtime/Online/Client.h"
 
 #if CLIENT
 void player_create(Player* player)
@@ -23,6 +24,11 @@ void player_update(Player* player)
 		direction.y -= 1.f;
 	if (input_key_down(Key::W))
 		direction.y += 1.f;
+
+	if (input_key_pressed(Key::Spacebar))
+	{
+		client_send_to_server(true, "Hello", 5);
+	}
 
 	if (!nearly_zero(direction))
 	{

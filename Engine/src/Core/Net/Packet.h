@@ -16,33 +16,19 @@ const char* packet_type_str(Packet_Type type);
 
 struct Packet
 {
-	u32 reliable : 1;
+	u32 size : 32;
 	Packet_Type type : 3;
+	u32 reliable : 1;
 	u32 id : 28;
 };
 
-struct Packet_Block
-{
-	Packet_Block* prev = nullptr;
-	Packet_Block* next = nullptr;
-	u32 content_size;
-	u32 body_size;
-
-	float resend_time;
-	u32 resend_count;
-
-	Packet* packet;
-	u8* body;
-};
-
-struct Packet_List
-{
-	Packet_Block* first = nullptr;
-	Packet_Block* last = nullptr;
-};
-
-void packet_list_add(Packet_List* list, Packet_Block* packet);
-void packet_list_remove(Packet_List* list, Packet_Block* packet);
-void packet_list_remove_id(Packet_List* list, u32 id);
-bool packet_list_contains_id(Packet_List* list, u32 id);
-void packet_list_clear(Packet_List* list);
+Packet* packet_make_no_body(Packet_Type type, bool reliable, u32 id);
+Packet* packet_make_from_body(Packet_Type type, bool reliable, u32 id, const void* body, u32 body_size);
+Packet* packet_make_copy(const void* src_packet, u32 src_size);
+Packet* packet_make_ack(u32 id);
+Packet* packet_make_connect();
+Packet* packet_make_handshake();
+Packet* packet_make_ping();
+Packet* packet_make_pong();
+Packet* packet_make_shutdown();
+Packet* packet_make_user(bool reliable, const void* user_data, u32 data_size);

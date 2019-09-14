@@ -12,13 +12,37 @@
 #include "Engine/Tick/Tick.h"
 #include "Engine/Resource/HotReload.h"
 #include "Engine/Config/Config.h"
-#include "Runtime/Online/Online.h"
 #include "Runtime/Game/Game.h"
 #include <stdlib.h>
+
+#if CLIENT
+#include "Runtime/Online/Client.h"
 
 void run_client()
 {
 	config_load("config.dat");
+
+	time_init();
+	random_seed();
+	client_init();
+	while(true)
+	{
+		client_update();
+		if (client.connection_state == Client_Connection_State::Connected)
+		{
+			debug_log("Connected!");
+			break;
+		}
+
+		if (client.connection_state == Client_Connection_State::Disconnected)
+		{
+			debug_log("Failed to connect :(");
+			system("pause");
+			return;
+		}
+
+		Sleep(1);
+	}
 
 	i32 x = 300;
 	i32 y = 300;
@@ -32,15 +56,12 @@ void run_client()
 
 	context_open("My Game!", x, y, width, height);
 
-	time_init();
-	random_seed();
 	resource_init();
 	render_init();
 	drawable_init();
 	billboard_init();
 
-	online_init();
-	game_init();
+	//game_init();
 
 	float hot_reload_timer = 0.f;
 
@@ -68,15 +89,38 @@ void run_client()
 		}
 #endif
 
-		online_flush();
-		game_update();
+		if (input_key_pressed(Key::Z))
+		{
+			const char* msg = "r -----";
+			for(u32 i=0; i<5; ++i)
+			{
+				client_send_to_server(true, msg, 2 + i + 1);
+			}
+		}
 
-		render_draw();
+		if (input_key_pressed(Key::X))
+		{
+			const char* msg = "u -----";
+			for(u32 i=0; i<5; ++i)
+			{
+				client_send_to_server(false, msg, 2 + i + 1);
+			}
+		}
+
+		client_update();
+		//game_update();
+
+		//render_draw();
 		context_end_frame();
 	}
 
+	client_shutdown();
 	context_close();
 }
+#endif
+
+#if SERVER
+#include "Runtime/Online/Server.h"
 
 void run_server()
 {
@@ -86,7 +130,7 @@ void run_server()
 	random_seed();
 	resource_init();
 
-	online_init();
+	server_init();
 	game_init();
 
 	float hot_reload_timer = 0.f;
@@ -94,12 +138,14 @@ void run_server()
 	while(true)
 	{
 		time_update_delta();
-		online_flush();
+		server_update();
 		game_update();
 
 		Sleep(1);
 	}
 }
+
+#endif
 
 int main()
 {

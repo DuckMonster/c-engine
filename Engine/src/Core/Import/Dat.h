@@ -68,6 +68,7 @@ void dat_free(Dat_Document* doc);
 Dat_Object* dat_get_object(Dat_Object* root, const char* expr);
 Dat_Array* dat_get_array(Dat_Object* root, const char* expr);
 
+bool dat_read(Dat_Object* root, const char* expr, bool* value);
 bool dat_read(Dat_Object* root, const char* expr, i16* value);
 bool dat_read(Dat_Object* root, const char* expr, u16* value);
 bool dat_read(Dat_Object* root, const char* expr, i32* value);

@@ -16,129 +16,71 @@ const char* packet_type_str(Packet_Type type)
 	return "INVALID";
 }
 
-void packet_list_add(Packet_List* list, Packet_Block* packet)
+Packet* packet_make_no_body(Packet_Type type, bool reliable, u32 id)
 {
-	if (list->first == nullptr)
-	{
-		list->first = list->last = packet;
-		packet->prev = packet->next = nullptr;
-		return;
-	}
+	Packet* packet = (Packet*)malloc(sizeof(Packet));
 
-	// In a packet list, we want to sort by ID
-	// So find which packet we should put ourselves in front of
-	Packet_Block* ptr = list->first;
-	while(ptr)
-	{
-		if (ptr->packet->id > packet->packet->id)
-			break;
+	packet->size = sizeof(Packet);
+	packet->type = type;
+	packet->reliable = reliable;
+	packet->id = id;
 
-		ptr = ptr->next;
-	}
-
-	if (ptr)
-	{
-		// We should insert
-		packet->prev = ptr->prev;
-		packet->next = ptr;
-
-		if (packet->prev)
-			packet->prev->next = packet;
-		packet->next->prev = packet;
-
-		if (ptr == list->first)
-			list->first = packet;
-	}
-	else
-	{
-		// We're dead last
-		list->last->next = packet;
-		packet->prev = list->last;
-		packet->next = nullptr;
-
-		list->last = packet;
-	}
+	return packet;
 }
 
-void packet_list_remove(Packet_List* list, Packet_Block* packet)
+Packet* packet_make_from_body(
+	Packet_Type type,
+	bool reliable,
+	u32 id,
+	const void* body,
+	u32 body_size)
 {
-	Packet_Block* ptr = list->first;
-	while(ptr != nullptr)
-	{
-		if (ptr == packet)
-		{
-			// Re-link
-			if (ptr->prev)
-				ptr->prev->next = ptr->next;
-			if (ptr->next)
-				ptr->next->prev = ptr->prev;
+	Packet* packet = (Packet*)malloc(sizeof(Packet) + body_size);
 
-			// If this is the edge of the list, replace edge pointers
-			if (list->first == ptr)
-				list->first = ptr->next;
-			if (list->last == ptr)
-				list->last = ptr->prev;
+	packet->size = sizeof(Packet) + body_size;
+	packet->type = type;
+	packet->reliable = reliable;
+	packet->id = id;
 
-			delete ptr;
-			return;
-		}
+	if (body_size > 0)
+		memcpy(packet + 1, body, body_size);
 
-		ptr = ptr->next;
-	}
+	return packet;
 }
 
-void packet_list_remove_id(Packet_List* list, u32 id)
+Packet* packet_make_copy(const void* src_packet, u32 src_size)
 {
-	Packet_Block* ptr = list->first;
-	while(ptr != nullptr)
-	{
-		if (ptr->packet->id == id)
-		{
-			// Re-link
-			if (ptr->prev)
-				ptr->prev->next = ptr->next;
-			if (ptr->next)
-				ptr->next->prev = ptr->prev;
+	Packet* target = (Packet*)malloc(src_size);
+	memcpy(target, src_packet, src_size);
 
-			// If this is the edge of the list, replace edge pointers
-			if (list->first == ptr)
-				list->first = ptr->next;
-			if (list->last == ptr)
-				list->last = ptr->prev;
-
-			delete ptr;
-			return;
-		}
-
-		ptr = ptr->next;
-	}
+	return target;
 }
 
-bool packet_list_contains_id(Packet_List* list, u32 id)
+Packet* packet_make_ack(u32 id)
 {
-	Packet_Block* ptr = list->first;
-	while(ptr != nullptr)
-	{
-		if (ptr->packet->id == id)
-			return true;
-
-		ptr = ptr->next;
-	}
-
-	return false;
+	return packet_make_no_body(Packet_Type::Ack, false, id);
 }
-
-void packet_list_clear(Packet_List* list)
+Packet* packet_make_connect()
 {
-	Packet_Block* ptr = list->first;
-
-	while(ptr)
-	{
-		Packet_Block* temp = ptr;
-		ptr = ptr->next;
-
-		free(temp);
-	}
-
-	list->first = list->last = nullptr;
+	return packet_make_no_body(Packet_Type::Connect, true, 0);
+}
+Packet* packet_make_handshake()
+{
+	return packet_make_no_body(Packet_Type::Handshake, true, 0);
+}
+Packet* packet_make_ping()
+{
+	return packet_make_no_body(Packet_Type::Ping, true, 0);
+}
+Packet* packet_make_pong()
+{
+	return packet_make_no_body(Packet_Type::Pong, true, 0);
+}
+Packet* packet_make_shutdown()
+{
+	return packet_make_no_body(Packet_Type::Shutdown, false, 0);
+}
+Packet* packet_make_user(bool reliable, const void* user_data, u32 data_size)
+{
+	return packet_make_from_body(Packet_Type::User, reliable, 0, user_data, data_size);
 }

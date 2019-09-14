@@ -17,6 +17,21 @@ void sock_create(Socket* socket, Socket_Type type)
 	assert(socket->handle != INVALID_SOCKET);
 }
 
+void sock_close(Socket* socket)
+{
+	closesocket(socket->handle);
+}
+
+void sock_shutdown_recv(Socket* socket)
+{
+	int return_val = shutdown(socket->handle, SD_RECEIVE);
+}
+
+void sock_shutdown_send(Socket* socket)
+{
+	shutdown(socket->handle, SD_SEND);
+}
+
 void sock_bind(Socket* socket, Ip_Address* bind_addr)
 {
 	sockaddr_in addr;
@@ -43,7 +58,7 @@ u32 sock_send(Socket* socket, const void* data, u32 size)
 	return send(socket->handle, (char*)data, size, 0);
 }
 
-u32 sock_sendto(Socket* socket, const void* data, u32 size, const Ip_Address& send_addr)
+u32 sock_send_to(Socket* socket, const void* data, u32 size, const Ip_Address& send_addr)
 {
 	sockaddr_in addr;
 	mem_zero(&addr, sizeof(addr));
@@ -60,7 +75,7 @@ u32 sock_recv(Socket* socket, void* data, u32 size)
 	return recv(socket->handle, (char*)data, size, 0);
 }
 
-u32 sock_recvfrom(Socket* socket, void* data, u32 size, Ip_Address* recv_addr)
+u32 sock_recv_from(Socket* socket, void* data, u32 size, Ip_Address* recv_addr)
 {
 	sockaddr_in addr;
 	mem_zero(&addr, sizeof(addr));

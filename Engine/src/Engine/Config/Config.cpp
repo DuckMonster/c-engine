@@ -8,6 +8,10 @@ void config_load(const char* path)
 	dat_load_file(&doc, path);
 }
 
+bool config_get(const char* name, bool* value)
+{
+	return dat_read(doc.root, name, value);
+}
 bool config_get(const char* name, i16* value)
 {
 	return dat_read(doc.root, name, value);

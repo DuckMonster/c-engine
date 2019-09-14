@@ -18,10 +18,11 @@ enum Token
 	TOKEN_ArrayOpen			= 1 << 9,
 	TOKEN_ArrayClose		= 1 << 10,
 	TOKEN_ArraySeparator	= 1 << 11,
+	TOKEN_Boolean			= 1 << 12,
 	
-	TOKEN_Comment			= 1 << 12,
+	TOKEN_Comment			= 1 << 13,
 
-	TOKEN_Value				= TOKEN_Number | TOKEN_String,
+	TOKEN_Value				= TOKEN_Number | TOKEN_String | TOKEN_Boolean,
 	TOKEN_All				= 0xFFFFFFFF
 };
 
@@ -56,7 +57,7 @@ const char* token_type_str(Token token)
 }
 
 #define NEWLINE(c) ((c == '\r') || (c == '\n'))
-#define WHITESPACE(c) ((c == ' ') || (c == '\t'))
+#define WHITESPACE(c) ((c == ' ') || (c == '\t') || (c == 0) || NEWLINE(c))
 #define ALPHA(c) ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c == '_') || (c == '-'))
 #define DIGIT(c) ((c >= '0' && c <= '9'))
 #define COMMENT(c) (c == '#')
@@ -132,9 +133,27 @@ bool advance_ptr(char** ptr, u32 count = 1)
 	return true;
 }
 
+void rewind_ptr(char** ptr, u32 count = 1)
+{
+	if (buffer.offset < count)
+	{
+		buffer.offset = 0;
+		*ptr = buffer.data;
+		return;
+	}
+
+	buffer.offset -= count;
+	*ptr -= count;
+}
+
+u32 buffer_remaining()
+{
+	return (buffer.length - buffer.offset);
+}
+
 bool advance_buffer(u32 count = 1)
 {
-	if ((buffer.length - buffer.offset) < count)
+	if (buffer_remaining() < count)
 	{
 		buffer.offset = buffer.length;
 		return false;
@@ -144,19 +163,22 @@ bool advance_buffer(u32 count = 1)
 	return true;
 }
 
+bool eof()
+{
+	return buffer.offset >= buffer.length;
+}
+
 void skip_whitespace(bool skip_newline)
 {
 	char* ptr = buffer_ptr();
 	while(WHITESPACE(*ptr) || (skip_newline && NEWLINE(*ptr)))
 	{
+		if (eof())
+			return;
+
 		ptr++;
 		advance_buffer();
 	}
-}
-
-bool eof()
-{
-	return buffer.offset >= buffer.length;
 }
 
 bool read_token(char** out_token, i32* out_token_len, Token* out_token_type, bool skip_newline = false)
@@ -193,7 +215,49 @@ bool read_token(char** out_token, i32* out_token_len, Token* out_token_type, boo
 
 		if (!ptr)
 			return false;
+	}
 
+	// Boolean expression
+	if (*ptr == 't' || *ptr == 'f')
+	{
+		*out_token = ptr;
+		*out_token_type = TOKEN_Boolean;
+
+		// true
+		if (*ptr == 't' && buffer_remaining() >= 4)
+		{
+			*out_token_len = 4;
+
+			if (strncmp(ptr, "true", 4) == 0)
+			{
+				advance_ptr(&ptr, 4);
+
+				// Make sure we're ending with a whitespace or EOF
+				if (eof() || WHITESPACE(*ptr))
+					return true;
+
+				// ... otherwise, rewind buffer and keep looking for something else
+				rewind_ptr(&ptr, 4);
+			}
+		}
+
+		// false
+		if (*ptr == 'f' && buffer_remaining() >= 5)
+		{
+			*out_token_len = 5;
+
+			if (strncmp(ptr, "false", 5) == 0)
+			{
+				advance_ptr(&ptr, 5);
+
+				// Make sure we're ending with a whitespace or EOF
+				if (eof() || WHITESPACE(*ptr))
+					return true;
+
+				// ... otherwise, rewind buffer and keep looking for something else
+				rewind_ptr(&ptr, 5);
+			}
+		}
 	}
 
 	// Keyword
@@ -343,6 +407,7 @@ bool read_token(char** out_token, i32* out_token_len, Token* out_token_type, boo
 		return true;
 	}
 
+
 	*out_token = ptr;
 	*out_token_len = 0;
 	*out_token_type = TOKEN_None;
@@ -405,7 +470,7 @@ bool token_expect(u32 token_filter, Token* out_token_type = nullptr, bool skip_n
 }
 
 // Peeks the next token in the stream
-bool token_peek(u32 token_filter, Token* out_token_type = nullptr, bool skip_newline = false)
+bool token_peek(u32 token_filter, Token* out_token_type = nullptr, char** out_token_str = nullptr, u32* out_token_len = nullptr, bool skip_newline = false)
 {
 	u32 cur_offset = buffer.offset;
 
@@ -417,6 +482,10 @@ bool token_peek(u32 token_filter, Token* out_token_type = nullptr, bool skip_new
 
 	if (out_token_type)
 		*out_token_type = type;
+	if (out_token_str)
+		*out_token_str = ptr;
+	if (out_token_len)
+		*out_token_len = len;
 
 	buffer.offset = cur_offset;
 	return type & token_filter;
@@ -449,9 +518,12 @@ Dat_Node* dat_parse_value(Dat_Document* doc);
 Dat_Node* dat_parse_value(Dat_Document* doc)
 {
 	Token token;
-	if (!token_peek(TOKEN_Value | TOKEN_ArrayOpen | TOKEN_ObjectOpen, &token, true))
+	char* peek_str;
+	u32 peek_len;
+
+	if (!token_peek(TOKEN_Value | TOKEN_ArrayOpen | TOKEN_ObjectOpen, &token, &peek_str, &peek_len, true))
 	{
-		doc_error(buffer.data + buffer.offset, "Unexpected token %s when expecting key value", token_type_str(token));
+		doc_error(buffer.data + buffer.offset, "Unexpected token '%.*s' (%s) when expecting key value", peek_len, peek_str, token_type_str(token));
 		return nullptr;
 	}
 
@@ -484,7 +556,7 @@ Dat_Node* dat_parse_value(Dat_Document* doc)
 		Dat_Array* array = arena_malloc_t(&doc->arena, Dat_Array, 1);
 		array->doc = doc;
 
-		if (token_peek(TOKEN_ArrayClose, nullptr, true))
+		if (token_peek(TOKEN_ArrayClose, nullptr, nullptr, nullptr, true))
 		{
 			// If the token immidiately after is array close, there are no elements
 			array->size = 0;
@@ -537,7 +609,7 @@ Dat_Node* dat_parse_value(Dat_Document* doc)
 
 Dat_Key* dat_parse_key(Dat_Document* doc)
 {
-	if (!token_peek(TOKEN_Key, nullptr, true))
+	if (!token_peek(TOKEN_Key, nullptr, nullptr, nullptr, true))
 		return nullptr;
 
 	// Read name
@@ -557,6 +629,9 @@ Dat_Key* dat_parse_key(Dat_Document* doc)
 		return nullptr;
 
 	key->value = dat_parse_value(doc);
+	if (key->value == nullptr)
+		return nullptr;
+
 	assert(key->value->doc != nullptr);
 
 	// Read sibling
@@ -691,6 +766,22 @@ bool dat_read_value(Dat_Object* root, const char* expr, const char* scan_str, vo
 
 	Dat_Value_Raw* node_value = (Dat_Value_Raw*)node;
 	sscanf(node_value->str, scan_str, value);
+	return true;
+}
+
+bool dat_read(Dat_Object* root, const char* expr, bool* value)
+{
+	Dat_Node* node = eval_expr(root, expr, strlen(expr));
+	if (node == nullptr)
+		return false;
+
+	assert(node->type == Dat_Node_Type::ValueRaw);
+
+	Dat_Value_Raw* node_value = (Dat_Value_Raw*)node;
+	assert(node_value->str_len == 4 || node_value->str_len == 5);
+
+	*value = (strncmp(node_value->str, "true", 4) == 0);
+
 	return true;
 }
 

@@ -5,6 +5,11 @@ void mutex_create(Mutex* mutex)
 	mutex->handle = CreateMutex(0, false, NULL);
 }
 
+void mutex_destroy(Mutex* mutex)
+{
+	CloseHandle(mutex->handle);
+}
+
 void mutex_lock(Mutex* mutex)
 {
 	WaitForSingleObject(mutex->handle, INFINITE);
