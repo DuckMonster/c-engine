@@ -44,6 +44,12 @@ void run_client()
 		Sleep(1);
 	}
 
+	char login_name[20];
+	debug_log("What's your name?");
+	scanf("%s", login_name);
+
+	client_login(login_name);
+
 	i32 x = 300;
 	i32 y = 300;
 	u32 width = 1024;

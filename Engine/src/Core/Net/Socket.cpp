@@ -32,6 +32,11 @@ void sock_shutdown_send(Socket* socket)
 	shutdown(socket->handle, SD_SEND);
 }
 
+void sock_set_recv_timeout(Socket* socket, u32 millis)
+{
+	setsockopt(socket->handle, SOL_SOCKET, SO_RCVTIMEO, (const char*)&millis, sizeof(millis));
+}
+
 void sock_bind(Socket* socket, Ip_Address* bind_addr)
 {
 	sockaddr_in addr;

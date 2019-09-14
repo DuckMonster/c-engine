@@ -69,5 +69,7 @@ void net_service_send(void*)
 
 			net_service_flush_out(net.connections + i);
 		}
+
+		Sleep(1);
 	}
 }

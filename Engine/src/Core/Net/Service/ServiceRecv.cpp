@@ -150,86 +150,76 @@ void net_service_recv(void*)
 	u8 recv_buffer[1024];
 	Ip_Address recv_addr;
 
-	TIMEVAL time_out = {0, 0};
-	fd_set read_fd;
-	read_fd.fd_array[0] = net.socket.handle;
-	read_fd.fd_count = 1;
-
 	while(net.active)
 	{
-		read_fd.fd_count = 1;
-		int result = select(0, &read_fd, nullptr, nullptr, &time_out);
-		while(result > 0 && net.active)
+		i32 recv_size = sock_recv_from(&net.socket, recv_buffer, 1024, &recv_addr);
+		if (recv_size < sizeof(Packet))
 		{
-			i32 recv_size = sock_recv_from(&net.socket, recv_buffer, 1024, &recv_addr);
-			if (recv_size < sizeof(Packet))
+			net_log("Received packet smaller than sizeof(Packet)...");
+			continue;
+		}
+		if (recv_size < 0)
+		{
+			// Recv error, just ignore
+			continue;
+		}
+
+		Packet* packet = (Packet*)recv_buffer;
+		Connection* connection = get_connection_from_ip(recv_addr);
+		if (connection == nullptr)
+		{
+			if (packet->type != Packet_Type::Connect)
 			{
-				net_log("Received packet smaller than sizeof(Packet)...");
+				net_log("New connection, but received %s. Ignore.", packet_type_str(packet->type));
 				continue;
 			}
-			if (recv_size < 0)
+
+			connection = create_connection(recv_addr);
+		}
+
+		bool is_stale = false;
+		if (packet->reliable)
+		{
+			if (packet_list_contains_id(&connection->incoming, packet->id))
+				is_stale = true;
+
+			if (connection->next_in_id > packet->id)
+				is_stale = true;
+		}
+
+		net_log("RECV %s <= %s[%d] (size: %d, id: %d, reliable: %d)%s",
+			packet_type_str(packet->type),
+			ip_str(connection->id.addr), connection->id.index,
+			packet->size, packet->id, packet->reliable,
+			is_stale ? " (STALE)" : "");
+
+		if (is_stale)
+		{
+			handle_incoming(connection, packet, true);
+		}
+
+		// For reliable, we wanna throw away duplicate or old messages
+		if (packet->reliable)
+		{
+			Packet* packet_copy = packet_make_copy(packet, recv_size);
+			if (connection->next_in_id == packet->id)
 			{
-				// Recv error, just ignore
-				continue;
-			}
-
-			Packet* packet = (Packet*)recv_buffer;
-			Connection* connection = get_connection_from_ip(recv_addr);
-			if (connection == nullptr)
-			{
-				if (packet->type != Packet_Type::Connect)
-				{
-					net_log("New connection, but received %s. Ignore.", packet_type_str(packet->type));
-					continue;
-				}
-
-				connection = create_connection(recv_addr);
-			}
-
-			bool is_stale = false;
-			if (packet->reliable)
-			{
-				if (packet_list_contains_id(&connection->incoming, packet->id))
-					is_stale = true;
-
-				if (connection->next_in_id > packet->id)
-					is_stale = true;
-			}
-
-			net_log("RECV %s <= %s[%d] (size: %d, id: %d, reliable: %d)%s",
-				packet_type_str(packet->type),
-				ip_str(connection->id.addr), connection->id.index,
-				packet->size, packet->id, packet->reliable,
-				is_stale ? " (STALE)" : "");
-
-			if (is_stale)
-			{
-				handle_incoming(connection, packet, true);
-			}
-
-			// For reliable, we wanna throw away duplicate or old messages
-			if (packet->reliable)
-			{
-				Packet* packet_copy = packet_make_copy(packet, recv_size);
-				if (connection->next_in_id == packet->id)
-				{
-					connection->next_in_id++;
-					handle_incoming(connection, packet_copy, false);
-					flush_incoming(connection);
-				}
-				else
-				{
-					connection_lock(connection, Connection_Lock::In);
-					defer { connection_unlock(connection, Connection_Lock::In); };
-
-					packet_list_add(&connection->incoming, packet_copy);
-				}
+				connection->next_in_id++;
+				handle_incoming(connection, packet_copy, false);
+				flush_incoming(connection);
 			}
 			else
 			{
-				Packet* packet_copy = packet_make_copy(packet, recv_size);
-				handle_incoming(connection, packet_copy, false);
+				connection_lock(connection, Connection_Lock::In);
+				defer { connection_unlock(connection, Connection_Lock::In); };
+
+				packet_list_add(&connection->incoming, packet_copy);
 			}
+		}
+		else
+		{
+			Packet* packet_copy = packet_make_copy(packet, recv_size);
+			handle_incoming(connection, packet_copy, false);
 		}
 	}
 }

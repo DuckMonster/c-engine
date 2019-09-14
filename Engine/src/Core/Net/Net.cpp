@@ -63,6 +63,7 @@ void net_startup(u16 port)
 	wsa_init();
 
 	sock_create(&net.socket, Socket_Type::UDP);
+	sock_set_recv_timeout(&net.socket, 10);
 
 	Ip_Address bind_addr = ip_make(IP_ANY, port);
 	sock_bind(&net.socket, &bind_addr);

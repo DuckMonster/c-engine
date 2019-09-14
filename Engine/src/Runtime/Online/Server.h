@@ -1,10 +1,13 @@
 #pragma once
+#include "Online.h"
 #include "Core/Net/Connection.h"
 
 struct Client
 {
+	u32 id = 0;
 	bool connected = false;
 	Connection_Id connection;
+	char name[20];
 };
 
 struct Server

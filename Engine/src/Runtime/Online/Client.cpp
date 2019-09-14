@@ -66,6 +66,16 @@ void client_update()
 	}
 }
 
+void client_login(const char* name)
+{
+	strcpy(client.name, name);
+
+	Rpc_Login login;
+	strcpy(login.name, name);
+
+	client_send_to_server(true, &login, sizeof(login));
+}
+
 void client_send_to_server(bool reliable, const void* data, u32 size)
 {
 	net_send(client.server, reliable, data, size);

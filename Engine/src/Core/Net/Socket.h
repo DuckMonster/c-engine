@@ -18,6 +18,7 @@ void sock_close(Socket* socket);
 void sock_bind(Socket* socket, Ip_Address* bind_addr);
 void sock_shutdown_recv(Socket* socket);
 void sock_shutdown_send(Socket* socket);
+void sock_set_recv_timeout(Socket* socket, u32 millis);
 
 u32 sock_send(Socket* socket, const void* data, u32 size);
 u32 sock_send_to(Socket* socket, const void* data, u32 size, const Ip_Address& send_addr);
