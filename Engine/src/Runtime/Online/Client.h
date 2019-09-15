@@ -1,6 +1,5 @@
 #pragma once
 #include "Online.h"
-#include "Core/Net/Connection.h"
 
 enum class Client_Connection_State : u8
 {

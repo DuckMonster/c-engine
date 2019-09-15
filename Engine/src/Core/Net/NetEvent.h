@@ -4,8 +4,8 @@ struct Packet;
 
 enum class Net_Event_Type : u8
 {
-	New_Connection,
-	Connection_Lost,
+	Connect,
+	Disconnect,
 	Packet
 };
 

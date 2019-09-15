@@ -1,12 +1,10 @@
 #pragma once
+#include "Core/Net/Connection.h"
 
-enum class Rpc : u8
+struct Online_User
 {
-	Login,
-};
-
-struct Rpc_Login
-{
-	Rpc type = Rpc::Login;
+	u32 id = 0;
+	bool connected = false;
+	Connection_Id connection;
 	char name[20];
 };

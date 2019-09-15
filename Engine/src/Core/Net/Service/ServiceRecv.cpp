@@ -89,7 +89,7 @@ void handle_incoming(Connection* connection, Packet* packet, bool stale)
 					connection_queue_out(connection, packet_make_handshake());
 
 				connection->state = Connection_State::Active;
-				net_push_event(Net_Event_Type::New_Connection, connection);
+				net_push_event(Net_Event_Type::Connect, connection);
 				break;
 
 			default:

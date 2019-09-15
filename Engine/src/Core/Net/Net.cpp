@@ -144,7 +144,7 @@ void net_close_connection(Connection* connection)
 		return;
 
 	net_log("CLOSE [%s] ID %d", ip_str(connection->id.addr), connection->id.index);
-	net_push_event(Net_Event_Type::Connection_Lost, connection);
+	net_push_event(Net_Event_Type::Disconnect, connection);
 
 	if (connection->state != Connection_State::Dead)
 	{

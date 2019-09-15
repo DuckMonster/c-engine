@@ -1,6 +1,7 @@
 #include "Client.h"
 #include "Core/Net/Net.h"
 #include "Engine/Config/Config.h"
+#include "Login.h"
 
 Client client;
 
@@ -54,11 +55,11 @@ void client_update()
 	{
 		switch(event->type)
 		{
-			case Net_Event_Type::New_Connection:
+			case Net_Event_Type::Connect:
 				on_new_connection(event->connection);
 				break;
 
-			case Net_Event_Type::Connection_Lost:
+			case Net_Event_Type::Disconnect:
 				on_connection_lost(event->connection);
 				break;
 		}
