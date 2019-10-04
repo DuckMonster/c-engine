@@ -88,6 +88,8 @@ Resource* resource_get(const char* path)
 {
 	u32 path_hash = hash_fnv(path, strlen(path));
 	Resource_Node* node = resource_get_node(resource_manager.root, path_hash);
+	if (node == nullptr)
+		return nullptr;
 
 	return &node->resource;
 }

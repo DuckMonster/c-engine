@@ -45,3 +45,4 @@ Mat4 inverse(const Mat4& mat);
 
 Mat4 mat_position_rotation(const Vec3& position, const Quat& rotation);
 Mat4 mat_position_scale(const Vec3& position, const Vec3& scale);
+Mat4 mat_position_rotation_scale(const Vec3& position, const Quat& rotation, const Vec3& scale);

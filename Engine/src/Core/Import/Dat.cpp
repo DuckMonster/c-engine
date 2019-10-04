@@ -645,7 +645,7 @@ bool dat_load_file(Dat_Document* doc, const char* file_path)
 	FILE* file = fopen(file_path, "rb");
 	if (file == nullptr)
 	{
-		debug_log("Failed to read dat file '%s': File doesn't exist.", file_path);
+		debug_log("Failed to read dat file '%s': Error code %d.", file_path, errno);
 		return false;
 	}
 

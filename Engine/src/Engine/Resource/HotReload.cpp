@@ -64,6 +64,9 @@ void resource_update_hotreload()
 void resource_add_dependency(Resource* res, const char* dependency_path)
 {
 	Resource* dependency_res = resource_get(dependency_path);
+	if (dependency_res == nullptr)
+		error("Tried to add dependency to resource '%s', which is not loaded yet", dependency_path);
+
 	resource_list_add_unique(res->dependencies, dependency_res);
 	resource_list_add_unique(dependency_res->dependent, res);
 }

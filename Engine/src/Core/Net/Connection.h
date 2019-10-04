@@ -4,15 +4,15 @@
 #include "Core/Thread/Mutex.h"
 #include "PacketList.h"
 
-struct Connection_Id
+struct Connection_Handle
 {
-	int index;
+	int id;
 	int generation;
 	Ip_Address addr;
 };
 
-bool operator==(const Connection_Id& lhs, const Connection_Id& rhs);
-bool operator!=(const Connection_Id& lhs, const Connection_Id& rhs);
+bool operator==(const Connection_Handle& lhs, const Connection_Handle& rhs);
+bool operator!=(const Connection_Handle& lhs, const Connection_Handle& rhs);
 
 enum class Connection_State
 {
@@ -32,13 +32,13 @@ enum class Connection_Lock
 	Max
 };
 
-#define CONN_PING_INTERVAL 1.5f
-#define CONN_RESEND_INTERVAL 1.0f
+#define CONN_PING_INTERVAL 5.0f
+#define CONN_RESEND_INTERVAL 0.4f
 #define CONN_RESEND_MAX 10
 
 struct Connection
 {
-	Connection_Id id;
+	Connection_Handle handle;
 	Connection_State state;
 
 	u32 next_out_id = 0;

@@ -1,20 +1,32 @@
 #include "Camera.h"
 #include "Core/Input/Input.h"
 #include "Core/Context/Context.h"
-#include "Runtime/Scene/Scene.h"
+#include "Runtime/Game/Game.h"
+#include "Runtime/Game/Scene.h"
+#include "Runtime/Unit/Unit.h"
+
+#if CLIENT
 
 void camera_update(Camera* camera)
 {
-#if CLIENT
 	if (input_key_down(Key::E))
 		camera->yaw -= 50.f * time_delta();
 	if (input_key_down(Key::Q))
 		camera->yaw += 50.f * time_delta();
 
-	Vec3 target = scene.player.position;
-	Vec3 diff = target - camera->position;
-	camera->position += diff * 5.f * time_delta();
-#endif
+	/*
+	if (game.local_player)
+	{
+		Ray mouse_ray = scene_mouse_ray();
+		Vec3 mouse_pos = ray_plane_intersect(mouse_ray, Vec3(0.f, 0.f, 0.5f), Vec3_Z);
+
+		camera->target_position = Vec3(game.local_player->unit->position, 0.f);
+		camera->target_position += (mouse_pos - camera->target_position) * 0.3f;
+	}
+	*/
+
+	Vec3 diff = camera->target_position - camera->position;
+	camera->position += diff * 12.f * time_delta();
 }
 
 Vec3 camera_forward(Camera* camera)
@@ -42,10 +54,12 @@ Mat4 camera_view_matrix(Camera* camera)
 Mat4 camera_projection_matrix(Camera* camera)
 {
 	float ratio = (float)context.width / (float)context.height;
-	return mat_ortho(-5.f * ratio, 5.f * ratio, -5.f, 5.f, -50.f, 50.f);
+	return mat_ortho(-camera->size * ratio, camera->size * ratio, -camera->size, camera->size, -50.f, 50.f);
 }
 
 Mat4 camera_view_projection_matrix(Camera* camera)
 {
 	return camera_projection_matrix(camera) * camera_view_matrix(camera);
 }
+
+#endif

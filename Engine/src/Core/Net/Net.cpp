@@ -32,7 +32,7 @@ namespace
 			if (net.connections[i].state == Connection_State::None)
 				continue;
 
-			if (net.connections[i].id.addr == addr)
+			if (net.connections[i].handle.addr == addr)
 				return net.connections + i;
 		}
 
@@ -114,7 +114,7 @@ void net_shutdown()
 	net_log("SHUTDOWN");
 }
 
-Connection_Id net_connect(const Ip_Address& addr)
+Connection_Handle net_connect(const Ip_Address& addr)
 {
 	net_log("CONNECT [%s]", ip_str(addr));
 
@@ -126,13 +126,13 @@ Connection_Id net_connect(const Ip_Address& addr)
 	Packet* conn_packet = packet_make_connect();
 	connection_queue_out(connection, conn_packet);
 
-	return connection->id;
+	return connection->handle;
 }
 
-void net_send(const Connection_Id& target, bool reliable, const void* data, u32 size)
+void net_send(const Connection_Handle& target, bool reliable, const void* data, u32 size)
 {
-	Connection* connection = net.connections + target.index;
-	if (connection->id != target)
+	Connection* connection = net.connections + target.id;
+	if (connection->handle != target)
 		return;
 
 	connection_queue_out(connection, packet_make_user(reliable, data, size));
@@ -143,7 +143,7 @@ void net_close_connection(Connection* connection)
 	if (connection->state == Connection_State::None)
 		return;
 
-	net_log("CLOSE [%s] ID %d", ip_str(connection->id.addr), connection->id.index);
+	net_log("CLOSE [%s] ID %d", ip_str(connection->handle.addr), connection->handle.id);
 	net_push_event(Net_Event_Type::Disconnect, connection);
 
 	if (connection->state != Connection_State::Dead)
@@ -153,7 +153,7 @@ void net_close_connection(Connection* connection)
 		shutdown_packet.type = Packet_Type::Shutdown;
 		shutdown_packet.id = 0;
 
-		sock_send_to(&net.socket, &shutdown_packet, sizeof(shutdown_packet), connection->id.addr);
+		sock_send_to(&net.socket, &shutdown_packet, sizeof(shutdown_packet), connection->handle.addr);
 	}
 
 	connection_reset(connection);
@@ -163,7 +163,7 @@ void net_push_event(Net_Event_Type type, Connection* connection)
 {
 	Net_Event* event = (Net_Event*)malloc(sizeof(Net_Event));
 	event->type = type;
-	event->connection = connection->id;
+	event->connection = connection->handle;
 	event->packet = nullptr;
 	event->packet_body = nullptr;
 	event->next = nullptr;
@@ -185,8 +185,9 @@ void net_push_packet_event(Connection* connection, Packet* packet)
 {
 	Net_Event* event = (Net_Event*)malloc(sizeof(Net_Event));
 	event->type = Net_Event_Type::Packet;
-	event->connection = connection->id;
+	event->connection = connection->handle;
 	event->packet = packet;
+	event->packet_body_size = packet->size - sizeof(Packet);
 	event->packet_body = (void*)(packet + 1);
 	event->next = nullptr;
 
@@ -206,10 +207,33 @@ void net_push_packet_event(Connection* connection, Packet* packet)
 void net_swap_event_list(Net_Event** out_list)
 {
 	if (!mutex_try_lock(&net.event_mutex))
+	{
+		*out_list = nullptr;
 		return;
+	}
 
 	*out_list = net.event_list;
 	net.event_list = nullptr;
 
 	mutex_release(&net.event_mutex);
+}
+
+void net_swap_event_single(Net_Event** out_event)
+{
+	if (!mutex_try_lock(&net.event_mutex))
+	{
+		*out_event = nullptr;
+		return;
+	}
+	defer { mutex_release(&net.event_mutex); };
+
+	if (net.event_list == nullptr)
+	{
+		*out_event = nullptr;
+		return;
+	}
+
+	*out_event = net.event_list;
+	net.event_list = net.event_list->next;
+	(*out_event)->next = nullptr;
 }

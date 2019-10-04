@@ -72,7 +72,6 @@ void splist_remove(Sparse_List<T>* list, T* item)
 
 	list->count--;
 	entry->active = false;
-	new(item) T();
 
 	/* Update near and far pointer */
 	if (list->count == 0)

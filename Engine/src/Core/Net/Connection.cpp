@@ -1,22 +1,22 @@
 #include "Connection.h"
 
-bool operator==(const Connection_Id& lhs, const Connection_Id& rhs)
+bool operator==(const Connection_Handle& lhs, const Connection_Handle& rhs)
 {
 	return
-		lhs.index == rhs.index &&
+		lhs.id == rhs.id &&
 		lhs.generation == rhs.generation;
 }
 
-bool operator!=(const Connection_Id& lhs, const Connection_Id& rhs)
+bool operator!=(const Connection_Handle& lhs, const Connection_Handle& rhs)
 {
 	return
-		lhs.index != rhs.index ||
+		lhs.id != rhs.id ||
 		lhs.generation != rhs.generation;
 }
 
 void connection_init(Connection* connection, u32 index)
 {
-	connection->id.index = index;
+	connection->handle.id = index;
 	for(u32 i=0; i<(u32)Connection_Lock::Max; ++i)
 	{
 		mutex_create(connection->mutexes + i);
@@ -55,7 +55,7 @@ void connection_open(Connection* connection, const Ip_Address& addr)
 	connection_lock(connection, Connection_Lock::State);
 
 	connection->state = Connection_State::Open;
-	connection->id.addr = addr;
+	connection->handle.addr = addr;
 	connection->ping_send_time = time_duration() + CONN_PING_INTERVAL;
 
 	connection_unlock(connection, Connection_Lock::State);
@@ -91,8 +91,8 @@ void connection_reset(Connection* connection)
 	connection->next_in_id = 0;
 	connection->ping_send_time = 0.f;
 	connection->ping = 0.f;
-	connection->id.addr = Ip_Address();
-	connection->id.generation++;
+	connection->handle.addr = Ip_Address();
+	connection->handle.generation++;
 
 	packet_list_clear(&connection->incoming);
 	packet_list_clear(&connection->outgoing);

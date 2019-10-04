@@ -340,7 +340,7 @@ void context_begin_frame()
 
 void context_focus()
 {
-	HWND wnd = SetActiveWindow(window.handle);
+	SetForegroundWindow(window.handle);
 }
 
 void context_end_frame()

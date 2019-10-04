@@ -8,4 +8,4 @@ struct Ray
 
 Ray ray_from_to(const Vec3& from, const Vec3& to);
 Vec3 ray_get_point(const Ray& ray, float time);
-Vec3 ray_project_plane(const Ray& ray, const Vec3& plane_point, const Vec3& plane_normal);
+Vec3 ray_plane_intersect(const Ray& ray, const Vec3& plane_point, const Vec3& plane_normal);

@@ -1,5 +1,6 @@
 #define debug_break() (assert_helpers::can_debug_break() && (__debugbreak(), 0))
 #define assert(expr) (!!(expr) || assert_helpers::trigger_assert(#expr, __FILE__, __LINE__) || debug_break())
+#define assert_msg(expr, format, ...) (!!(expr) || (assert_helpers::trigger_error(__FILE__,__LINE__,format,__VA_ARGS__), debug_break()))
 #define error(format, ...) (assert_helpers::trigger_error(__FILE__, __LINE__,format, __VA_ARGS__), debug_break(), assert_helpers::error_exit())
 #define msg_box(title, format, ...) (assert_helpers::trigger_msg_box(__FILE__, __LINE__, title, format, __VA_ARGS__))
 

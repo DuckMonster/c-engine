@@ -28,10 +28,10 @@ void net_service_flush_out(Connection* connection)
 
 		if (should_send)
 		{
-			sock_send_to(&net.socket, packet, packet->size, connection->id.addr);
+			sock_send_to(&net.socket, packet, packet->size, connection->handle.addr);
 			net_log("SEND %s => %s[%d] (size: %d, id: %d, reliable: %d, resend: %d)",
 				packet_type_str(packet->type),
-				ip_str(connection->id.addr), connection->id.index,
+				ip_str(connection->handle.addr), connection->handle.id,
 				packet->size, packet->id, packet->reliable,
 				block->resend_count);
 

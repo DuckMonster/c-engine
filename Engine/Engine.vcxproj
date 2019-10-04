@@ -19,7 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <Target Name="Build">
-    <Message Text="Building engine config '$(Configuration)'" Importance = "High" />
+    <Message Text="Building engine config '$(Configuration)'" Importance="High" />
   </Target>
   <PropertyGroup>
     <Optimize Condition="'$(Configuration)'=='Debug' or '$(Configuration)'=='DebugServer'">false</Optimize>
@@ -34,6 +34,9 @@
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Label="Configuration" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <VCToolsVersion />
+  </PropertyGroup>
   <PropertyGroup>
     <ConfigurationType>Application</ConfigurationType>
     <PlatformToolset>v142</PlatformToolset>
@@ -107,6 +110,8 @@
     <ClCompile Include="src\Core\**\*.cpp" />
     <ClCompile Include="src\Engine\**\*.cpp" />
     <ClCompile Include="src\Runtime\**\*.cpp" />
+    <ClCompile Condition="$(NetMode)!='Server'" Remove="**\*Server.cpp" />
+    <ClCompile Condition="$(NetMode)!='Client'" Remove="**\*Client.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\**\*.h" />

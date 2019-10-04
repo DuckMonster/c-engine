@@ -76,6 +76,10 @@ inline Vec2 operator/(const Vec2& a, float scalar) { return Vec2(a.x / scalar, a
 inline Vec3 operator/(const Vec3& a, float scalar) { return Vec3(a.x / scalar, a.y / scalar, a.z / scalar); }
 inline Vec4 operator/(const Vec4& a, float scalar) { return Vec4(a.x / scalar, a.y / scalar, a.z / scalar, a.w / scalar); }
 
+inline Vec2 operator/(const Vec2& a, const Vec2& b) { return Vec2(a.x / b.x, a.y / b.y); }
+inline Vec3 operator/(const Vec3& a, const Vec3& b) { return Vec3(a.x / b.x, a.y / b.y, a.z / b.z); }
+inline Vec4 operator/(const Vec4& a, const Vec4& b) { return Vec4(a.x / b.x, a.y / b.y, a.z / b.z, a.w / b.w); }
+
 inline Vec2 operator+(const Vec2& a, float scalar) { return Vec2(a.x + scalar, a.y + scalar); }
 inline Vec3 operator+(const Vec3& a, float scalar) { return Vec3(a.x + scalar, a.y + scalar, a.z + scalar); }
 inline Vec4 operator+(const Vec4& a, float scalar) { return Vec4(a.x + scalar, a.y + scalar, a.z + scalar, a.w + scalar); }
@@ -100,6 +104,10 @@ inline Vec2& operator/=(Vec2& a, float scalar) { a.x /= scalar; a.y /= scalar; r
 inline Vec3& operator/=(Vec3& a, float scalar) { a.x /= scalar; a.y /= scalar; a.z /= scalar; return a; }
 inline Vec4& operator/=(Vec4& a, float scalar) { a.x /= scalar; a.y /= scalar; a.z /= scalar; a.w /= scalar; return a; }
 
+inline Vec2& operator/=(Vec2& a, const Vec2& b) { a.x /= b.x; a.y /= b.y; return a; }
+inline Vec3& operator/=(Vec3& a, const Vec3& b) { a.x /= b.x; a.y /= b.y; a.z /= b.z; return a; }
+inline Vec4& operator/=(Vec4& a, const Vec4& b) { a.x /= b.x; a.y /= b.y; a.z /= b.z; a.w /= b.w; return a; }
+
 inline Vec2& operator+=(Vec2& a, float scalar) { a.x += scalar; a.y += scalar; return a; }
 inline Vec3& operator+=(Vec3& a, float scalar) { a.x += scalar; a.y += scalar; a.z += scalar; return a; }
 inline Vec4& operator+=(Vec4& a, float scalar) { a.x += scalar; a.y += scalar; a.z += scalar; a.w += scalar; return a; }
@@ -112,6 +120,32 @@ inline Vec4& operator-=(Vec4& a, float scalar) { a.x -= scalar; a.y -= scalar; a
 inline Vec2 operator-(const Vec2& v) { return Vec2(-v.x, -v.y); }
 inline Vec3 operator-(const Vec3& v) { return Vec3(-v.x, -v.y, -v.z); }
 inline Vec4 operator-(const Vec4& v) { return Vec4(-v.x, -v.y, -v.z, -v.w); }
+
+inline bool nearly_equal(float a, float b, float margin = 0.0001f)
+{
+	return (a - b) < margin && (a - b) > -margin;
+}
+inline bool nearly_equal(const Vec2& a, const Vec2& b, float margin = 0.0001f)
+{
+	return
+		nearly_equal(a.x, b.x, margin) &&
+		nearly_equal(a.y, b.y, margin);
+}
+inline bool nearly_equal(const Vec3& a, const Vec3& b, float margin = 0.0001f)
+{
+	return
+		nearly_equal(a.x, b.x, margin) &&
+		nearly_equal(a.y, b.y, margin) &&
+		nearly_equal(a.z, b.z, margin);
+}
+inline bool nearly_equal(const Vec4& a, const Vec4& b, float margin = 0.0001f)
+{
+	return
+		nearly_equal(a.x, b.x, margin) &&
+		nearly_equal(a.y, b.y, margin) &&
+		nearly_equal(a.z, b.z, margin) &&
+		nearly_equal(a.w, b.w, margin);
+}
 
 inline bool nearly_zero(float v, float margin = 0.0001f)
 {

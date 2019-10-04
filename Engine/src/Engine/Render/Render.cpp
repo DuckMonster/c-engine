@@ -6,9 +6,13 @@
 #include "Engine/Graphics/Mesh.h"
 #include "Engine/Graphics/Texture.h"
 #include "Engine/Graphics/FrameBuffer.h"
+#include "Runtime/Effect/LineDrawer.h"
+#include "Runtime/Game/Scene.h"
 #include "Drawable.h"
 #include "Billboard.h"
 #include <stdio.h>
+
+#if CLIENT
 
 namespace
 {
@@ -44,6 +48,13 @@ void render_init()
 	framebuffer_add_depth_texture(&shadow_buffer);
 }
 
+void render_draw_scene(const Render_State& state)
+{
+	drawable_render(state);
+	billboard_render(state);
+	line_drawer_render(state);
+}
+
 void render_draw()
 {
 	Render_State state = global_state;
@@ -60,14 +71,13 @@ void render_draw()
 	Mat4 light_vp_inv;
 
 	light_proj = mat_ortho(-10.f, 10.f, -10.f, 10.f, -10.f, 10.f);
-	light_view = mat_look_forward(Vec3_Zero, Vec3(1.f, 1.f, -1.f), Vec3_Z);
+	light_view = mat_look_forward(scene.camera.position, Vec3(1.f, 1.f, -1.f), Vec3_Z);
 	state.light = light_proj * light_view;
 
 	state.view = light_view;
 	state.projection = light_proj;
 	state.view_projection = state.light;
-	drawable_render(state);
-	billboard_render(state);
+	render_draw_scene(state);
 
 	framebuffer_reset();
 
@@ -86,8 +96,7 @@ void render_draw()
 
 	texture_bind(&shadow_buffer.textures[0], 2);
 
-	drawable_render(state);
-	billboard_render(state);
+	render_draw_scene(state);
 
 	framebuffer_reset();
 
@@ -100,3 +109,5 @@ void render_draw()
 	texture_bind(nullptr, 0);
 	glUseProgram(0);
 }
+
+#endif

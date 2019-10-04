@@ -26,6 +26,7 @@ void shader_res_create(Resource* resource, GLenum type)
 }
 
 void shader_res_create_vert(Resource* resource) { shader_res_create(resource, GL_VERTEX_SHADER); }
+void shader_res_create_geom(Resource* resource) { shader_res_create(resource, GL_GEOMETRY_SHADER); }
 void shader_res_create_frag(Resource* resource) { shader_res_create(resource, GL_FRAGMENT_SHADER); }
 
 void shader_res_destroy(Resource* resource)
@@ -41,17 +42,23 @@ void shader_res_destroy(Resource* resource)
 const Shader* shader_load(GLenum type, const char* path)
 {
 	Resource* resource = nullptr;
-	if (type == GL_VERTEX_SHADER)
+	switch(type)
 	{
-		resource = resource_load(path, shader_res_create_vert, shader_res_destroy);
-	}
-	else if (type == GL_FRAGMENT_SHADER)
-	{
-		resource = resource_load(path, shader_res_create_frag, shader_res_destroy);
-	}
-	else
-	{
-		error("'%s' trying to load invalid shader type %d", path, type);
+		case GL_VERTEX_SHADER:
+			resource = resource_load(path, shader_res_create_vert, shader_res_destroy);
+			break;
+
+		case GL_GEOMETRY_SHADER:
+			resource = resource_load(path, shader_res_create_geom, shader_res_destroy);
+			break;
+
+		case GL_FRAGMENT_SHADER:
+			resource = resource_load(path, shader_res_create_frag, shader_res_destroy);
+			break;
+
+		default:
+			error("'%s' trying to load invalid shader type %d", path, type);
+			break;
 	}
 
 	return (Shader*)resource->ptr;
@@ -81,6 +88,7 @@ void material_res_create(Resource* resource)
 	// Read the vertex and fragment file paths
 	const char* vert_path;
 	const char* frag_path;
+
 	if (!dat_read(doc.root, "vertex", &vert_path))
 	{
 		msg_box("Material load failed", "Failed to load material '%s', vertex shader path not specified", resource->path);
@@ -99,6 +107,16 @@ void material_res_create(Resource* resource)
 	resource_add_dependency(resource, frag_path);
 	glAttachShader(material->program, vertex_shdr->handle);
 	glAttachShader(material->program, fragment_shdr->handle);
+
+	// Read and load the optional geometry path
+	const char* geom_path;
+	if (dat_read(doc.root, "geometry", &geom_path))
+	{
+		const Shader* geometry_shdr = shader_load(GL_GEOMETRY_SHADER, geom_path);
+		resource_add_dependency(resource, geom_path);
+		glAttachShader(material->program, geometry_shdr->handle);
+	}
+
 	glLinkProgram(material->program);
 
 	glDetachShader(material->program, vertex_shdr->handle);

@@ -79,10 +79,6 @@ void drawable_render(const Render_State& state)
 		}
 
 		material_set(material, "u_Model", drawable->transform);
-
-		if (drawable->mesh->use_elements)
-			glDrawElements(GL_TRIANGLES, drawable->mesh->draw_count, GL_UNSIGNED_INT, NULL);
-		else
-			glDrawArrays(GL_TRIANGLES, 0, drawable->mesh->draw_count);
+		mesh_draw(drawable->mesh);
 	}
 }

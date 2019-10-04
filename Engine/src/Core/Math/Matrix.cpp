@@ -163,3 +163,18 @@ Mat4 mat_position_scale(const Vec3& position, const Vec3& scale)
 		position.x, position.y, position.z, 1.f
 	);
 }
+
+Mat4 mat_position_rotation_scale(const Vec3& position, const Quat& rotation, const Vec3& scale)
+{
+	Mat4 scale_mat = Mat4(
+		scale.x, 0.f, 0.f, 0.f,
+		0.f, scale.y, 0.f, 0.f,
+		0.f, 0.f, scale.z, 0.f,
+		0.f, 0.f, 0.f, 1.f
+	);
+	Mat4 rotation_mat = quat_to_mat(rotation);
+	Mat4 result = rotation_mat * scale_mat;
+
+	result[3] = Vec4(position, 1.f);
+	return result;
+}
