@@ -1,3 +1,0 @@
-vertex: "Shader/line.vert"
-geometry: "Shader/line.geom"
-fragment: "Shader/line.frag"

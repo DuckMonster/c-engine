@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="DebugServer|x64">
+      <Configuration>DebugServer</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="ReleaseServer|x64">
+      <Configuration>ReleaseServer</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <Target Name="Build">
+    <Message Text="Building engine config '$(Configuration)'" Importance="High" />
+  </Target>
+  <PropertyGroup>
+    <Optimize Condition="'$(Configuration)'=='Debug' or '$(Configuration)'=='DebugServer'">false</Optimize>
+    <Optimize Condition="'$(Configuration)'=='Release' or '$(Configuration)'=='ReleaseServer'">true</Optimize>
+    <NetMode Condition="'$(Configuration)'=='DebugServer' or $(Configuration)=='ReleaseServer'">Server</NetMode>
+    <NetMode Condition="'$(Configuration)'=='Debug' or '$(Configuration)'=='Release'">Client</NetMode>
+  </PropertyGroup>
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>16.0</VCProjectVersion>
+    <ProjectGuid>{0DF27800-3DD3-43B7-9BDA-DCD48732A277}</ProjectGuid>
+    <RootNamespace>Game</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0.17763.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Label="Configuration" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <VCToolsVersion />
+  </PropertyGroup>
+  <PropertyGroup>
+    <ConfigurationType>Application</ConfigurationType>
+    <PlatformToolset>v141</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+    <WholeProgramOptimization Condition="'$(Optimize)'">true</WholeProgramOptimization>
+    <UseDebugLibraries Condition="$(Optimize)">false</UseDebugLibraries>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros">
+  </PropertyGroup>
+  <PropertyGroup>
+    <OutDir Condition="'!$(Optimize)'">$(ProjectDir)bin\development\</OutDir>
+    <OutDir Condition="'$(Optimize)'">$(ProjectDir)bin\shipping\</OutDir>
+    <TargetName Condition="'$(NetMode)'=='Client'">engine</TargetName>
+    <TargetName Condition="'$(NetMode)'=='Server'">engine_server</TargetName>
+    <IntDir>$(ProjectDir)build\$(Configuration)\</IntDir>
+    <AdditionalDefines Condition="'$(NetMode)'=='Server'">SERVER=1;CLIENT=0</AdditionalDefines>
+    <AdditionalDefines Condition="'$(NetMode)'=='Client'">SERVER=0;CLIENT=1</AdditionalDefines>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <ForcedIncludeFiles>PCH.h</ForcedIncludeFiles>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>PCH.h</PrecompiledHeaderFile>
+      <WarningLevel>Level3</WarningLevel>
+      <SDLCheck>true</SDLCheck>
+      <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>include;src</AdditionalIncludeDirectories>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+    </ClCompile>
+    <Link>
+      <AdditionalLibraryDirectories>lib</AdditionalLibraryDirectories>
+      <AdditionalDependencies>opengl32.lib;Ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <SubSystem>Console</SubSystem>
+      <EntryPointSymbol>mainCRTStartup</EntryPointSymbol>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="!$(Optimize)">
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>_DEBUG;DEBUG;_CRT_SECURE_NO_WARNINGS;_MBCS;WIN;$(AdditionalDefines);%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="$(Optimize)">
+    <ClCompile>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;_MBCS;WIN;$(AdditionalDefines);%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+    </ClCompile>
+    <Link>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="src\PCH.cpp">
+      <PrecompiledHeader>Create</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="src\Core\**\*.cpp" />
+    <ClCompile Include="src\Engine\**\*.cpp" />
+    <ClCompile Include="src\Runtime\**\*.cpp" />
+    <ClCompile Condition="$(NetMode)!='Server'" Remove="**\*Server.cpp" />
+    <ClCompile Condition="$(NetMode)!='Client'" Remove="**\*Client.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\**\*.h" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

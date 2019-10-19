@@ -1,8 +1,0 @@
-host: {
-	addr: "109.104.20.143"
-	port: 50010
-}
-
-net: {
-	debug: false
-}

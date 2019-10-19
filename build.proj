@@ -4,10 +4,10 @@
     </ItemGroup>
 
     <Target Name="Build">
-        <MSBuild Projects="Engine\Engine.vcxproj" Properties="Configuration=%(ConfigList.Identity);Platform=x64" Targets="Build" />
+        <MSBuild Projects="engine.vcxproj" Properties="Configuration=%(ConfigList.Identity);Platform=x64" Targets="Build" />
     </Target>
 
     <Target Name="Rebuild">
-        <MSBuild Projects="Engine\Engine.vcxproj" Properties="Configuration=%(ConfigList.Identity);Platform=x64" Targets="Rebuild" />
+        <MSBuild Projects="engine.vcxproj" Properties="Configuration=%(ConfigList.Identity);Platform=x64" Targets="Rebuild" />
     </Target>
 </Project>

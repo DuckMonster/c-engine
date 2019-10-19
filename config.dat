@@ -1,0 +1,17 @@
+host: {
+	addr: "127.0.0.1"
+	port: 50010
+}
+
+net: {
+	debug: false
+}
+
+context: {
+	x: 200
+	y: 200
+	width: 1024
+	height: 768
+}
+
+
