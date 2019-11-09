@@ -26,6 +26,8 @@
     <Optimize Condition="'$(Configuration)'=='Release' or '$(Configuration)'=='ReleaseServer'">true</Optimize>
     <NetMode Condition="'$(Configuration)'=='DebugServer' or $(Configuration)=='ReleaseServer'">Server</NetMode>
     <NetMode Condition="'$(Configuration)'=='Debug' or '$(Configuration)'=='Release'">Client</NetMode>
+    <ConfPath Condition="$(Optimize)">release</ConfPath>
+    <ConfPath Condition="!$(Optimize)">debug</ConfPath>
   </PropertyGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
@@ -41,7 +43,7 @@
     <ConfigurationType>Application</ConfigurationType>
     <PlatformToolset>v141</PlatformToolset>
     <CharacterSet>MultiByte</CharacterSet>
-    <WholeProgramOptimization Condition="'$(Optimize)'">true</WholeProgramOptimization>
+    <WholeProgramOptimization Condition="$(Optimize)">true</WholeProgramOptimization>
     <UseDebugLibraries Condition="$(Optimize)">false</UseDebugLibraries>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
@@ -55,10 +57,9 @@
   <PropertyGroup Label="UserMacros">
   </PropertyGroup>
   <PropertyGroup>
-    <OutDir Condition="'!$(Optimize)'">$(ProjectDir)bin\development\</OutDir>
-    <OutDir Condition="'$(Optimize)'">$(ProjectDir)bin\shipping\</OutDir>
-    <TargetName Condition="'$(NetMode)'=='Client'">engine</TargetName>
-    <TargetName Condition="'$(NetMode)'=='Server'">engine_server</TargetName>
+    <OutDir>$(ProjectDir)bin\$(ConfPath)\</OutDir>
+    <TargetName Condition="'$(NetMode)'=='Client'">game</TargetName>
+    <TargetName Condition="'$(NetMode)'=='Server'">game_server</TargetName>
     <IntDir>$(ProjectDir)build\$(Configuration)\</IntDir>
     <AdditionalDefines Condition="'$(NetMode)'=='Server'">SERVER=1;CLIENT=0</AdditionalDefines>
     <AdditionalDefines Condition="'$(NetMode)'=='Client'">SERVER=0;CLIENT=1</AdditionalDefines>
@@ -75,8 +76,8 @@
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
-      <AdditionalLibraryDirectories>lib</AdditionalLibraryDirectories>
-      <AdditionalDependencies>opengl32.lib;Ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>lib\$(ConfPath)\</AdditionalLibraryDirectories>
+      <AdditionalDependencies>opengl32.lib;Ws2_32.lib;freetype.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SubSystem>Console</SubSystem>
       <EntryPointSymbol>mainCRTStartup</EntryPointSymbol>
     </Link>

@@ -162,6 +162,11 @@ const Material* material_load(const char* path)
 	return (Material*)resource->ptr;
 }
 
+void material_bind(const Material* mat)
+{
+	glUseProgram(mat->program);
+}
+
 /* MATERIAL UNIFORM SETTERS */
 void material_set(const Material* mat, const char* name, const int value)
 {

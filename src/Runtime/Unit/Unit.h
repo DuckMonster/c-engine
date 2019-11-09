@@ -1,6 +1,7 @@
 #pragma once
 struct Billboard;
 struct Channel;
+struct Online_User;
 
 struct Unit
 {
@@ -14,18 +15,23 @@ struct Unit
 
 #if CLIENT
 	Billboard* billboard = nullptr;
+	bool is_local = false;
 #endif
 
 #if SERVER
+	Online_User* owner = nullptr;
 	float walk_timer = 2.f;
+	Vec2 ai_walk_target;
 #endif
 };
 
 Unit* unit_spawn(u32 id, const Vec2& position);
 void unit_destroy(Unit* unit);
 
-#if SERVER
-void unit_move_to(Unit* unit, const Vec2& target);
-#endif
+void unit_move_towards(Unit* unit, const Vec2& target);
+void unit_move_direction(Unit* unit, const Vec2& direction);
+void unit_shoot(Unit* unit, const Vec2& target);
+void unit_hit(Unit* unit, const Vec2& impulse);
+bool unit_has_control(Unit* unit);
 
 void units_update();

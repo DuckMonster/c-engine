@@ -14,6 +14,7 @@ struct Material
 };
 
 const Material* material_load(const char* path);
+void material_bind(const Material* mat);
 
 void material_set(const Material* mat, const char* name, const int value);
 void material_set(const Material* mat, const char* name, const float value);

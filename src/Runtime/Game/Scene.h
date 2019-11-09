@@ -23,7 +23,6 @@ struct Scene
 extern Scene scene;
 
 void scene_init();
-u32 scene_get_free_unit();
 
 #if CLIENT
 Ray scene_mouse_ray();

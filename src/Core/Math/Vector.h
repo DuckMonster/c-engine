@@ -9,8 +9,8 @@ struct Vec2
 	Vec2() : x(0.f), y(0.f) {}
 	Vec2(float v) : x(v), y(v) {}
 	Vec2(float x, float y) : x(x), y(y) {}
-	inline Vec2(const Vec3& v);
-	inline Vec2(const Vec4& v);
+	explicit inline Vec2(const Vec3& v);
+	explicit inline Vec2(const Vec4& v);
 
 	float x;
 	float y;
@@ -25,7 +25,7 @@ struct Vec3
 	Vec3(float v) : x(v), y(v), z(v) {}
 	Vec3(float x, float y, float z) : x(x), y(y), z(z) {}
 	Vec3(const Vec2& vec, float z) : x(vec.x), y(vec.y), z(z) {}
-	inline Vec3(const Vec4& v);
+	explicit inline Vec3(const Vec4& v);
 
 	float x;
 	float y;
@@ -56,7 +56,6 @@ struct Vec4
 // Conversion operators
 inline Vec2::Vec2(const Vec3& v) : x(v.x), y(v.y) {}
 inline Vec2::Vec2(const Vec4& v) : x(v.x), y(v.y) {}
-
 inline Vec3::Vec3(const Vec4& v) : x(v.x), y(v.y), z(v.z) {}
 
 // Operators
@@ -213,6 +212,32 @@ inline float length_sqrd(const Vec3& v)
 inline float length_sqrd(const Vec4& v)
 {
 	return v.x * v.x + v.y * v.y + v.z * v.z + v.w * v.w;
+}
+
+inline float distance(const Vec2& a, const Vec2& b)
+{
+	return length(b - a);
+}
+inline float distance(const Vec3& a, const Vec3& b)
+{
+	return length(b - a);
+}
+inline float distance(const Vec4& a, const Vec4& b)
+{
+	return length(b - a);
+}
+
+inline float distance_sqrd(const Vec2& a, const Vec2& b)
+{
+	return length_sqrd(b - a);
+}
+inline float distance_sqrd(const Vec3& a, const Vec3& b)
+{
+	return length_sqrd(b - a);
+}
+inline float distance_sqrd(const Vec4& a, const Vec4& b)
+{
+	return length_sqrd(b - a);
 }
 
 inline float dot(const Vec2& a, const Vec2& b)

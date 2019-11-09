@@ -67,9 +67,7 @@ void drawable_render(const Render_State& state)
 
 		if (material != last_material)
 		{
-			glBindVertexArray(drawable->mesh->vao);
-			glUseProgram(drawable->material->program);
-
+			material_bind(material);
 			material_set(material, "u_View", state.view);
 			material_set(material, "u_Projection", state.projection);
 			material_set(material, "u_ViewProjection", state.view_projection);

@@ -13,18 +13,6 @@ void scene_init()
 #endif
 }
 
-u32 scene_get_free_unit()
-{
-	for(u32 i=0; i<MAX_UNITS; ++i)
-	{
-		if (!scene.units[i].active)
-			return i;
-	}
-
-	error("Ran out of unit slots");
-	return -1;
-}
-
 #if CLIENT
 Ray scene_mouse_ray()
 {
@@ -46,8 +34,8 @@ Ray scene_screen_to_ray(Vec2 screen)
 	world_far /= world_far.w;
 
 	Ray result;
-	result.origin = world_near;
-	result.direction = normalize(world_far - world_near);
+	result.origin = (Vec3)world_near;
+	result.direction = normalize(Vec3(world_far - world_near));
 
 	return result;
 }

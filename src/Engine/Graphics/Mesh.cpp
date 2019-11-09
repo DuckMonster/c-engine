@@ -16,7 +16,7 @@ void mesh_add_buffers(Mesh* mesh, u32 count)
 	mesh->num_buffers += count;
 }
 
-void mesh_bind_buffer(Mesh* mesh, u32 buffer_index, u32 attribute_index, u32 element_count, u32 stride, u32 offset)
+void mesh_map_buffer(Mesh* mesh, u32 buffer_index, u32 attribute_index, u32 element_count, u32 stride, u32 offset)
 {
 	glBindVertexArray(mesh->vao);
 
@@ -47,6 +47,11 @@ void mesh_free(Mesh* mesh)
 	glDeleteVertexArrays(1, &mesh->vao);
 	glDeleteBuffers(mesh->num_buffers, mesh->buffers);
 	mesh->num_buffers = 0;
+}
+
+void mesh_bind(const Mesh* mesh)
+{
+	glBindVertexArray(mesh->vao);
 }
 
 void mesh_draw(const Mesh* mesh)
@@ -91,9 +96,9 @@ void mesh_res_create(Resource* resource)
 
 	mesh_create(mesh);
 	mesh_add_buffers(mesh, 4);
-	mesh_bind_buffer(mesh, 0, 0, 3, 0, 0);
-	mesh_bind_buffer(mesh, 1, 1, 3, 0, 0);
-	mesh_bind_buffer(mesh, 2, 2, 2, 0, 0);
+	mesh_map_buffer(mesh, 0, 0, 3, 0, 0);
+	mesh_map_buffer(mesh, 1, 1, 3, 0, 0);
+	mesh_map_buffer(mesh, 2, 2, 2, 0, 0);
 
 	if (f_mesh.positions != nullptr)
 		mesh_buffer_data(mesh, 0, f_mesh.positions, sizeof(Vec3) * f_mesh.num_verts);
@@ -157,7 +162,7 @@ void mesh_load_verts(Mesh* mesh, void* v_ptr, u32 size)
 	mesh_create(mesh);
 
 	mesh_add_buffers(mesh, 1);
-	mesh_bind_buffer(mesh, 0, 0, 3, 0, 0);
+	mesh_map_buffer(mesh, 0, 0, 3, 0, 0);
 	mesh_buffer_data(mesh, 0, v_ptr, size);
 
 	mesh->num_buffers = 1;

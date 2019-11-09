@@ -8,7 +8,6 @@ struct Online_User;
 struct Game
 {
 	Channel* channel;
-	Player players[MAX_PLAYERS];
 
 #if CLIENT
 	Unit* local_unit = nullptr;

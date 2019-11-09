@@ -44,8 +44,8 @@ void billboard_destroy(Billboard* billboard)
 
 void billboard_render(const Render_State& state)
 {
-	glBindVertexArray(billboard_mesh->vao);
-	glUseProgram(billboard_material->program);
+	mesh_bind(billboard_mesh);
+	material_bind(billboard_material);
 
 	material_set(billboard_material, "u_View", state.view);
 	material_set(billboard_material, "u_Projection", state.projection);

@@ -22,9 +22,9 @@ Line_Drawer* line_drawer_make()
 
 	mesh_create(&drawer->mesh);
 	mesh_add_buffers(&drawer->mesh, 1);
-	mesh_bind_buffer(&drawer->mesh, 0, 0, 3, 5, 0);
-	mesh_bind_buffer(&drawer->mesh, 0, 1, 1, 5, 3);
-	mesh_bind_buffer(&drawer->mesh, 0, 2, 1, 5, 4);
+	mesh_map_buffer(&drawer->mesh, 0, 0, 3, 5, 0);
+	mesh_map_buffer(&drawer->mesh, 0, 1, 1, 5, 3);
+	mesh_map_buffer(&drawer->mesh, 0, 2, 1, 5, 4);
 
 	Vec3 vec_pos = Vec3(0.f, 0.f, 1.f);
 	mesh_buffer_data(&drawer->mesh, 0, &vec_pos, sizeof(vec_pos));
@@ -85,7 +85,7 @@ void line_drawer_update(Line_Drawer* drawer)
 
 void line_drawer_render(const Render_State& state)
 {
-	glUseProgram(line_material->program);
+	material_bind(line_material);
 	material_set(line_material, "u_ViewProjection", state.view_projection);
 
 	Line_Drawer* drawer;

@@ -6,7 +6,7 @@ struct Rpc_Channel_Event;
 #define WRITE_BUFFER_SIZE 512
 
 struct Channel;
-typedef void (*Channel_Event_Proc)(Channel* channel);
+typedef void (*Channel_Event_Proc)(Channel* channel, Online_User* src);
 
 enum class Channel_State
 {
@@ -22,6 +22,15 @@ struct Channel_Id
 	u32 index;
 };
 
+struct Channel_Msg
+{
+	Online_User* user = nullptr;
+	u8* data = nullptr;
+	u32 size = 0;
+
+	Channel_Msg* next = nullptr;
+};
+
 bool operator==(const Channel_Id& lhs, const Channel_Id& rhs);
 bool operator!=(const Channel_Id& lhs, const Channel_Id& rhs);
 
@@ -33,6 +42,7 @@ struct Channel
 	// Buffer used when sending data
 	u8 write_buffer[WRITE_BUFFER_SIZE];
 	u32 write_buffer_offset = 0;
+	Online_User* write_except_user = nullptr;
 
 	const u8* read_buffer = nullptr;
 	u32 read_buffer_size = 0;
@@ -40,6 +50,7 @@ struct Channel
 
 	void* user_ptr = nullptr;
 	Channel_Event_Proc event_proc = nullptr;
+	Channel_Msg* queued_messages = nullptr;
 };
 
 extern Channel channels[MAX_CHANNELS];
@@ -55,6 +66,7 @@ void channel_recv(Online_User* user, const void* data, u32 size);
 void channel_reset(Channel* channel);
 
 // Writing
+void channel_write_except(Channel* channel, Online_User* user);
 #define channel_write_t(channel, val) channel_write(channel, &val, sizeof(val))
 void channel_write(Channel* channel, const void* data, u32 size);
 

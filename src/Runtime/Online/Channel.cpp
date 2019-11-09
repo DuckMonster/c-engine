@@ -109,6 +109,7 @@ void channel_close(Channel* channel)
 void channel_send(Channel* channel, Online_User* user, bool reliable)
 {
 #if SERVER
+	assert_msg(user != channel->write_except_user, "Trying to send message to the user you excepted");
 	server_send(user, reliable, channel->write_buffer, channel->write_buffer_offset);
 #elif CLIENT
 	client_send_to_server(reliable, channel->write_buffer, channel->write_buffer_offset);
@@ -118,10 +119,24 @@ void channel_send(Channel* channel, Online_User* user, bool reliable)
 void channel_broadcast(Channel* channel, bool reliable)
 {
 #if SERVER
-	server_broadcast(reliable, channel->write_buffer, channel->write_buffer_offset);
+	server_broadcast_except(channel->write_except_user, reliable, channel->write_buffer, channel->write_buffer_offset);
 #elif CLIENT
 	client_send_to_server(reliable, channel->write_buffer, channel->write_buffer_offset);
 #endif
+
+	// We also want this message!
+	channel->read_buffer = (const u8*)channel->write_buffer;
+	channel->read_buffer_size = channel->write_buffer_offset;
+	// Offset by the RPC header, since we only use it to find the channel
+	channel->read_buffer_offset = sizeof(Rpc_Channel_Event);
+
+	// Call the event ptr
+	channel->event_proc(channel, nullptr);
+
+	// Reset the read stuff after event has been handled!
+	channel->read_buffer = nullptr;
+	channel->read_buffer_size = 0;
+	channel->read_buffer_offset = 0;
 }
 
 void channel_recv(Online_User* user, const void* data, u32 size)
@@ -131,7 +146,8 @@ void channel_recv(Online_User* user, const void* data, u32 size)
 	const Channel_Id& id = event_rpc->channel_id;
 	Channel* channel = channel_get(id);
 
-	if (!assert_msg(channel, "Received event for unknown channel %s:%d", id.str, id.index))
+	//if (!assert_msg(channel, "Received event for unknown channel %s:%d", id.str, id.index))
+	if (channel == nullptr)
 		return;
 
 	channel->read_buffer = (const u8*)data;
@@ -140,7 +156,7 @@ void channel_recv(Online_User* user, const void* data, u32 size)
 	channel->read_buffer_offset = sizeof(Rpc_Channel_Event);
 
 	// Call the event ptr
-	channel->event_proc(channel);
+	channel->event_proc(channel, user);
 
 	// Reset the read stuff after event has been handled!
 	channel->read_buffer = nullptr;
@@ -150,12 +166,18 @@ void channel_recv(Online_User* user, const void* data, u32 size)
 
 void channel_reset(Channel* channel)
 {
+	channel->write_except_user = nullptr;
 	channel->write_buffer_offset = 0;
 
 	Rpc_Channel_Event event_rpc;
 	event_rpc.channel_id = channel->id;
 
 	channel_write_t(channel, event_rpc);
+}	
+
+void channel_write_except(Channel* channel, Online_User* user)
+{
+	channel->write_except_user = user;
 }
 
 void channel_write(Channel* channel, const void* data, u32 size)
@@ -169,7 +191,7 @@ void channel_write(Channel* channel, const void* data, u32 size)
 void channel_read(Channel* channel, void* data, u32 size)
 {
 	assert_msg(channel->read_buffer != nullptr, "Trying to read from channel, but it does not have a current read buffer");
-	assert_msg(channel->read_buffer_offset + size <= channel->read_buffer_size, "Channel ran out of writing buffer space");
+	assert_msg(channel->read_buffer_offset + size <= channel->read_buffer_size, "Trying to read past the channels read buffer");
 
 	memcpy(data, channel->read_buffer + channel->read_buffer_offset, size);
 	channel->read_buffer_offset += size;

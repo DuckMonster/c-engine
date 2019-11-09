@@ -9,6 +9,7 @@
 #include "Engine/Render/Render.h"
 #include "Engine/Render/Drawable.h"
 #include "Engine/Render/Billboard.h"
+#include "Engine/UI/UI.h"
 #include "Engine/Resource/Resource.h"
 #include "Engine/Resource/HotReload.h"
 #include "Engine/Config/Config.h"
@@ -85,6 +86,7 @@ void run()
 	drawable_init();
 	billboard_init();
 	line_drawer_init();
+	ui_init();
 
 	game_init();
 
@@ -127,6 +129,8 @@ void run()
 		game_update();
 
 		render_draw();
+		ui_draw();
+
 		context_end_frame();
 	}
 

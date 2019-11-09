@@ -62,6 +62,25 @@ const Texture* texture_load(const char* path)
 	return (Texture*)resource->ptr;
 }
 
+void texture_data(const Texture* texture, u32 elements, u32 width, u32 height, const void* data)
+{
+	GLenum format;
+	switch(elements)
+	{
+		case 1: format = GL_RED; break;
+		case 2: format = GL_RG; break;
+		case 3: format = GL_RGB; break;
+		case 4: format = GL_RGBA; break;
+		default:
+			error("Unknown number of texture elements %d", elements);
+			break;
+	}
+
+	glBindTexture(GL_TEXTURE_2D, texture->handle);
+	glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
+	glBindTexture(GL_TEXTURE_2D, 0);
+}
+
 void texture_bind(const Texture* texture, u8 index)
 {
 	glActiveTexture(GL_TEXTURE0 + index);
@@ -83,7 +102,7 @@ void texture_draw_fullscreen(Texture* tex)
 
 	glBindVertexArray(mesh->vao);
 	glDisable(GL_DEPTH_TEST);
-	glUseProgram(mat->program);
+	material_bind(mat);
 	texture_bind(tex, 0);
 	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 }

@@ -2,8 +2,6 @@
 struct Unit;
 struct Online_User;
 
-struct Player
-{
-	Unit* controlled_unit = nullptr;
-	Online_User* user = nullptr;
-};
+#if CLIENT
+void player_control(Unit* unit);
+#endif
