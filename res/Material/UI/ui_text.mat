@@ -1,0 +1,2 @@
+vertex: "Shader/UI/ui_text.vert"
+fragment: "Shader/UI/ui_text.frag"
