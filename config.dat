@@ -10,8 +10,10 @@ net: {
 context: {
 	x: 200
 	y: 200
-	width: 1024
-	height: 768
+	width: 1600
+	height: 1024
 }
 
-
+render: {
+	pixels_per_unit: 24
+}

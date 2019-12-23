@@ -33,5 +33,10 @@ void player_control(Unit* unit)
 
 		unit_shoot(unit, (Vec2)mouse_pos);
 	}
+
+	/* Mouse aiming */
+	Ray mouse_ray = scene_mouse_ray();
+	Vec2 aim_pos = Vec2(ray_plane_intersect(mouse_ray, Vec3(0.f, 0.f, 0.5f), Vec3_Z));
+	unit->aim_direction = normalize(aim_pos - unit->position);
 }
 #endif

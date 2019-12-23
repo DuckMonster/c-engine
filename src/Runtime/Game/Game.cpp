@@ -1,4 +1,5 @@
 #include "Game.h"
+#include "Engine/Config/Config.h"
 #include "Engine/Render/Render.h"
 #include "Runtime/Game/Scene.h"
 #include "Runtime/Online/Online.h"
@@ -81,8 +82,8 @@ u32 server_spawn_unit()
 	assert_msg(unit_id != -1, "Ran out of unit slots when spawning unit");
 
 	Vec2 spawn_position;
-	spawn_position.x = random_float(-5.f, 5.f);
-	spawn_position.y = random_float(-5.f, 5.f);
+	//spawn_position.x = random_float(-5.f, 5.f);
+	//spawn_position.y = random_float(-5.f, 5.f);
 
 	channel_reset(game.channel);
 	channel_write_u8(game.channel, EVENT_Unit_Spawn);
@@ -109,12 +110,17 @@ void game_init()
 	scene_init();
 
 	game.channel = channel_open("GAME", 0, game_event_proc);
+	game.tile_size = 24;
+	config_get("game.tile_size", &game.tile_size);
 
 	#if SERVER
-	u32 num = random_int(2, 5);
-	for(u32 i=0; i<num; ++i)
+	if (false)
 	{
-		server_spawn_unit();
+		u32 num = random_int(2, 5);
+		for(u32 i=0; i<num; ++i)
+		{
+			server_spawn_unit();
+		}
 	}
 	#endif
 }

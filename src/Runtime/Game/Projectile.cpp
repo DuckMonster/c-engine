@@ -16,13 +16,13 @@ Projectile* projectile_spawn(Unit* owner, u32 proj_id, const Vec2& position, con
 #if CLIENT
 	projectile->drawable = drawable_load("Mesh/sphere.fbx", "Material/bullet.mat");
 	projectile->drawable->transform = mat_position_rotation_scale(
-		Vec3(position, 0.5f), quat_from_x(Vec3(direction, 0.f)), Vec3(1.f, projectile->size, projectile->size)
+		Vec3(position, 0.5f), quat_from_x(Vec3(direction, 0.f)), projectile->size
 	);
 	projectile->line_drawer = line_drawer_make();
 	projectile->line_drawer->position = Vec3(position, 0.5f);
 #endif
 
-	projectile->lifetime = 5.f;
+	projectile->lifetime = 0.f;
 
 	return projectile;
 }
@@ -77,7 +77,10 @@ void projectiles_update()
 		projectile->position += projectile->direction * projectile->speed * time_delta();
 
 #if CLIENT
-		projectile->drawable->transform[3] = Vec4(projectile->position, 0.5f, 1.f);
+		float sphere_scale = saturate(projectile->lifetime / 0.05f);
+		projectile->drawable->transform = mat_position_rotation_scale(
+			Vec3(projectile->position, 0.5f), quat_from_x(Vec3(projectile->direction, 0.f)), projectile->size * sphere_scale
+		);
 		projectile->line_drawer->position = Vec3(projectile->position, 0.5f);
 #endif
 
@@ -113,8 +116,8 @@ void projectiles_update()
 		}
 
 		// Lifetime
-		projectile->lifetime -= time_delta();
-		if (projectile->lifetime < 0.f)
+		projectile->lifetime += time_delta();
+		if (projectile->lifetime > 5.f)
 		{
 			projectile_destroy(projectile);
 			return;

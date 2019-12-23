@@ -11,12 +11,12 @@ struct Projectile
 	Vec2 position;
 	Vec2 direction;
 	float speed = 55.f;
-	float size = 0.3f;
+	Vec3 size = Vec3(0.6f, 0.2f, 0.2f);
 
 	Drawable* drawable;
 	Line_Drawer* line_drawer;
 
-	float lifetime = 5.f;
+	float lifetime = 0.f;
 
 	bool is_fading = false;
 	float fade_timer = 2.f;

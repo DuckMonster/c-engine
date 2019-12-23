@@ -32,11 +32,26 @@ namespace
 			if (net.connections[i].state == Connection_State::None)
 				continue;
 
-			if (net.connections[i].handle.addr == addr)
+			if (net.connections[i].addr == addr)
 				return net.connections + i;
 		}
 
 		return nullptr;
+	}
+
+	Connection* get_connection_from_handle(const Connection_Handle& handle)
+	{
+		if (handle.id > MAX_CONNECTIONS)
+			error("Tried to get connection with id > max");
+
+		Connection* connection = net.connections + handle.id;
+		connection_lock(connection, Connection_Lock::State);
+		defer { connection_unlock(connection, Connection_Lock::State); };
+
+		if (connection->handle.generation != handle.generation)
+			return nullptr;
+
+		return connection;
 	}
 }
 
@@ -131,8 +146,8 @@ Connection_Handle net_connect(const Ip_Address& addr)
 
 void net_send(const Connection_Handle& target, bool reliable, const void* data, u32 size)
 {
-	Connection* connection = net.connections + target.id;
-	if (connection->handle != target)
+	Connection* connection = get_connection_from_handle(target);
+	if (connection == nullptr)
 		return;
 
 	connection_queue_out(connection, packet_make_user(reliable, data, size));
@@ -143,7 +158,7 @@ void net_close_connection(Connection* connection)
 	if (connection->state == Connection_State::None)
 		return;
 
-	net_log("CLOSE [%s] ID %d", ip_str(connection->handle.addr), connection->handle.id);
+	net_log("CLOSE [%s] ID %d", ip_str(connection->addr), connection->handle.id);
 	net_push_event(Net_Event_Type::Disconnect, connection);
 
 	if (connection->state != Connection_State::Dead)
@@ -153,7 +168,7 @@ void net_close_connection(Connection* connection)
 		shutdown_packet.type = Packet_Type::Shutdown;
 		shutdown_packet.id = 0;
 
-		sock_send_to(&net.socket, &shutdown_packet, sizeof(shutdown_packet), connection->handle.addr);
+		sock_send_to(&net.socket, &shutdown_packet, sizeof(shutdown_packet), connection->addr);
 	}
 
 	connection_reset(connection);

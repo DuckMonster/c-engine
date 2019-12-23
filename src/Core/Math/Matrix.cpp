@@ -146,6 +146,16 @@ Mat4 inverse(const Mat4& mat)
 	return *(Mat4*)inv;
 }
 
+Mat4 transpose(const Mat4& mat)
+{
+	Mat4 result;
+	for(u32 x=0; x<4; ++x)
+		for(u32 y=0; y<4; ++y)
+			result[x][y] = mat[y][x];
+
+	return result;
+}
+
 Mat4 mat_position_rotation(const Vec3& position, const Quat& rotation)
 {
 	Mat4 mat = quat_to_mat(rotation);

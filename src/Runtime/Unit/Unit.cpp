@@ -48,7 +48,11 @@ void unit_event_proc(Channel* chnl, Online_User* src)
 			channel_read(chnl, &origin);
 			channel_read(chnl, &direction);
 
-			projectile_spawn(unit, 0, origin, direction);
+			projectile_spawn(unit, 0, origin + direction * 1.6f, direction);
+
+#if CLIENT
+			unit->gun_billboard->position -= Vec3(direction, 0.f) * 0.3f;
+#endif
 
 #if SERVER
 			if (src != nullptr)
@@ -92,9 +96,13 @@ Unit* unit_spawn(u32 id, const Vec2& position)
 	unit->channel->user_ptr = unit;
 
 #if CLIENT
-	unit->billboard = billboard_load("Sprite/test_sheet.dat");
+	unit->billboard = billboard_load("Sprite/unit_sheet.dat");
 	unit->billboard->position = Vec3(position, 0.f);
-	unit->billboard->tile_y = random_int(0, 3);
+	unit->billboard->anchor = Vec2(0.5f, 1.f);
+
+	unit->gun_billboard = billboard_load("Sprite/weapon_sheet.dat");
+	unit->gun_billboard->position = Vec3(position, 0.f);
+	unit->gun_billboard->anchor = Vec2(0.5f, 0.5f);
 #elif SERVER
 	unit->ai_walk_target = position;
 #endif
@@ -104,7 +112,7 @@ Unit* unit_spawn(u32 id, const Vec2& position)
 
 void unit_destroy(Unit* unit)
 {
-	assert_msg(unit->active, "Tried to destroy %d, but it's not active");
+	assert_msg(unit->active, "Tried to destroy %d, but it's not active", unit->id);
 
 	channel_close(unit->channel);
 
@@ -120,6 +128,21 @@ inline void unit_update(Unit* unit)
 {
 #if CLIENT
 	unit->billboard->position = Vec3(unit->position, 0.f);
+
+	Vec3 gun_target = Vec3(unit->position, 0.f) + Vec3(unit->aim_direction * 0.6f, 0.5f);
+	unit->gun_billboard->position = lerp(unit->gun_billboard->position, gun_target, 21.f * time_delta());
+
+	Vec2 unit_screen = scene_project_to_screen(Vec3(unit->position, 0.f));
+	Vec2 gun_screen = scene_project_to_screen(Vec3(unit->position + unit->aim_direction, 0.f));
+	Vec2 screen_direction = gun_screen - unit_screen;
+
+	float target_angle = atan2(screen_direction.y, screen_direction.x);
+	unit->gun_billboard->rotation = lerp_radians(unit->gun_billboard->rotation, target_angle, 12.f * time_delta());
+	if (target_angle > HALF_PI || target_angle < -HALF_PI)
+		unit->gun_billboard->scale.y = -1.f;
+	else
+		unit->gun_billboard->scale.y = 1.f;
+
 #elif SERVER
 	if (unit->owner == nullptr)
 	{

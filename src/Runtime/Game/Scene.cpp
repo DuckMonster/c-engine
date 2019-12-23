@@ -39,4 +39,13 @@ Ray scene_screen_to_ray(Vec2 screen)
 
 	return result;
 }
+
+Vec2 scene_project_to_screen(const Vec3& position)
+{
+	Mat4 view_projection = camera_view_projection_matrix(&scene.camera);
+	Vec4 ndc_position = view_projection * Vec4(position, 1.f);
+
+	Vec2 screen = Vec2(ndc_position) * Vec2(0.5f, -0.5f) + 0.5f;
+	return screen * Vec2(context.width, context.height);
+}
 #endif

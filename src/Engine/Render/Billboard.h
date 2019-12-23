@@ -8,8 +8,10 @@ struct Billboard
 	u32 tile_x = 0;
 	u32 tile_y = 0;
 
-	float scale = 1.f;
+	Vec2 scale = 1.f;
+	float rotation = 0.f;
 	Vec3 position;
+	Vec2 anchor = Vec2(0.5f, 0.5f);
 
 	Vec4 fill_color = Vec4(0.f);
 };

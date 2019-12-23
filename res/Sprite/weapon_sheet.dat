@@ -1,0 +1,7 @@
+source: "Texture/weapons.tga"
+tile : {
+	width: 16
+	height: 16
+}
+offset: 0
+padding: 1

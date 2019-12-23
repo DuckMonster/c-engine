@@ -7,7 +7,7 @@ Connection* get_connection_from_ip(const Ip_Address& addr)
 
 	for(u32 i=0; i<MAX_CONNECTIONS; ++i)
 	{
-		if (net.connections[i].handle.addr == addr)
+		if (net.connections[i].addr == addr)
 		{
 			connection = net.connections + i;
 			break;
@@ -189,7 +189,7 @@ void net_service_recv(void*)
 
 		net_log("RECV %s <= %s[%d] (size: %d, id: %d, reliable: %d)%s",
 			packet_type_str(packet->type),
-			ip_str(connection->handle.addr), connection->handle.id,
+			ip_str(connection->addr), connection->handle.id,
 			packet->size, packet->id, packet->reliable,
 			is_stale ? " (STALE)" : "");
 

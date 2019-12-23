@@ -6,9 +6,8 @@
 
 struct Connection_Handle
 {
-	int id;
-	int generation;
-	Ip_Address addr;
+	u32 id;
+	u32 generation;
 };
 
 bool operator==(const Connection_Handle& lhs, const Connection_Handle& rhs);
@@ -40,6 +39,7 @@ struct Connection
 {
 	Connection_Handle handle;
 	Connection_State state;
+	Ip_Address addr;
 
 	u32 next_out_id = 0;
 	u32 next_in_id = 0;

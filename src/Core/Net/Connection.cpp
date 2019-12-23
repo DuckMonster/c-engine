@@ -55,7 +55,7 @@ void connection_open(Connection* connection, const Ip_Address& addr)
 	connection_lock(connection, Connection_Lock::State);
 
 	connection->state = Connection_State::Open;
-	connection->handle.addr = addr;
+	connection->addr = addr;
 	connection->ping_send_time = time_duration() + CONN_PING_INTERVAL;
 
 	connection_unlock(connection, Connection_Lock::State);
@@ -91,7 +91,7 @@ void connection_reset(Connection* connection)
 	connection->next_in_id = 0;
 	connection->ping_send_time = 0.f;
 	connection->ping = 0.f;
-	connection->handle.addr = Ip_Address();
+	connection->addr = Ip_Address();
 	connection->handle.generation++;
 
 	packet_list_clear(&connection->incoming);

@@ -11,6 +11,8 @@ struct Game
 
 #if CLIENT
 	Unit* local_unit = nullptr;
+
+	u32 tile_size;
 #endif
 };
 extern Game game;

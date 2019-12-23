@@ -9,12 +9,14 @@ struct Unit
 	u32 id;
 	Vec2 position;
 	Vec2 target_position;
-	float move_speed = 4.f;
+	Vec2 aim_direction;
+	float move_speed = 6.f;
 
 	Channel* channel = nullptr;
 
 #if CLIENT
 	Billboard* billboard = nullptr;
+	Billboard* gun_billboard = nullptr;
 	bool is_local = false;
 #endif
 

@@ -16,24 +16,25 @@
 
 namespace
 {
-	Render_State global_state;
-
 	Frame_Buffer scale_buffer;
 	Frame_Buffer shadow_buffer;
 };
 
+Render_State render_global;
+
 void render_set_vp(const Mat4& view, const Mat4& projection)
 {
-	global_state.view = view;
-	global_state.projection = projection;
-	global_state.view_projection = projection * view;
+	render_global.view = view;
+	render_global.projection = projection;
+	render_global.view_projection = projection * view;
 }
 
 void render_init()
 {
 	/* Create scaled frame buffer */
 	// Read scale from config
-	u32 scale = 3;
+	u32 scale = 4;
+
 	config_get("render.scale", &scale);
 	framebuffer_create(&scale_buffer, context.width / scale, context.height / scale);
 	framebuffer_add_color_texture(&scale_buffer);
@@ -41,11 +42,16 @@ void render_init()
 
 	assert(framebuffer_is_complete(&scale_buffer));
 
+	render_global.render_scale = scale;
+
 	/* Create shadow frame buffer */
 	u32 shadow_res = 2048;
 	config_get("render.shadow_resolution", &shadow_res);
 	framebuffer_create(&shadow_buffer, shadow_res, shadow_res);
 	framebuffer_add_depth_texture(&shadow_buffer);
+
+	/* Tile stuff! */
+	render_global.tile_size = 24;
 }
 
 void render_draw_scene(const Render_State& state)
@@ -57,7 +63,7 @@ void render_draw_scene(const Render_State& state)
 
 void render_draw()
 {
-	Render_State state = global_state;
+	Render_State state = render_global;
 
 	/* SHADOW BUFFER */
 	framebuffer_bind(&shadow_buffer);
@@ -70,7 +76,7 @@ void render_draw()
 	Mat4 light_vp;
 	Mat4 light_vp_inv;
 
-	light_proj = mat_ortho(-10.f, 10.f, -10.f, 10.f, -10.f, 10.f);
+	light_proj = mat_ortho(-15.f, 15.f, -15.f, 15.f, -10.f, 10.f);
 	light_view = mat_look_forward(scene.camera.position, Vec3(1.f, 1.f, -1.f), Vec3_Z);
 	state.light = light_proj * light_view;
 
@@ -82,9 +88,9 @@ void render_draw()
 	framebuffer_reset();
 
 	/* Draw onto scale buffer */
-	state.view = global_state.view;
-	state.projection = global_state.projection;
-	state.view_projection = global_state.view_projection;
+	state.view = render_global.view;
+	state.projection = render_global.projection;
+	state.view_projection = render_global.view_projection;
 
 	framebuffer_bind(&scale_buffer);
 

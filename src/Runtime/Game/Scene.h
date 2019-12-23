@@ -27,4 +27,5 @@ void scene_init();
 #if CLIENT
 Ray scene_mouse_ray();
 Ray scene_screen_to_ray(Vec2 screen);
+Vec2 scene_project_to_screen(const Vec3& position);
 #endif

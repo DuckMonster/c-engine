@@ -1,6 +1,7 @@
 #include "Camera.h"
 #include "Core/Input/Input.h"
 #include "Core/Context/Context.h"
+#include "Engine/Render/Render.h"
 #include "Runtime/Game/Game.h"
 #include "Runtime/Game/Scene.h"
 #include "Runtime/Unit/Unit.h"
@@ -25,6 +26,8 @@ void camera_update(Camera* camera)
 
 	Vec3 diff = camera->target_position - camera->position;
 	camera->position += diff * 12.f * time_delta();
+
+	//camera->size = 1.f + sin(time_duration() * 0.4f) * 0.5f;
 }
 
 Vec3 camera_forward(Camera* camera)
@@ -51,8 +54,32 @@ Mat4 camera_view_matrix(Camera* camera)
 
 Mat4 camera_projection_matrix(Camera* camera)
 {
+	float size_scale = 1.f;
+
+	/* PIXEL ALIGNMENT */
+	// SO! For sprites to not look shit we need to make sure that one unit in the world
+	//	comes out as an integer multiple of pixels as the given tile-size
+	// For example, if we define one tile as 24 pixels, then drawing a sprite as one unit tall
+	//	MUST give us an output pixel-height of some multiple of 24, otherwise we will see tearing in the sprites.
+	float screen_height = context.height / render_global.render_scale;
+	float frustum_height = camera->size;
+
+	// How much must we scale the sprite? (More for higher resolutions)
+	float pixel_scale = (screen_height / frustum_height) / game.tile_size;
+
+	// Find the nearest integer multiple.
+	float round_pixel_scale = round(pixel_scale);
+
+	// How much must we scale the whole frustum up/down to match this multiple?
+	float pixel_scale_error = pixel_scale / round_pixel_scale;
+	size_scale *= pixel_scale_error;
+
+	/* Zooming */
+	size_scale *= 1.f / camera->zoom;
+
+	float half_size = (camera->size / 2.f) * size_scale;
 	float ratio = (float)context.width / (float)context.height;
-	return mat_ortho(-camera->size * ratio, camera->size * ratio, -camera->size, camera->size, -50.f, 50.f);
+	return mat_ortho(-half_size * ratio, half_size * ratio, -half_size, half_size, -5.f, 50.f);
 }
 
 Mat4 camera_view_projection_matrix(Camera* camera)

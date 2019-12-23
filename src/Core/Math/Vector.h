@@ -17,6 +17,7 @@ struct Vec2
 
 	Vec2& operator=(const Vec2& other) { x = other.x; y = other.y; return *this; }
 	float& operator[](u32 index) { return ((float*)this)[index]; }
+	const float& operator[](u32 index) const { return ((float*)this)[index]; }
 };
 
 struct Vec3
@@ -33,6 +34,7 @@ struct Vec3
 
 	Vec3& operator=(const Vec3& other) { x = other.x; y = other.y; z = other.z; return *this; }
 	float& operator[](u32 index) { return ((float*)this)[index]; }
+	const float& operator[](u32 index) const { return ((float*)this)[index]; }
 };
 
 struct Vec4
@@ -51,6 +53,7 @@ struct Vec4
 
 	Vec4& operator=(const Vec4& other) { x = other.x; y = other.y; z = other.z; w = other.w; return *this; }
 	float& operator[](u32 index) { return ((float*)this)[index]; }
+	const float& operator[](u32 index) const { return ((float*)this)[index]; }
 };
 
 // Conversion operators
@@ -70,6 +73,10 @@ inline Vec4 operator-(const Vec4& a, const Vec4& b) { return Vec4(a.x - b.x, a.y
 inline Vec2 operator*(const Vec2& a, float scalar) { return Vec2(a.x * scalar, a.y * scalar); }
 inline Vec3 operator*(const Vec3& a, float scalar) { return Vec3(a.x * scalar, a.y * scalar, a.z * scalar); }
 inline Vec4 operator*(const Vec4& a, float scalar) { return Vec4(a.x * scalar, a.y * scalar, a.z * scalar, a.w * scalar); }
+
+inline Vec2 operator*(const Vec2& a, const Vec2& b) { return Vec2(a.x * b.x, a.y * b.y); }
+inline Vec3 operator*(const Vec3& a, const Vec3& b) { return Vec3(a.x * b.x, a.y * b.y, a.z * b.z); }
+inline Vec4 operator*(const Vec4& a, const Vec4& b) { return Vec4(a.x * b.x, a.y * b.y, a.z * b.z, a.w * b.w); }
 
 inline Vec2 operator/(const Vec2& a, float scalar) { return Vec2(a.x / scalar, a.y / scalar); }
 inline Vec3 operator/(const Vec3& a, float scalar) { return Vec3(a.x / scalar, a.y / scalar, a.z / scalar); }
@@ -99,6 +106,10 @@ inline Vec2& operator*=(Vec2& a, float scalar) { a.x *= scalar; a.y *= scalar; r
 inline Vec3& operator*=(Vec3& a, float scalar) { a.x *= scalar; a.y *= scalar; a.z *= scalar; return a; }
 inline Vec4& operator*=(Vec4& a, float scalar) { a.x *= scalar; a.y *= scalar; a.z *= scalar; a.w *= scalar; return a; }
 
+inline Vec2& operator*=(Vec2& a, const Vec2& b) { a.x *= b.x; a.y *= b.y; return a; }
+inline Vec3& operator*=(Vec3& a, const Vec3& b) { a.x *= b.x; a.y *= b.y; a.z *= b.z; return a; }
+inline Vec4& operator*=(Vec4& a, const Vec4& b) { a.x *= b.x; a.y *= b.y; a.z *= b.z; a.w *= b.w; return a; }
+
 inline Vec2& operator/=(Vec2& a, float scalar) { a.x /= scalar; a.y /= scalar; return a; }
 inline Vec3& operator/=(Vec3& a, float scalar) { a.x /= scalar; a.y /= scalar; a.z /= scalar; return a; }
 inline Vec4& operator/=(Vec4& a, float scalar) { a.x /= scalar; a.y /= scalar; a.z /= scalar; a.w /= scalar; return a; }
@@ -120,24 +131,20 @@ inline Vec2 operator-(const Vec2& v) { return Vec2(-v.x, -v.y); }
 inline Vec3 operator-(const Vec3& v) { return Vec3(-v.x, -v.y, -v.z); }
 inline Vec4 operator-(const Vec4& v) { return Vec4(-v.x, -v.y, -v.z, -v.w); }
 
-inline bool nearly_equal(float a, float b, float margin = 0.0001f)
-{
-	return (a - b) < margin && (a - b) > -margin;
-}
-inline bool nearly_equal(const Vec2& a, const Vec2& b, float margin = 0.0001f)
+inline bool nearly_equal(const Vec2& a, const Vec2& b, float margin = KINDA_SMALL_NUMBER)
 {
 	return
 		nearly_equal(a.x, b.x, margin) &&
 		nearly_equal(a.y, b.y, margin);
 }
-inline bool nearly_equal(const Vec3& a, const Vec3& b, float margin = 0.0001f)
+inline bool nearly_equal(const Vec3& a, const Vec3& b, float margin = KINDA_SMALL_NUMBER)
 {
 	return
 		nearly_equal(a.x, b.x, margin) &&
 		nearly_equal(a.y, b.y, margin) &&
 		nearly_equal(a.z, b.z, margin);
 }
-inline bool nearly_equal(const Vec4& a, const Vec4& b, float margin = 0.0001f)
+inline bool nearly_equal(const Vec4& a, const Vec4& b, float margin = KINDA_SMALL_NUMBER)
 {
 	return
 		nearly_equal(a.x, b.x, margin) &&
@@ -146,24 +153,20 @@ inline bool nearly_equal(const Vec4& a, const Vec4& b, float margin = 0.0001f)
 		nearly_equal(a.w, b.w, margin);
 }
 
-inline bool nearly_zero(float v, float margin = 0.0001f)
-{
-	return v < margin && v > -margin;
-}
-inline bool nearly_zero(const Vec2& v, float margin = 0.0001f)
+inline bool nearly_zero(const Vec2& v, float margin = KINDA_SMALL_NUMBER)
 {
 	return
 		nearly_zero(v.x, margin) &&
 		nearly_zero(v.y, margin);
 }
-inline bool nearly_zero(const Vec3& v, float margin = 0.0001f)
+inline bool nearly_zero(const Vec3& v, float margin = KINDA_SMALL_NUMBER)
 {
 	return
 		nearly_zero(v.x, margin) &&
 		nearly_zero(v.y, margin) &&
 		nearly_zero(v.z, margin);
 }
-inline bool nearly_zero(const Vec4& v, float margin = 0.0001f)
+inline bool nearly_zero(const Vec4& v, float margin = KINDA_SMALL_NUMBER)
 {
 	return
 		nearly_zero(v.x, margin) &&
@@ -270,11 +273,14 @@ inline Vec3 constrain_to_plane(const Vec3& vec, const Vec3& plane)
 {
 	return vec - plane * dot(vec, plane);
 }
-
 inline Vec3 constrain_to_direction(const Vec3& vec, const Vec3& direction)
 {
 	return direction * dot(vec, direction);
 }
+
+inline Vec2 lerp(Vec2 a, Vec2 b, float t) { return a + (b - a) * t; }
+inline Vec3 lerp(Vec3 a, Vec3 b, float t) { return a + (b - a) * t; }
+inline Vec4 lerp(Vec4 a, Vec4 b, float t) { return a + (b - a) * t; }
 
 // Vector constants
 const Vec2 Vec2_X = Vec2(1.f, 0.f);

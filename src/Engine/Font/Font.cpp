@@ -15,7 +15,7 @@ namespace
 		if (is_init)
 			return;
 
-		FT_Init_FreeType(&ft_library)
+		FT_Init_FreeType(&ft_library);
 		is_init = true;
 	}
 }
@@ -119,7 +119,7 @@ void font_res_create(Resource* resource)
 	FT_Set_Pixel_Sizes(face, 0, 21);
 
 	Glyph_Packer packer;
-	glyph_packer_make(&packer, face);
+	glyph_packer_make(&packer, font, face);
 	defer { glyph_packer_free(&packer); };
 
 	glyph_pack_range(&packer, 32, 126);
