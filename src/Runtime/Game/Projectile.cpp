@@ -1,5 +1,7 @@
 #include "Projectile.h"
 #include "Engine/Render/Drawable.h"
+#include "Engine/Graphics/Mesh.h"
+#include "Engine/Graphics/Material.h"
 #include "Runtime/Effect/LineDrawer.h"
 #include "Runtime/Game/Scene.h"
 #include "Runtime/Unit/Unit.h"
@@ -14,7 +16,9 @@ Projectile* projectile_spawn(Unit* owner, u32 proj_id, const Vec2& position, con
 	projectile->direction = direction;
 
 #if CLIENT
-	projectile->drawable = drawable_load("Mesh/sphere.fbx", "Material/bullet.mat");
+	projectile->drawable = scene_make_drawable();
+	drawable_init(projectile->drawable, mesh_load("Mesh/sphere.fbx"), material_load("Material/bullet.mat"));
+
 	projectile->drawable->transform = mat_position_rotation_scale(
 		Vec3(position, 0.5f), quat_from_x(Vec3(direction, 0.f)), projectile->size
 	);
@@ -30,7 +34,7 @@ Projectile* projectile_spawn(Unit* owner, u32 proj_id, const Vec2& position, con
 void projectile_fade_out(Projectile* projectile)
 {
 #if CLIENT
-	drawable_destroy(projectile->drawable);
+	scene_destroy(projectile->drawable);
 	projectile->drawable = nullptr;
 #endif
 
@@ -42,7 +46,7 @@ void projectile_destroy(Projectile* projectile)
 #if CLIENT
 	if (projectile->drawable)
 	{
-		drawable_destroy(projectile->drawable);
+		scene_destroy(projectile->drawable);
 		projectile->drawable = nullptr;
 	}
 

@@ -1,6 +1,8 @@
 #include "Scene.h"
 #include "Core/Input/Input.h"
 #include "Core/Context/Context.h"
+#include "Engine/Graphics/Mesh.h"
+#include "Engine/Graphics/Material.h"
 
 Scene scene;
 
@@ -9,8 +11,47 @@ void scene_init()
 	splist_create(&scene.projectiles, MAX_PROJECTILES);
 
 #if CLIENT
-	scene.floor = drawable_load("Mesh/plane.fbx", "Material/floor.mat");
+	scene.floor = scene_make_drawable();
+	drawable_init(scene.floor, mesh_load("Mesh/plane.fbx"), material_load("Material/floor.mat"));
 #endif
+}
+
+Drawable* scene_make_drawable()
+{
+	for(u32 i=0; i<MAX_DRAWABLES; ++i)
+	{
+		if (!scene.drawable_enable[i])
+		{
+			scene.drawable_enable[i] = true;
+			return scene.drawables + i;
+		}
+	}
+
+	error("Ran out of drawables in scene");
+	return nullptr;
+}
+
+void scene_destroy(Drawable* drawable)
+{
+	u32 index = drawable - scene.drawables;
+	assert_msg(index < MAX_DRAWABLES, "Tried to destroy drawable that was not in scene list");
+	assert_msg(scene.drawables + index == drawable, "Tried to destroy drawable that was not in scene list");
+	assert_msg(scene.drawable_enable[index], "Tried to destroy drawable that wasn't enabled");
+
+	scene.drawable_enable[index] = false;
+	*drawable = Drawable();
+}
+
+void scene_render(const Render_State& state)
+{
+	/* Drawables */
+	for(u32 i=0; i<MAX_DRAWABLES; ++i)
+	{
+		if (!scene.drawable_enable[i])
+			continue;
+
+		drawable_render(scene.drawables + i, state);
+	}
 }
 
 #if CLIENT

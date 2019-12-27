@@ -56,9 +56,9 @@ void render_init()
 
 void render_draw_scene(const Render_State& state)
 {
-	drawable_render(state);
 	billboard_render(state);
 	line_drawer_render(state);
+	scene_render(state);
 }
 
 void render_draw()

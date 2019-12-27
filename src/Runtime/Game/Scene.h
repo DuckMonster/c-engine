@@ -9,6 +9,7 @@
 #define MAX_PLAYERS 10
 #define MAX_UNITS 10
 #define MAX_PROJECTILES 100
+#define MAX_DRAWABLES 256
 
 struct Scene
 {
@@ -19,10 +20,18 @@ struct Scene
 
 	Unit units[MAX_UNITS];
 	Sparse_List<Projectile> projectiles;
+
+	Drawable drawables[MAX_DRAWABLES];
+	bool drawable_enable[MAX_DRAWABLES];
 };
 extern Scene scene;
 
 void scene_init();
+
+Drawable* scene_make_drawable();
+void scene_destroy(Drawable* drawable);
+
+void scene_render(const Render_State& state);
 
 #if CLIENT
 Ray scene_mouse_ray();

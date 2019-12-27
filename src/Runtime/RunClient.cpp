@@ -83,7 +83,6 @@ void run()
 
 	resource_init();
 	render_init();
-	drawable_init();
 	billboard_init();
 	line_drawer_init();
 	ui_init();
