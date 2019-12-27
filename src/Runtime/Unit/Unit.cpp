@@ -1,5 +1,6 @@
 #include "Unit.h"
-#include "Engine/Render/Billboard.h"
+#include "Engine/Graphics/SpriteSheet.h"
+#include "Runtime/Render/Billboard.h"
 #include "Runtime/Game/Scene.h"
 #include "Runtime/Online/Channel.h"
 
@@ -96,11 +97,15 @@ Unit* unit_spawn(u32 id, const Vec2& position)
 	unit->channel->user_ptr = unit;
 
 #if CLIENT
-	unit->billboard = billboard_load("Sprite/unit_sheet.dat");
+	unit->billboard = scene_make_billboard();
+	billboard_init(unit->billboard, sprite_sheet_load("Sprite/unit_sheet.dat"));
+
 	unit->billboard->position = Vec3(position, 0.f);
 	unit->billboard->anchor = Vec2(0.5f, 1.f);
 
-	unit->gun_billboard = billboard_load("Sprite/weapon_sheet.dat");
+	unit->gun_billboard = scene_make_billboard();
+	billboard_init(unit->gun_billboard, sprite_sheet_load("Sprite/weapon_sheet.dat"));
+
 	unit->gun_billboard->position = Vec3(position, 0.f);
 	unit->gun_billboard->anchor = Vec2(0.5f, 0.5f);
 #elif SERVER
@@ -117,7 +122,7 @@ void unit_destroy(Unit* unit)
 	channel_close(unit->channel);
 
 #if CLIENT
-	billboard_destroy(unit->billboard);
+	scene_destroy_billboard(unit->billboard);
 	unit->billboard = nullptr;
 #endif
 

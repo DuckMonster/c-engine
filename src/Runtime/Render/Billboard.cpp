@@ -8,40 +8,12 @@
 #include "Runtime/Game/Game.h"
 #include "Render.h"
 
-#define MAX_BILLBOARDS 1024
-namespace
+void billboard_init(Billboard* billboard, const Sprite_Sheet* sheet)
 {
-	Sparse_List<Billboard> billboard_list;
-	const Mesh* billboard_mesh;
-	const Material* billboard_material;
-}
-
-void billboard_init()
-{
-	splist_create(&billboard_list, MAX_BILLBOARDS);
-	billboard_mesh = mesh_load("Mesh/billboard.fbx");
-	billboard_material = material_load("Material/billboard.mat");
-
-	material_set(billboard_material, RENDER_SHADOW_BUFFER_UNIFORM, RENDER_SHADOW_BUFFER_TEXTURE_INDEX);
-}
-
-Billboard* billboard_make(const Sprite_Sheet* sheet)
-{
-	assert(sheet != nullptr);
-	Billboard* billboard = splist_add(&billboard_list);
+	billboard->mesh = mesh_load("Mesh/billboard.fbx"); 
+	billboard->material = material_load("Material/billboard.mat");
 	billboard->sheet = sheet;
-
-	return billboard;
-}
-
-Billboard* billboard_load(const char* sheet_path)
-{
-	return billboard_make(sprite_sheet_load(sheet_path));
-}
-
-void billboard_destroy(Billboard* billboard)
-{
-	splist_remove(&billboard_list, billboard);
+	material_set(billboard->material, RENDER_SHADOW_BUFFER_UNIFORM, RENDER_SHADOW_BUFFER_TEXTURE_INDEX);
 }
 
 Mat4 get_billboard_transform(const Billboard* billboard, const Render_State& state)
@@ -92,15 +64,15 @@ Mat4 get_billboard_transform(const Billboard* billboard, const Render_State& sta
 	return position * camera_inverse_rotation * pixel_scale * rotation * anchor * scale;
 }
 
-void billboard_render(const Render_State& state)
+void billboard_render(Billboard* billboard, const Render_State& state)
 {
-	mesh_bind(billboard_mesh);
-	material_bind(billboard_material);
+	mesh_bind(billboard->mesh);
+	material_bind(billboard->material);
 
-	material_set(billboard_material, "u_View", state.view);
-	material_set(billboard_material, "u_Projection", state.projection);
-	material_set(billboard_material, "u_ViewProjection", state.view_projection);
-	material_set(billboard_material, "u_Light", state.light);
+	material_set(billboard->material, "u_View", state.view);
+	material_set(billboard->material, "u_Projection", state.projection);
+	material_set(billboard->material, "u_ViewProjection", state.view_projection);
+	material_set(billboard->material, "u_Light", state.light);
 
 	Mat4 tile_matrix;
 
@@ -108,26 +80,21 @@ void billboard_render(const Render_State& state)
 	view_inverse[3] = Vec4(0.f, 0.f, 0.f, 1.f);
 	view_inverse = transpose(view_inverse);
 
-	Billboard* billboard;
-	SPLIST_FOREACH(&billboard_list, billboard)
-	{
-		const Sprite_Sheet* sheet = billboard->sheet;
-		texture_bind(billboard->sheet->texture, 0);
+	const Sprite_Sheet* sheet = billboard->sheet;
+	texture_bind(sheet->texture, 0);
+	material_set(billboard->material, "u_Model", get_billboard_transform(billboard, state));
 
-		material_set(billboard_material, "u_Model", get_billboard_transform(billboard, state));
+	// Calculate tile matrix
+	tile_matrix[0][0] = sheet->tile_width_uv;
+	tile_matrix[1][1] = sheet->tile_height_uv;
+	tile_matrix[3] = Vec4(
+		(sheet->tile_width_uv + sheet->tile_padding_x_uv) * billboard->tile_x,
+		1.f - (sheet->tile_height_uv + sheet->tile_padding_y_uv) * billboard->tile_y,
+		0.f,
+		1.f
+	);
+	material_set(billboard->material, "u_TileMatrix", tile_matrix);
+	material_set(billboard->material, "u_FillColor", billboard->fill_color);
 
-		// Calculate tile matrix
-		tile_matrix[0][0] = sheet->tile_width_uv;
-		tile_matrix[1][1] = sheet->tile_height_uv;
-		tile_matrix[3] = Vec4(
-			(sheet->tile_width_uv + sheet->tile_padding_x_uv) * billboard->tile_x,
-			1.f - (sheet->tile_height_uv + sheet->tile_padding_y_uv) * billboard->tile_y,
-			0.f,
-			1.f
-		);
-		material_set(billboard_material, "u_TileMatrix", tile_matrix);
-		material_set(billboard_material, "u_FillColor", billboard->fill_color);
-
-		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, NULL);
-	}
+	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, NULL);
 }

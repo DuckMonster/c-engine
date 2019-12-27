@@ -6,13 +6,11 @@
 #include "Core/Input/Input.h"
 #include "Core/Math/Random.h"
 #include "Core/Args/Args.h"
-#include "Engine/Render/Render.h"
-#include "Engine/Render/Drawable.h"
-#include "Engine/Render/Billboard.h"
 #include "Engine/UI/UI.h"
 #include "Engine/Resource/Resource.h"
 #include "Engine/Resource/HotReload.h"
 #include "Engine/Config/Config.h"
+#include "Runtime/Render/Render.h"
 #include "Runtime/Game/Game.h"
 #include "Runtime/Online/Client.h"
 #include "Runtime/Effect/LineDrawer.h"
@@ -83,7 +81,6 @@ void run()
 
 	resource_init();
 	render_init();
-	billboard_init();
 	line_drawer_init();
 	ui_init();
 

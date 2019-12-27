@@ -31,7 +31,7 @@ Drawable* scene_make_drawable()
 	return nullptr;
 }
 
-void scene_destroy(Drawable* drawable)
+void scene_destroy_drawable(Drawable* drawable)
 {
 	u32 index = drawable - scene.drawables;
 	assert_msg(index < MAX_DRAWABLES, "Tried to destroy drawable that was not in scene list");
@@ -40,6 +40,32 @@ void scene_destroy(Drawable* drawable)
 
 	scene.drawable_enable[index] = false;
 	*drawable = Drawable();
+}
+
+Billboard* scene_make_billboard()
+{
+	for(u32 i=0; i<MAX_BILLBOARDS; ++i)
+	{
+		if (!scene.billboard_enable[i])
+		{
+			scene.billboard_enable[i] = true;
+			return scene.billboards + i;
+		}
+	}
+
+	error("Ran out of billboards in scene");
+	return nullptr;
+}
+
+void scene_destroy_billboard(Billboard* billboard)
+{
+	u32 index = billboard - scene.billboards;
+	assert_msg(index < MAX_BILLBOARDS, "Tried to destroy billboard that was not in scene list");
+	assert_msg(scene.billboards + index == billboard, "Tried to destroy billboard that was not in scene list");
+	assert_msg(scene.billboard_enable[index], "Tried to destroy billboard that wasn't enabled");
+
+	scene.billboard_enable[index] = false;
+	*billboard = Billboard();
 }
 
 void scene_render(const Render_State& state)
@@ -51,6 +77,15 @@ void scene_render(const Render_State& state)
 			continue;
 
 		drawable_render(scene.drawables + i, state);
+	}
+
+	/* Billboards */
+	for(u32 i=0; i<MAX_DRAWABLES; ++i)
+	{
+		if (!scene.billboard_enable[i])
+			continue;
+
+		billboard_render(scene.billboards + i, state);
 	}
 }
 

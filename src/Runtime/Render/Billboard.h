@@ -1,9 +1,13 @@
 #pragma once
 struct Sprite_Sheet;
 struct Render_State;
+struct Mesh;
+struct Material;
 
 struct Billboard
 {
+	const Mesh* mesh = nullptr;
+	const Material* material = nullptr;
 	const Sprite_Sheet* sheet = nullptr;
 	u32 tile_x = 0;
 	u32 tile_y = 0;
@@ -16,10 +20,5 @@ struct Billboard
 	Vec4 fill_color = Vec4(0.f);
 };
 
-void billboard_init();
-
-Billboard* billboard_make(const Sprite_Sheet* sheet);
-Billboard* billboard_load(const char* sheet_path);
-void billboard_destroy(Billboard* billboard);
-
-void billboard_render(const Render_State& state);
+void billboard_init(Billboard* billboard, const Sprite_Sheet* sheet);
+void billboard_render(Billboard* billboard, const Render_State& state);

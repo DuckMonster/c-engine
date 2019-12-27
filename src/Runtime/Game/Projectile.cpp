@@ -1,7 +1,7 @@
 #include "Projectile.h"
-#include "Engine/Render/Drawable.h"
 #include "Engine/Graphics/Mesh.h"
 #include "Engine/Graphics/Material.h"
+#include "Runtime/Render/Drawable.h"
 #include "Runtime/Effect/LineDrawer.h"
 #include "Runtime/Game/Scene.h"
 #include "Runtime/Unit/Unit.h"
@@ -34,7 +34,7 @@ Projectile* projectile_spawn(Unit* owner, u32 proj_id, const Vec2& position, con
 void projectile_fade_out(Projectile* projectile)
 {
 #if CLIENT
-	scene_destroy(projectile->drawable);
+	scene_destroy_drawable(projectile->drawable);
 	projectile->drawable = nullptr;
 #endif
 
@@ -46,7 +46,7 @@ void projectile_destroy(Projectile* projectile)
 #if CLIENT
 	if (projectile->drawable)
 	{
-		scene_destroy(projectile->drawable);
+		scene_destroy_drawable(projectile->drawable);
 		projectile->drawable = nullptr;
 	}
 
