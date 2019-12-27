@@ -56,7 +56,6 @@ void render_init()
 
 void render_draw_scene(const Render_State& state)
 {
-	line_drawer_render(state);
 	scene_render(state);
 }
 

@@ -81,7 +81,6 @@ void run()
 
 	resource_init();
 	render_init();
-	line_drawer_init();
 	ui_init();
 
 	game_init();

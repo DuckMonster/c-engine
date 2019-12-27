@@ -3,23 +3,16 @@
 #include "Engine/Graphics/Material.h"
 #include "Core/Math/Math.h"
 
-Sparse_List<Line_Drawer> line_list;
-const Material* line_material;
-
-void line_drawer_init()
+void line_drawer_init(Line_Drawer* drawer, const Vec3& origin)
 {
-	splist_create(&line_list, 100);
-	line_material = material_load("Material/line.mat");
-}
+	drawer->material = material_load("Material/line.mat");
 
-Line_Drawer* line_drawer_make()
-{
-	Line_Drawer* drawer = splist_add(&line_list);
 	drawer->num_segments = 0;
-	drawer->position = Vec3_Zero;
+	drawer->position = origin;
 	drawer->timer = -1.f;
 	drawer->lifetime = 0.f;
 
+	// Create the actual mesh
 	mesh_create(&drawer->mesh);
 	mesh_add_buffers(&drawer->mesh, 1);
 	mesh_map_buffer(&drawer->mesh, 0, 0, 3, 5, 0);
@@ -31,14 +24,11 @@ Line_Drawer* line_drawer_make()
 	drawer->mesh.draw_mode = GL_LINE_STRIP;
 	drawer->mesh.draw_count = 1;
 	drawer->mesh.use_elements = false;
-
-	return drawer;
 }
 
-void line_drawer_destroy(Line_Drawer* drawer)
+void line_drawer_free(Line_Drawer* drawer)
 {
 	mesh_free(&drawer->mesh);
-	splist_remove(&line_list, drawer);
 }
 
 void line_drawer_add_segment(Line_Drawer* drawer)
@@ -83,18 +73,14 @@ void line_drawer_update(Line_Drawer* drawer)
 	drawer->mesh.draw_count = drawer->num_segments + 1;
 }
 
-void line_drawer_render(const Render_State& state)
+void line_drawer_render(Line_Drawer* drawer, const Render_State& state)
 {
-	material_bind(line_material);
-	material_set(line_material, "u_ViewProjection", state.view_projection);
+	material_bind(drawer->material);
+	material_set(drawer->material, "u_ViewProjection", state.view_projection);
 
-	Line_Drawer* drawer;
-	SPLIST_FOREACH(&line_list, drawer)
-	{
-		line_drawer_update(drawer);
-		if (drawer->num_segments == 0)
-			continue;
+	line_drawer_update(drawer);
+	if (drawer->num_segments == 0)
+		return;
 
-		mesh_draw(&drawer->mesh);
-	}
+	mesh_draw(&drawer->mesh);
 }

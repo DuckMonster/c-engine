@@ -5,13 +5,6 @@
 #include "Engine/Graphics/Material.h"
 #include "Engine/Graphics/Texture.h"
 
-#define MAX_DRAWABLES 1024
-
-namespace
-{
-	Sparse_List<Drawable> drawable_list;
-}
-
 void drawable_init(Drawable* drawable, const Mesh* mesh, const Material* material, const Texture* texture)
 {
 	drawable->mesh = mesh;

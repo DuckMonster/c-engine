@@ -22,8 +22,8 @@ Projectile* projectile_spawn(Unit* owner, u32 proj_id, const Vec2& position, con
 	projectile->drawable->transform = mat_position_rotation_scale(
 		Vec3(position, 0.5f), quat_from_x(Vec3(direction, 0.f)), projectile->size
 	);
-	projectile->line_drawer = line_drawer_make();
-	projectile->line_drawer->position = Vec3(position, 0.5f);
+	projectile->line_drawer = scene_make_line_drawer();
+	line_drawer_init(projectile->line_drawer, Vec3(position, 0.5f));
 #endif
 
 	projectile->lifetime = 0.f;
@@ -50,7 +50,8 @@ void projectile_destroy(Projectile* projectile)
 		projectile->drawable = nullptr;
 	}
 
-	line_drawer_destroy(projectile->line_drawer);
+	line_drawer_free(projectile->line_drawer);
+	scene_destroy_line_drawer(projectile->line_drawer);
 	projectile->line_drawer = nullptr;
 #endif
 

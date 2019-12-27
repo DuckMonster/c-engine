@@ -68,6 +68,33 @@ void scene_destroy_billboard(Billboard* billboard)
 	*billboard = Billboard();
 }
 
+Line_Drawer* scene_make_line_drawer()
+{
+	for(u32 i=0; i<MAX_LINE_DRAWERS; ++i)
+	{
+		if (!scene.line_drawer_enable[i])
+		{
+			scene.line_drawer_enable[i] = true;
+			return scene.line_drawers + i;
+		}
+	}
+
+	error("Ran out of line drawers in scene");
+	return nullptr;
+}
+
+void scene_destroy_line_drawer(Line_Drawer* line_drawer)
+{
+	u32 index = line_drawer - scene.line_drawers;
+	assert_msg(index < MAX_LINE_DRAWERS, "Tried to destroy line drawer that was not in scene list");
+	assert_msg(scene.line_drawers + index == line_drawer, "Tried to destroy line drawer that was not in scene list");
+	assert_msg(scene.line_drawer_enable[index], "Tried to destroy line drawer that wasn't enabled");
+
+	scene.line_drawer_enable[index] = false;
+	*line_drawer = Line_Drawer();
+}
+
+#if CLIENT
 void scene_render(const Render_State& state)
 {
 	/* Drawables */
@@ -80,16 +107,24 @@ void scene_render(const Render_State& state)
 	}
 
 	/* Billboards */
-	for(u32 i=0; i<MAX_DRAWABLES; ++i)
+	for(u32 i=0; i<MAX_BILLBOARDS; ++i)
 	{
 		if (!scene.billboard_enable[i])
 			continue;
 
 		billboard_render(scene.billboards + i, state);
 	}
+
+	/* Line drawers */
+	for(u32 i=0; i<MAX_LINE_DRAWERS; ++i)
+	{
+		if (!scene.line_drawer_enable[i])
+			continue;
+
+		line_drawer_render(scene.line_drawers + i, state);
+	}
 }
 
-#if CLIENT
 Ray scene_mouse_ray()
 {
 	return scene_screen_to_ray(Vec2(input_mouse_x(), input_mouse_y()));
