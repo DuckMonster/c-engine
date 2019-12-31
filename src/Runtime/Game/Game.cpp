@@ -27,11 +27,8 @@ void game_event_proc(Channel* chnl, Online_User* src)
 			Vec2 unit_position;
 			channel_read(chnl, &unit_id);
 			channel_read(chnl, &unit_position);
-			debug_log("Spawning unit %d, at (%f, %f)", unit_id, unit_position.x, unit_position.y);
 
-			assert_msg(!scene.units[unit_id].active, "Received spawn unit %d, but it is already active!", unit_id);
-
-			Unit* unit = unit_spawn(unit_id, unit_position);
+			scene_make_unit(unit_id, unit_position);
 			break;
 		}
 
@@ -41,9 +38,7 @@ void game_event_proc(Channel* chnl, Online_User* src)
 			channel_read(chnl, &unit_id);
 
 			Unit* unit = scene.units + unit_id;
-			assert_msg(unit->active, "Received destroy unit %d, but that unit isn't active", unit_id);
-
-			unit_destroy(unit);
+			scene_destroy_unit(unit);
 			break;
 		}
 
@@ -52,7 +47,7 @@ void game_event_proc(Channel* chnl, Online_User* src)
 #if CLIENT
 			u32 unit_id;
 			channel_read(chnl, &unit_id);
-			assert_msg(scene.units[unit_id].active, "Received possess %d, but that unit is not active", unit_id);
+			assert_msg(scene.unit_enable[unit_id], "Received possess %d, but that unit is not active", unit_id);
 
 			game.local_unit = scene.units + unit_id;
 			scene.units[unit_id].is_local = true;
@@ -86,7 +81,7 @@ u32 server_spawn_unit()
 	//spawn_position.y = random_float(-5.f, 5.f);
 
 	channel_reset(game.channel);
-	channel_write_u8(game.channel, EVENT_Unit_Spawn);
+	channel_write_u8(game.channel, EVENT_unit_init);
 	channel_write_u32(game.channel, unit_id);
 	channel_write_vec2(game.channel, spawn_position);
 	channel_broadcast(game.channel, true);
@@ -110,19 +105,19 @@ void game_init()
 	scene_init();
 
 	game.channel = channel_open("GAME", 0, game_event_proc);
+
+#if CLIENT
 	game.tile_size = 24;
 	config_get("game.tile_size", &game.tile_size);
+#endif
 
-	#if SERVER
-	if (false)
+#if SERVER
+	u32 num = random_int(2, 5);
+	for(u32 i=0; i<num; ++i)
 	{
-		u32 num = random_int(2, 5);
-		for(u32 i=0; i<num; ++i)
-		{
-			server_spawn_unit();
-		}
+		server_spawn_unit();
 	}
-	#endif
+#endif
 }
 
 #if SERVER
@@ -135,7 +130,7 @@ void game_user_added(Online_User* user)
 			continue;
 
 		channel_reset(game.channel);
-		channel_write_u8(game.channel, EVENT_Unit_Spawn);
+		channel_write_u8(game.channel, EVENT_unit_init);
 		channel_write_u32(game.channel, unit->id);
 		channel_write_vec2(game.channel, unit->position);
 		channel_send(game.channel, user, true);
@@ -193,6 +188,5 @@ void game_update()
 	}
 #endif
 
-	units_update();
-	projectiles_update();
+	scene_update();
 }

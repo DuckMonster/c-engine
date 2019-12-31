@@ -20,5 +20,7 @@ struct Billboard
 	Vec4 fill_color = Vec4(0.f);
 };
 
+#if CLIENT
 void billboard_init(Billboard* billboard, const Sprite_Sheet* sheet);
 void billboard_render(Billboard* billboard, const Render_State& state);
+#endif

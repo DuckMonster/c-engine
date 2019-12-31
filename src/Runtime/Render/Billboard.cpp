@@ -8,6 +8,8 @@
 #include "Runtime/Game/Game.h"
 #include "Render.h"
 
+#if CLIENT
+
 void billboard_init(Billboard* billboard, const Sprite_Sheet* sheet)
 {
 	billboard->mesh = mesh_load("Mesh/billboard.fbx"); 
@@ -98,3 +100,5 @@ void billboard_render(Billboard* billboard, const Render_State& state)
 
 	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, NULL);
 }
+
+#endif

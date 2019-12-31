@@ -83,12 +83,8 @@ void unit_event_proc(Channel* chnl, Online_User* src)
 	}
 }
 
-Unit* unit_spawn(u32 id, const Vec2& position)
+void unit_init(Unit* unit, u32 id, const Vec2& position)
 {
-	Unit* unit = &scene.units[id];
-	assert_msg(!unit->active, "Tried to spawn unit %d, but it's already active");
-
-	unit->active = true;
 	unit->id = id;
 	unit->position = position;
 	unit->target_position = position;
@@ -97,62 +93,70 @@ Unit* unit_spawn(u32 id, const Vec2& position)
 	unit->channel->user_ptr = unit;
 
 #if CLIENT
-	unit->billboard = scene_make_billboard();
-	billboard_init(unit->billboard, sprite_sheet_load("Sprite/unit_sheet.dat"));
-
+	unit->billboard = scene_make_billboard(sprite_sheet_load("Sprite/unit_sheet.dat"));
 	unit->billboard->position = Vec3(position, 0.f);
 	unit->billboard->anchor = Vec2(0.5f, 1.f);
 
-	unit->gun_billboard = scene_make_billboard();
-	billboard_init(unit->gun_billboard, sprite_sheet_load("Sprite/weapon_sheet.dat"));
-
+	unit->gun_billboard = scene_make_billboard(sprite_sheet_load("Sprite/weapon_sheet.dat"));
 	unit->gun_billboard->position = Vec3(position, 0.f);
 	unit->gun_billboard->anchor = Vec2(0.5f, 0.5f);
+
+	unit->health_bar = scene_make_health_bar();
+	unit->health_bar->position = Vec3(position, 2.f);
 #elif SERVER
 	unit->ai_walk_target = position;
 #endif
-
-	return unit;
 }
 
-void unit_destroy(Unit* unit)
+void unit_free(Unit* unit)
 {
-	assert_msg(unit->active, "Tried to destroy %d, but it's not active", unit->id);
-
 	channel_close(unit->channel);
 
 #if CLIENT
 	scene_destroy_billboard(unit->billboard);
 	unit->billboard = nullptr;
 #endif
-
-	*unit = Unit();
 }
 
-inline void unit_update(Unit* unit)
+void unit_update(Unit* unit)
 {
 #if CLIENT
+
+	// Unit billboard
 	unit->billboard->position = Vec3(unit->position, 0.f);
 
+	// Gun billboard
 	Vec3 gun_target = Vec3(unit->position, 0.f) + Vec3(unit->aim_direction * 0.6f, 0.5f);
 	unit->gun_billboard->position = lerp(unit->gun_billboard->position, gun_target, 21.f * time_delta());
 
+	// Calculate the gun rotation by getting the angle in screen-space from the unit to the 
+	//	aim target, and setting that as the angle
 	Vec2 unit_screen = scene_project_to_screen(Vec3(unit->position, 0.f));
 	Vec2 gun_screen = scene_project_to_screen(Vec3(unit->position + unit->aim_direction, 0.f));
 	Vec2 screen_direction = gun_screen - unit_screen;
 
+	// Lerp it 
 	float target_angle = atan2(screen_direction.y, screen_direction.x);
 	unit->gun_billboard->rotation = lerp_radians(unit->gun_billboard->rotation, target_angle, 12.f * time_delta());
+
+	// Flip the gun if its aiming to the left, since it would be upside down
 	if (target_angle > HALF_PI || target_angle < -HALF_PI)
 		unit->gun_billboard->scale.y = -1.f;
 	else
 		unit->gun_billboard->scale.y = 1.f;
 
+	// Update health bar
+	unit->health_bar->position = Vec3(unit->position, 2.f);
+	unit->health_bar->health_percent = unit->health / unit->health_max;
+
 #elif SERVER
+
+	// AI movement
 	if (unit->owner == nullptr)
 	{
 		unit_move_towards(unit, unit->ai_walk_target);
 	}
+
 #endif
 }
 
@@ -192,17 +196,6 @@ void unit_hit(Unit* unit, const Vec2& impulse)
 	channel_write_u8(unit->channel, EVENT_Hit);
 	channel_write_vec2(unit->channel, impulse);
 	channel_broadcast(unit->channel, true);
-}
-
-void units_update()
-{
-	for(u32 i=0; i<MAX_UNITS; ++i)
-	{
-		if (!scene.units[i].active)
-			continue;
-
-		unit_update(scene.units + i);
-	}
 }
 
 bool unit_has_control(Unit* unit)

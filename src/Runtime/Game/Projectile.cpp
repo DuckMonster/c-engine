@@ -16,14 +16,12 @@ Projectile* projectile_spawn(Unit* owner, u32 proj_id, const Vec2& position, con
 	projectile->direction = direction;
 
 #if CLIENT
-	projectile->drawable = scene_make_drawable();
-	drawable_init(projectile->drawable, mesh_load("Mesh/sphere.fbx"), material_load("Material/bullet.mat"));
-
+	projectile->drawable = scene_make_drawable(mesh_load("Mesh/sphere.fbx"), material_load("Material/bullet.mat"));
 	projectile->drawable->transform = mat_position_rotation_scale(
 		Vec3(position, 0.5f), quat_from_x(Vec3(direction, 0.f)), projectile->size
 	);
-	projectile->line_drawer = scene_make_line_drawer();
-	line_drawer_init(projectile->line_drawer, Vec3(position, 0.5f));
+
+	projectile->line_drawer = scene_make_line_drawer(Vec3(position, 0.5f));
 #endif
 
 	projectile->lifetime = 0.f;
@@ -31,17 +29,7 @@ Projectile* projectile_spawn(Unit* owner, u32 proj_id, const Vec2& position, con
 	return projectile;
 }
 
-void projectile_fade_out(Projectile* projectile)
-{
-#if CLIENT
-	scene_destroy_drawable(projectile->drawable);
-	projectile->drawable = nullptr;
-#endif
-
-	projectile->is_fading = true;
-}
-
-void projectile_destroy(Projectile* projectile)
+void projectile_free(Projectile* projectile)
 {
 #if CLIENT
 	if (projectile->drawable)
@@ -50,9 +38,7 @@ void projectile_destroy(Projectile* projectile)
 		projectile->drawable = nullptr;
 	}
 
-	line_drawer_free(projectile->line_drawer);
-	scene_destroy_line_drawer(projectile->line_drawer);
-	projectile->line_drawer = nullptr;
+	projectile->line_drawer->should_destroy = true;
 #endif
 
 	*projectile = Projectile();
@@ -64,15 +50,6 @@ void projectiles_update()
 	Projectile* projectile = nullptr;
 	SPLIST_FOREACH(&scene.projectiles, projectile)
 	{
-		if (projectile->is_fading)
-		{
-			projectile->fade_timer -= time_delta();
-			if (projectile->fade_timer < 0.f)
-				projectile_destroy(projectile);
-
-			continue;
-		}
-
 		// Movement ray (before moving)
 		Ray move_ray;
 		move_ray.origin = Vec3(projectile->position, 0.f);
@@ -93,10 +70,10 @@ void projectiles_update()
 		Unit* hit_unit = nullptr;
 		for(u32 i=0; i<MAX_UNITS; ++i)
 		{
-			Unit* unit = scene.units + i;
-			if (!unit->active)
+			if (!scene.unit_enable[i])
 				continue;
 
+			Unit* unit = scene.units + i;
 			if (unit == projectile->owner)
 				continue;
 
@@ -116,7 +93,7 @@ void projectiles_update()
 			if (unit_has_control(projectile->owner))
 				unit_hit(hit_unit, projectile->direction * 4.f);
 
-			projectile_fade_out(projectile);
+			projectile_free(projectile);
 			continue;
 		}
 
@@ -124,7 +101,7 @@ void projectiles_update()
 		projectile->lifetime += time_delta();
 		if (projectile->lifetime > 5.f)
 		{
-			projectile_destroy(projectile);
+			projectile_free(projectile);
 			return;
 		}
 	}

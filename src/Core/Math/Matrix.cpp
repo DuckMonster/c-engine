@@ -156,6 +156,14 @@ Mat4 transpose(const Mat4& mat)
 	return result;
 }
 
+Mat4 mat_position(const Vec3& position)
+{
+	Mat4 mat;
+	mat[3] = Vec4(position, 1.f);
+
+	return mat;
+}
+
 Mat4 mat_position_rotation(const Vec3& position, const Quat& rotation)
 {
 	Mat4 mat = quat_to_mat(rotation);

@@ -60,6 +60,7 @@ Mat4 mat_look_forward(const Vec3& eye, const Vec3& forward, const Vec3& up);
 Mat4 inverse(const Mat4& mat);
 Mat4 transpose(const Mat4& mat);
 
+Mat4 mat_position(const Vec3& position);
 Mat4 mat_position_rotation(const Vec3& position, const Quat& rotation);
 Mat4 mat_position_scale(const Vec3& position, const Vec3& scale);
 Mat4 mat_position_rotation_scale(const Vec3& position, const Quat& rotation, const Vec3& scale);

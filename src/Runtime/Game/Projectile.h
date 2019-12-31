@@ -17,12 +17,9 @@ struct Projectile
 	Line_Drawer* line_drawer;
 
 	float lifetime = 0.f;
-
-	bool is_fading = false;
-	float fade_timer = 2.f;
 };
 
 Projectile* projectile_spawn(Unit* owner, u32 proj_id, const Vec2& position, const Vec2& direction);
 void projectile_fade_out(Projectile* projectile);
-void projectile_destroy(Projectile* projectile);
+void projectile_free(Projectile* projectile);
 void projectiles_update();

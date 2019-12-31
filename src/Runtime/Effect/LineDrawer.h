@@ -25,8 +25,10 @@ struct Line_Drawer
 	bool should_destroy = false;
 };
 
+#if CLIENT
 void line_drawer_init(Line_Drawer* drawer, const Vec3& origin);
 void line_drawer_free(Line_Drawer* drawer);
 void line_drawer_add_segment(Line_Drawer* drawer);
 
 void line_drawer_render(Line_Drawer* drawer, const Render_State& state);
+#endif
