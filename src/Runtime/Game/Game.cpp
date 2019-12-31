@@ -37,7 +37,7 @@ void game_event_proc(Channel* chnl, Online_User* src)
 			u32 unit_id;
 			channel_read(chnl, &unit_id);
 
-			Unit* unit = scene.units + unit_id;
+			Unit* unit = scene.units[unit_id];
 			scene_destroy_unit(unit);
 			break;
 		}
@@ -47,10 +47,10 @@ void game_event_proc(Channel* chnl, Online_User* src)
 #if CLIENT
 			u32 unit_id;
 			channel_read(chnl, &unit_id);
-			assert_msg(scene.unit_enable[unit_id], "Received possess %d, but that unit is not active", unit_id);
+			assert_msg(scene.units[unit_id], "Received possess %d, but that unit is not active", unit_id);
 
-			game.local_unit = scene.units + unit_id;
-			scene.units[unit_id].is_local = true;
+			game.local_unit = scene.units[unit_id];
+			scene.units[unit_id]->is_local = true;
 #endif
 			break;
 		}

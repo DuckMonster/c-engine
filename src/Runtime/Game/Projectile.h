@@ -5,8 +5,7 @@ struct Line_Drawer;
 
 struct Projectile
 {
-	bool active = false;
-	u32 id;
+	u32 proj_id;
 	Unit* owner = nullptr;
 	Vec2 position;
 	Vec2 direction;
@@ -19,7 +18,7 @@ struct Projectile
 	float lifetime = 0.f;
 };
 
-Projectile* projectile_spawn(Unit* owner, u32 proj_id, const Vec2& position, const Vec2& direction);
+void projectile_init(Projectile* projectile, Unit* owner, u32 proj_id, const Vec2& position, const Vec2& direction);
 void projectile_fade_out(Projectile* projectile);
 void projectile_free(Projectile* projectile);
-void projectiles_update();
+void projectile_update(Projectile* projectile);

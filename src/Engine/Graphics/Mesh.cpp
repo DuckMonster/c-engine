@@ -28,10 +28,17 @@ void mesh_map_buffer(Mesh* mesh, u32 buffer_index, u32 attribute_index, u32 elem
 	glBindVertexArray(0);
 }
 
-void mesh_buffer_data(Mesh* mesh, u32 buffer_index, void* data, u32 size)
+void mesh_buffer_data(Mesh* mesh, u32 buffer_index, void* data, u32 size, Mesh_Storage_Type storage_type)
 {
+	GLuint gl_storage = GL_STATIC_DRAW;
+	switch(storage_type)
+	{
+		case Mesh_Storage_Static: gl_storage = GL_STATIC_DRAW; break;
+		case Mesh_Storage_Dynamic: gl_storage = GL_DYNAMIC_DRAW; break;
+		case Mesh_Storage_Stream: gl_storage = GL_STREAM_DRAW; break;
+	}
 	glBindBuffer(GL_ARRAY_BUFFER, mesh->buffers[buffer_index]);
-	glBufferData(GL_ARRAY_BUFFER, size, data, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, size, data, gl_storage);
 }
 
 void mesh_element_data(Mesh* mesh, u32 buffer_index, void* data, u32 size)

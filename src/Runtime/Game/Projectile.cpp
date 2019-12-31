@@ -6,10 +6,9 @@
 #include "Runtime/Game/Scene.h"
 #include "Runtime/Unit/Unit.h"
 
-Projectile* projectile_spawn(Unit* owner, u32 proj_id, const Vec2& position, const Vec2& direction)
+void projectile_init(Projectile* projectile, Unit* owner, u32 proj_id, const Vec2& position, const Vec2& direction)
 {
-	Projectile* projectile = splist_add(&scene.projectiles);
-	projectile->id = proj_id;
+	projectile->proj_id = proj_id;
 	projectile->owner = owner;
 
 	projectile->position = position;
@@ -25,8 +24,6 @@ Projectile* projectile_spawn(Unit* owner, u32 proj_id, const Vec2& position, con
 #endif
 
 	projectile->lifetime = 0.f;
-
-	return projectile;
 }
 
 void projectile_free(Projectile* projectile)
@@ -40,69 +37,59 @@ void projectile_free(Projectile* projectile)
 
 	projectile->line_drawer->should_destroy = true;
 #endif
-
-	*projectile = Projectile();
-	splist_remove(&scene.projectiles, projectile);
 }
 
-void projectiles_update()
+void projectile_update(Projectile* projectile)
 {
-	Projectile* projectile = nullptr;
-	SPLIST_FOREACH(&scene.projectiles, projectile)
-	{
-		// Movement ray (before moving)
-		Ray move_ray;
-		move_ray.origin = Vec3(projectile->position, 0.f);
-		move_ray.direction = Vec3(projectile->direction, 0.f);
+	// Movement ray (before moving)
+	Ray move_ray;
+	move_ray.origin = Vec3(projectile->position, 0.f);
+	move_ray.direction = Vec3(projectile->direction, 0.f);
 
-		// Do movement
-		projectile->position += projectile->direction * projectile->speed * time_delta();
+	// Do movement
+	projectile->position += projectile->direction * projectile->speed * time_delta();
 
 #if CLIENT
-		float sphere_scale = saturate(projectile->lifetime / 0.05f);
-		projectile->drawable->transform = mat_position_rotation_scale(
-			Vec3(projectile->position, 0.5f), quat_from_x(Vec3(projectile->direction, 0.f)), projectile->size * sphere_scale
-		);
-		projectile->line_drawer->position = Vec3(projectile->position, 0.5f);
+	float sphere_scale = saturate(projectile->lifetime / 0.05f);
+	projectile->drawable->transform = mat_position_rotation_scale(
+		Vec3(projectile->position, 0.5f), quat_from_x(Vec3(projectile->direction, 0.f)), projectile->size * sphere_scale
+	);
+	projectile->line_drawer->position = Vec3(projectile->position, 0.5f);
 #endif
 
-		// Then! Do collision checking to see if we hit something
-		Unit* hit_unit = nullptr;
-		for(u32 i=0; i<MAX_UNITS; ++i)
+	// Then! Do collision checking to see if we hit something
+	Unit* hit_unit = nullptr;
+	THINGS_FOREACH(&scene.units)
+	{
+		Unit* unit = it;
+		if (unit == projectile->owner)
+			continue;
+
+		float intersect_time = 0.f;
+		if (ray_sphere_intersect(move_ray, Vec3(unit->position, 0.f), 1.f, &intersect_time))
 		{
-			if (!scene.unit_enable[i])
-				continue;
-
-			Unit* unit = scene.units + i;
-			if (unit == projectile->owner)
-				continue;
-
-			float intersect_time = 0.f;
-			if (ray_sphere_intersect(move_ray, Vec3(unit->position, 0.f), 1.f, &intersect_time))
+			if (intersect_time < projectile->speed * time_delta())
 			{
-				if (intersect_time < projectile->speed * time_delta())
-				{
-					hit_unit = unit;
-					break;
-				}
+				hit_unit = unit;
+				break;
 			}
 		}
+	}
 
-		if (hit_unit)
-		{
-			if (unit_has_control(projectile->owner))
-				unit_hit(hit_unit, projectile->direction * 4.f);
+	if (hit_unit)
+	{
+		if (unit_has_control(projectile->owner))
+			unit_hit(hit_unit, projectile->direction * 4.f);
 
-			projectile_free(projectile);
-			continue;
-		}
+		scene_destroy_projectile(projectile);
+		return;
+	}
 
-		// Lifetime
-		projectile->lifetime += time_delta();
-		if (projectile->lifetime > 5.f)
-		{
-			projectile_free(projectile);
-			return;
-		}
+	// Lifetime
+	projectile->lifetime += time_delta();
+	if (projectile->lifetime > 5.f)
+	{
+		scene_destroy_projectile(projectile);
+		return;
 	}
 }

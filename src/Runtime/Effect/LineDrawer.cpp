@@ -18,15 +18,18 @@ void line_drawer_init(Line_Drawer* drawer, const Vec3& origin)
 	// Create the actual mesh
 	mesh_create(&drawer->mesh);
 	mesh_add_buffers(&drawer->mesh, 1);
-	mesh_map_buffer(&drawer->mesh, 0, 0, 3, 5, 0);
-	mesh_map_buffer(&drawer->mesh, 0, 1, 1, 5, 3);
-	mesh_map_buffer(&drawer->mesh, 0, 2, 1, 5, 4);
+	mesh_map_buffer(&drawer->mesh, 0, 0, 3, 5, 0); // Position
+	mesh_map_buffer(&drawer->mesh, 0, 1, 1, 5, 3); // Time
+	mesh_map_buffer(&drawer->mesh, 0, 2, 1, 5, 4); // Width
 
 	Vec3 vec_pos = Vec3(0.f, 0.f, 1.f);
-	mesh_buffer_data(&drawer->mesh, 0, &vec_pos, sizeof(vec_pos));
+	mesh_buffer_data(&drawer->mesh, 0, &vec_pos, sizeof(vec_pos), Mesh_Storage_Stream);
 	drawer->mesh.draw_mode = GL_LINE_STRIP;
 	drawer->mesh.draw_count = 1;
 	drawer->mesh.use_elements = false;
+
+	drawer->segments[0].time = 0.f;
+	drawer->segments[0].width = 0.f;
 }
 
 void line_drawer_free(Line_Drawer* drawer)

@@ -8,7 +8,12 @@ Scene scene;
 
 void scene_init()
 {
-	splist_create(&scene.projectiles, MAX_PROJECTILES);
+	thing_array_init(&scene.projectiles, MAX_PROJECTILES);
+	thing_array_init(&scene.units, MAX_UNITS);
+	thing_array_init(&scene.drawables, MAX_DRAWABLES);
+	thing_array_init(&scene.billboards, MAX_BILLBOARDS);
+	thing_array_init(&scene.line_drawers, MAX_LINE_DRAWERS);
+	thing_array_init(&scene.health_bars, MAX_HEALTH_BARS);
 
 #if CLIENT
 	scene.floor = scene_make_drawable(mesh_load("Mesh/plane.fbx"), material_load("Material/floor.mat"));
@@ -17,204 +22,110 @@ void scene_init()
 
 void scene_update()
 {
-	// Update units
-	for(u32 i = 0; i<MAX_UNITS; ++i)
-	{
-		if (scene.unit_enable[i])
-			unit_update(scene.units + i);
-	}
+	THINGS_FOREACH(&scene.units)
+		unit_update(it);
 
-	// Update projectiles
-	for(u32 i=0; i<MAX_PROJECTILES; ++i)
-	{
-		//if (scene.projectile_enable[i])
-			//projectile_update(scene.projectiles + i);
-	}
+	THINGS_FOREACH(&scene.projectiles)
+		projectile_update(it);
 }
 
 Unit* scene_make_unit(i32 id, const Vec2& position)
 {
-	// If ID isn't specified, find an available one
+	Unit* unit;
 	if (id == -1)
-	{
-		for(u32 i=0; i<MAX_UNITS; ++i)
-		{
-			if (!scene.unit_enable[i])
-			{
-				id = i;
-				break;
-			}
-		}
-	}
+		unit = thing_add(&scene.units);
+	else
+		unit = thing_add_at(&scene.units, id);
 
-	assert_msg(!scene.unit_enable[id], "Tried to spawn unit at already enabled ID");
-	scene.unit_enable[id] = true;
-	unit_init(scene.units + id, id, position);
-
-	return scene.units + id;
+	unit_init(unit, id, position);
+	return unit;
 }
 
 void scene_destroy_unit(Unit* unit)
 {
-	u32 index = unit - scene.units;
-	assert_msg(index < MAX_UNITS, "Tried to destroy unit not in scene list");
-	assert_msg(scene.unit_enable[index], "Tried to destroy unit that wasn't enabled");
-
-	scene.unit_enable[index] = false;
 	unit_free(unit);
+	thing_remove(&scene.units, unit);
+}
+
+Projectile* scene_make_projectile(Unit* owner, u32 proj_id, const Vec2& origin, const Vec2& direction)
+{
+	Projectile* projectile = thing_add(&scene.projectiles);
+	projectile_init(projectile, owner, proj_id, origin, direction);
+
+	return projectile;
+}
+
+void scene_destroy_projectile(Projectile* projectile)
+{
+	projectile_free(projectile);
+	thing_remove(&scene.projectiles, projectile);
 }
 
 #if CLIENT
 Drawable* scene_make_drawable(const Mesh* mesh, const Material* material, const Texture* texture)
 {
-	for(u32 i=0; i<MAX_DRAWABLES; ++i)
-	{
-		if (!scene.drawable_enable[i])
-		{
-			scene.drawable_enable[i] = true;
-			drawable_init(scene.drawables + i, mesh, material, texture);
-
-			return scene.drawables + i;
-		}
-	}
-
-	error("Ran out of drawables in scene");
-	return nullptr;
+	Drawable* drawable = thing_add(&scene.drawables);
+	drawable_init(drawable, mesh, material, texture);
+	return drawable;
 }
 
 void scene_destroy_drawable(Drawable* drawable)
 {
-	u32 index = drawable - scene.drawables;
-	assert_msg(index < MAX_DRAWABLES, "Tried to destroy drawable that was not in scene list");
-	assert_msg(scene.drawable_enable[index], "Tried to destroy drawable that wasn't enabled");
-
-	scene.drawable_enable[index] = false;
-	*drawable = Drawable();
+	thing_remove(&scene.drawables, drawable);
 }
 
 Billboard* scene_make_billboard(const Sprite_Sheet* sheet)
 {
-	for(u32 i=0; i<MAX_BILLBOARDS; ++i)
-	{
-		if (!scene.billboard_enable[i])
-		{
-			scene.billboard_enable[i] = true;
-			billboard_init(scene.billboards + i, sheet);
-
-			return scene.billboards + i;
-		}
-	}
-
-	error("Ran out of billboards in scene");
-	return nullptr;
+	Billboard* billboard = thing_add(&scene.billboards);
+	billboard_init(billboard, sheet);
+	return billboard;
 }
 
 void scene_destroy_billboard(Billboard* billboard)
 {
-	u32 index = billboard - scene.billboards;
-	assert_msg(index < MAX_BILLBOARDS, "Tried to destroy billboard that was not in scene list");
-	assert_msg(scene.billboard_enable[index], "Tried to destroy billboard that wasn't enabled");
-
-	scene.billboard_enable[index] = false;
-
-	*billboard = Billboard();
+	thing_remove(&scene.billboards, billboard);
 }
 
 Line_Drawer* scene_make_line_drawer(const Vec3& origin)
 {
-	for(u32 i=0; i<MAX_LINE_DRAWERS; ++i)
-	{
-		if (!scene.line_drawer_enable[i])
-		{
-			scene.line_drawer_enable[i] = true;
-			line_drawer_init(scene.line_drawers + i, origin);
-
-			return scene.line_drawers + i;
-		}
-	}
-
-	error("Ran out of line drawers in scene");
-	return nullptr;
+	Line_Drawer* line_drawer = thing_add(&scene.line_drawers);
+	line_drawer_init(line_drawer, origin);
+	return line_drawer;
 }
 
 void scene_destroy_line_drawer(Line_Drawer* line_drawer)
 {
-	u32 index = line_drawer - scene.line_drawers;
-	assert_msg(index < MAX_LINE_DRAWERS, "Tried to destroy line drawer that was not in scene list");
-	assert_msg(scene.line_drawer_enable[index], "Tried to destroy line drawer that wasn't enabled");
-
-	scene.line_drawer_enable[index] = false;
-
 	line_drawer_free(line_drawer);
-	*line_drawer = Line_Drawer();
+	thing_remove(&scene.line_drawers, line_drawer);
 }
 
 Health_Bar* scene_make_health_bar()
 {
-	for(u32 i=0; i<MAX_LINE_DRAWERS; ++i)
-	{
-		if (!scene.health_bar_enable[i])
-		{
-			scene.health_bar_enable[i] = true;
-			health_bar_init(scene.health_bars + i);
-
-			return scene.health_bars + i;
-		}
-	}
-
-	error("Ran out of health bars in scene");
-	return nullptr;
+	Health_Bar* bar = thing_add(&scene.health_bars);
+	health_bar_init(bar);
+	return bar;
 }
 
 void scene_destroy_health_bar(Health_Bar* bar)
 {
-	u32 index = bar - scene.health_bars;
-	assert_msg(index < MAX_HEALTH_BARS, "Tried to destroy health bar that was not in scene list");
-	assert_msg(scene.health_bar_enable[index], "Tried to destroy health bar that wasn't enabled");
-
-	scene.health_bar_enable[index] = false;
-
 	health_bar_free(bar);
-	*bar = Health_Bar();
+	thing_remove(&scene.health_bars, bar);
 }
 
 void scene_render(const Render_State& state)
 {
 	/* Drawables */
-	for(u32 i=0; i<MAX_DRAWABLES; ++i)
-	{
-		if (!scene.drawable_enable[i])
-			continue;
+	THINGS_FOREACH(&scene.drawables)
+		drawable_render(it, state);
 
-		drawable_render(scene.drawables + i, state);
-	}
+	THINGS_FOREACH(&scene.line_drawers)
+		line_drawer_render(it, state);
 
-	/* Billboards */
-	for(u32 i=0; i<MAX_BILLBOARDS; ++i)
-	{
-		if (!scene.billboard_enable[i])
-			continue;
+	THINGS_FOREACH(&scene.billboards)
+		billboard_render(it, state);
 
-		billboard_render(scene.billboards + i, state);
-	}
-
-	/* Line drawers */
-	for(u32 i=0; i<MAX_LINE_DRAWERS; ++i)
-	{
-		if (!scene.line_drawer_enable[i])
-			continue;
-
-		line_drawer_render(scene.line_drawers + i, state);
-	}
-
-	/* Health bars */
-	for(u32 i=0; i<MAX_HEALTH_BARS; ++i)
-	{
-		if (!scene.health_bar_enable[i])
-			continue;
-
-		health_bar_render(scene.health_bars + i, state);
-	}
+	THINGS_FOREACH(&scene.health_bars)
+		health_bar_render(it, state);
 }
 
 Ray scene_mouse_ray()

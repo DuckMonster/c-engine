@@ -19,7 +19,7 @@ void health_bar_init(Health_Bar* bar)
 		0.5f, 1.f, 0.f,
 		-0.5f, 1.f, 0.f,
 	};
-	mesh_buffer_data(&bar->mesh, 0, mesh_data, sizeof(mesh_data));
+	mesh_buffer_data(&bar->mesh, 0, mesh_data, sizeof(mesh_data), Mesh_Storage_Stream);
 	bar->mesh.draw_count = 6;
 
 	bar->material = material_load("Material/UI/health_bar.mat");

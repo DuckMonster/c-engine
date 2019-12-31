@@ -49,7 +49,7 @@ void unit_event_proc(Channel* chnl, Online_User* src)
 			channel_read(chnl, &origin);
 			channel_read(chnl, &direction);
 
-			projectile_spawn(unit, 0, origin + direction * 1.6f, direction);
+			scene_make_projectile(unit, 0, origin + direction * 1.6f, direction);
 
 #if CLIENT
 			unit->gun_billboard->position -= Vec3(direction, 0.f) * 0.3f;
