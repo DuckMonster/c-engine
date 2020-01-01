@@ -129,6 +129,10 @@ void channel_broadcast(Channel* channel, bool reliable)
 	// Call the event ptr
 	channel->event_proc(channel, nullptr);
 
+	// The channel might have closed during the proc, in that case just return
+	if (channel->state != Channel_State::Open)
+		return;
+
 	channel_pop_read_stack(channel);
 }
 
@@ -147,6 +151,10 @@ void channel_recv(Online_User* user, const void* data, u32 size)
 
 	// Call the event ptr
 	channel->event_proc(channel, user);
+
+	// The channel might have closed during the proc, in that case just return
+	if (channel->state != Channel_State::Open)
+		return;
 
 	channel_pop_read_stack(channel);
 }
@@ -177,7 +185,10 @@ void channel_pop_read_stack(Channel* channel)
 #if SERVER
 void channel_rebroadcast_last(Channel* channel, bool reliable)
 {
-	server_broadcast_except(channel->read_buffer_sender, reliable, channel->read_buffer, channel->read_buffer_size);
+	Channel_Read_Buffer* buffer = channel->read_buffer_stack;
+	assert_msg(buffer != nullptr, "Rebroadcasting last when having no active read buffer");
+
+	server_broadcast_except(buffer->sender, reliable, buffer->data, buffer->size);
 }
 #endif
 
@@ -213,5 +224,4 @@ void channel_read(Channel* channel, void* data, u32 size)
 
 	memcpy(data, buffer->data + buffer->offset, size);
 	buffer->offset += size;
-
 }

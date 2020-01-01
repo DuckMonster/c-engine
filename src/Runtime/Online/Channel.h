@@ -53,11 +53,6 @@ struct Channel
 	u32 write_buffer_offset = 0;
 	Online_User* write_except_user = nullptr;
 
-	Online_User* read_buffer_sender = nullptr;
-	const u8* read_buffer = nullptr;
-	u32 read_buffer_size = 0;
-	u32 read_buffer_offset = 0;
-
 	Channel_Read_Buffer* read_buffer_stack = nullptr;
 
 	void* user_ptr = nullptr;
