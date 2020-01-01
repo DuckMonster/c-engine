@@ -23,7 +23,7 @@ void run()
 	{
 		time_update_delta();
 		server_update();
-		//game_update();
+		game_update();
 
 		Sleep(1);
 	}

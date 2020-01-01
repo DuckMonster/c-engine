@@ -19,6 +19,9 @@ int random_int(int max)
 
 int random_int(int min, int max)
 {
+	if (min == max)
+		return min;
+
 	return min + (rand() % (max - min));
 }
 

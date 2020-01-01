@@ -10,7 +10,7 @@
 #include "Runtime/Game/Projectile.h"
 
 #define MAX_PLAYERS 10
-#define MAX_UNITS 10
+#define MAX_UNITS 256
 #define MAX_PROJECTILES 256
 #define MAX_DRAWABLES 256
 #define MAX_BILLBOARDS 256

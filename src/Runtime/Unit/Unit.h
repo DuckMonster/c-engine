@@ -1,4 +1,6 @@
 #pragma once
+#include "Core/Time/IntervalTimer.h"
+
 struct Billboard;
 struct Channel;
 struct Online_User;
@@ -6,12 +8,13 @@ struct Health_Bar;
 
 const float unit_impact_drag = 8.5f;
 const float unit_hit_duration = 0.15f;
+const float unit_sync_frequency = 10.f;
 
 struct Unit
 {
 	u32 id;
 	Vec2 position;
-	Vec2 target_position;
+	Vec2 net_position;
 	Vec2 aim_direction;
 	Vec2 impact_velocity;
 	float move_speed = 6.f;
@@ -22,6 +25,8 @@ struct Unit
 	float health_max = 5.f;
 
 	Unit* target = nullptr;
+
+	Interval_Timer position_sync_timer;
 
 #if CLIENT
 	Billboard* billboard = nullptr;

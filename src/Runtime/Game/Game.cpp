@@ -101,8 +101,9 @@ void game_init()
 
 #if SERVER
 	//u32 num = random_int(2, 10);
+	u32 num = 10;
 	//u32 num = 2;
-	u32 num = 0;
+	//u32 num = 0;
 	for(u32 i=0; i<num; ++i)
 	{
 		server_spawn_unit();
@@ -117,7 +118,7 @@ void game_init()
 			target_id = random_int(0, num);
 		} while(target_id == unit->id);
 
-		unit->target = scene.units[target_id];
+		//unit->target = scene.units[target_id];
 	}
 #endif
 }

@@ -29,7 +29,7 @@ void unit_event_proc(Channel* chnl, Online_User* src)
 
 			Vec2 position;
 			channel_read(chnl, &position);
-			unit->position = position;
+			unit->net_position = position;
 
 #if SERVER
 			channel_rebroadcast_last(chnl, false);
@@ -105,12 +105,13 @@ void unit_init(Unit* unit, u32 id, const Vec2& position)
 {
 	unit->id = id;
 	unit->position = position;
-	unit->target_position = position;
+	unit->net_position = position;
 
 	unit->channel = channel_open("UNIT", id, unit_event_proc);
 	unit->channel->user_ptr = unit;
 
 	unit->health = unit->health_max;
+	unit->position_sync_timer.interval = 1.f / unit_sync_frequency;
 
 #if CLIENT
 
@@ -148,6 +149,8 @@ void unit_update(Unit* unit)
 {
 	// Apply impact velocity
 	unit->position += unit->impact_velocity * time_delta();
+	if (!unit_has_control(unit))
+		unit->net_position += unit->impact_velocity * time_delta();
 	unit->impact_velocity -= unit->impact_velocity * unit_impact_drag * time_delta();
 
 #if CLIENT
@@ -219,6 +222,22 @@ void unit_update(Unit* unit)
 	}
 
 #endif
+
+	// Sync position!
+	if (unit_has_control(unit))
+	{
+		if (timer_update(&unit->position_sync_timer))
+		{
+			channel_reset(unit->channel);
+			channel_write_u8(unit->channel, EVENT_Set_Position);
+			channel_write_vec2(unit->channel, unit->position);
+			channel_broadcast(unit->channel, false);
+		}
+	}
+	else
+	{
+		unit_move_towards(unit, unit->net_position);
+	}
 }
 
 void unit_serialize_to(Unit* unit, Online_User* user)
@@ -244,11 +263,6 @@ void unit_move_direction(Unit* unit, const Vec2& direction)
 
 	Vec2 dir_norm = normalize(direction);
 	unit->position += dir_norm * unit->move_speed * time_delta();
-
-	channel_reset(unit->channel);
-	channel_write_u8(unit->channel, EVENT_Set_Position);
-	channel_write_vec2(unit->channel, unit->position);
-	channel_broadcast(unit->channel, false);
 }
 
 void unit_shoot(Unit* unit, const Vec2& target)
