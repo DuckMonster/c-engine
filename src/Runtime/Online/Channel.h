@@ -31,6 +31,15 @@ struct Channel_Msg
 	Channel_Msg* next = nullptr;
 };
 
+struct Channel_Read_Buffer
+{
+	Online_User* sender = nullptr;
+	u8* data = nullptr;
+	u32 size = 0;
+	u32 offset = 0;
+	Channel_Read_Buffer* previous = nullptr;
+};
+
 bool operator==(const Channel_Id& lhs, const Channel_Id& rhs);
 bool operator!=(const Channel_Id& lhs, const Channel_Id& rhs);
 
@@ -49,6 +58,8 @@ struct Channel
 	u32 read_buffer_size = 0;
 	u32 read_buffer_offset = 0;
 
+	Channel_Read_Buffer* read_buffer_stack = nullptr;
+
 	void* user_ptr = nullptr;
 	Channel_Event_Proc event_proc = nullptr;
 	Channel_Msg* queued_messages = nullptr;
@@ -63,6 +74,9 @@ void channel_close(Channel* channel);
 void channel_send(Channel* channel, Online_User* user, bool reliable);
 void channel_broadcast(Channel* channel, bool reliable);
 void channel_recv(Online_User* user, const void* data, u32 size);
+
+void channel_push_read_stack(Channel* channel, Online_User* sender, const void* data, u32 size);
+void channel_pop_read_stack(Channel* channel);
 
 #if SERVER
 // These are only valid to call during an event read

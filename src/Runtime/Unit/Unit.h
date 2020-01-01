@@ -1,5 +1,6 @@
 #pragma once
 #include "Core/Time/IntervalTimer.h"
+#include "Runtime/Game/HandleTypes.h"
 
 struct Billboard;
 struct Channel;
@@ -24,7 +25,7 @@ struct Unit
 	float health;
 	float health_max = 5.f;
 
-	Unit* target = nullptr;
+	Unit_Handle target;
 
 	Interval_Timer position_sync_timer;
 
@@ -51,11 +52,11 @@ void unit_free(Unit* unit);
 void unit_update(Unit* unit);
 
 #if SERVER
-void unit_serialize_to(Unit* unit, Online_User* user);
+void unit_sync_to(Unit* unit, Online_User* user);
 #endif
 
 void unit_move_towards(Unit* unit, const Vec2& target);
 void unit_move_direction(Unit* unit, const Vec2& direction);
 void unit_shoot(Unit* unit, const Vec2& target);
-void unit_hit(Unit* unit, const Vec2& impulse);
+void unit_hit(Unit* unit, const Unit_Handle& source, const Vec2& impulse);
 bool unit_has_control(Unit* unit);

@@ -11,6 +11,8 @@ enum Unit_Event
 	EVENT_Hit,
 	EVENT_Set_Target,
 	EVENT_Set_Aim_Direction,
+	EVENT_Set_Health,
+	EVENT_Die,
 };
 
 void unit_event_proc(Channel* chnl, Online_User* src)
@@ -32,7 +34,8 @@ void unit_event_proc(Channel* chnl, Online_User* src)
 			unit->net_position = position;
 
 #if SERVER
-			channel_rebroadcast_last(chnl, false);
+			if (src != nullptr)
+				channel_rebroadcast_last(chnl, false);
 #endif
 			break;
 		}
@@ -44,26 +47,33 @@ void unit_event_proc(Channel* chnl, Online_User* src)
 			channel_read(chnl, &origin);
 			channel_read(chnl, &direction);
 
-			scene_make_projectile(unit, 0, origin + direction * 1.6f, direction);
+			scene_make_projectile(scene_unit_handle(unit), 0, origin + direction * 1.6f, direction);
 
 #if CLIENT
 			unit->gun_billboard->position -= Vec3(direction, 0.f) * 0.3f;
 #endif
 
 #if SERVER
-			channel_rebroadcast_last(chnl, true);
+			if (src != nullptr)
+				channel_rebroadcast_last(chnl, true);
 #endif
 			break;
 		}
 
 		case EVENT_Hit:
 		{
+			// Read and retaliate towards the one who shot us
+			i32 source_id;
+			channel_read(chnl, &source_id);
+
+#if SERVER
+			if (source_id != -1)
+				unit->target = scene_unit_handle(source_id);
+#endif
+
+			// Add impulse
 			Vec2 impulse;
 			channel_read(chnl, &impulse);
-
-			unit->health -= 1.f;
-			if (unit->health <= 0.f)
-				scene_destroy_unit(unit);
 
 			unit->impact_velocity = impulse;
 
@@ -72,8 +82,14 @@ void unit_event_proc(Channel* chnl, Online_User* src)
 #endif
 
 #if SERVER
-			channel_rebroadcast_last(chnl, true);
+			if (src != nullptr)
+				channel_rebroadcast_last(chnl, true);
 #endif
+
+			// Subtract health and die
+			unit->health -= 1.f;
+			if (unit->health <= 0.f)
+				scene_destroy_unit(unit);
 
 			break;
 		}
@@ -82,7 +98,7 @@ void unit_event_proc(Channel* chnl, Online_User* src)
 		{
 			u32 id;
 			channel_read(chnl, &id);
-			unit->target = scene.units[id];
+			unit->target = scene_unit_handle(id);
 
 			break;
 		}
@@ -96,6 +112,11 @@ void unit_event_proc(Channel* chnl, Online_User* src)
 			channel_read(chnl, &direction);
 
 			unit->aim_direction = direction;
+			break;
+		}
+
+		case EVENT_Die:
+		{
 			break;
 		}
 	}
@@ -185,6 +206,7 @@ void unit_update(Unit* unit)
 	// When hit, flash for a bit!
 	unit->hit_timer -= time_delta();
 	unit->billboard->fill_color = Vec4(Vec3(1.f), unit->hit_timer > 0.f ? 1.f : 0.f);
+	unit->billboard->scale = Vec2(unit->hit_timer > 0.f ? 1.f + unit->hit_timer : 1.f);
 
 #elif SERVER
 
@@ -202,15 +224,16 @@ void unit_update(Unit* unit)
 			}
 		}
 
-		if (unit->target)
+		Unit* target = scene_get_unit(unit->target);
+		if (target)
 		{
-			Vec2 direction = normalize_safe(unit->target->position - unit->position);
+			Vec2 direction = normalize_safe(target->position - unit->position);
 			unit->aim_direction = direction;
 
 			unit->ai_shoot_timer -= time_delta();
 			if (unit->ai_shoot_timer <= 0.f)
 			{
-				unit_shoot(unit, unit->target->position);
+				unit_shoot(unit, target->position);
 				unit->ai_shoot_timer = random_float(1.f, 2.f);
 			}
 
@@ -240,13 +263,19 @@ void unit_update(Unit* unit)
 	}
 }
 
+#if SERVER
+void unit_sync_to(Unit* unit, Online_User* user)
+{
+}
+#endif
+
 void unit_serialize_to(Unit* unit, Online_User* user)
 {
-	if (unit->target)
+	if (scene_get_unit(unit->target))
 	{
 		channel_reset(unit->channel);
 		channel_write_u8(unit->channel, EVENT_Set_Target);
-		channel_write_u32(unit->channel, unit->target->id);
+		channel_write_u32(unit->channel, unit->target.index);
 		channel_send(unit->channel, user, true);
 	}
 }
@@ -276,10 +305,19 @@ void unit_shoot(Unit* unit, const Vec2& target)
 	channel_broadcast(unit->channel, false);
 }
 
-void unit_hit(Unit* unit, const Vec2& impulse)
+void unit_hit(Unit* unit, const Unit_Handle& source, const Vec2& impulse)
 {
+	Unit* source_unit = scene_get_unit(source);
+
 	channel_reset(unit->channel);
 	channel_write_u8(unit->channel, EVENT_Hit);
+
+	// Write ID of source unit if there is one, otherwise write -1
+	if (source_unit)
+		channel_write_i32(unit->channel, source_unit->id);
+	else
+		channel_write_i32(unit->channel, -1);
+
 	channel_write_vec2(unit->channel, impulse);
 	channel_broadcast(unit->channel, true);
 }

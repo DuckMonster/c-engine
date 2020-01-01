@@ -50,6 +50,21 @@ void scene_destroy_unit(Unit* unit)
 	thing_remove(&scene.units, unit);
 }
 
+Unit_Handle scene_unit_handle(Unit* unit)
+{
+	return thing_get_handle(&scene.units, unit);
+}
+
+Unit_Handle scene_unit_handle(u32 id)
+{
+	return thing_get_handle_at(&scene.units, id);
+}
+
+Unit* scene_get_unit(const Unit_Handle& handle)
+{
+	return thing_resolve(&scene.units, handle);
+}
+
 u32 scene_get_free_unit_id()
 {
 	for(u32 i=0; i<scene.units.size; ++i)
@@ -63,7 +78,7 @@ u32 scene_get_free_unit_id()
 }
 
 
-Projectile* scene_make_projectile(Unit* owner, u32 proj_id, const Vec2& origin, const Vec2& direction)
+Projectile* scene_make_projectile(const Unit_Handle& owner, u32 proj_id, const Vec2& origin, const Vec2& direction)
 {
 	Projectile* projectile = thing_add(&scene.projectiles);
 	projectile_init(projectile, owner, proj_id, origin, direction);

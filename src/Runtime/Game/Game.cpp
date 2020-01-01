@@ -49,7 +49,7 @@ void game_event_proc(Channel* chnl, Online_User* src)
 			channel_read(chnl, &unit_id);
 			assert_msg(scene.units[unit_id], "Received possess %d, but that unit is not active", unit_id);
 
-			game.local_unit = scene.units[unit_id];
+			game.local_unit = scene_unit_handle(unit_id);
 			scene.units[unit_id]->is_local = true;
 #endif
 			break;
@@ -100,26 +100,14 @@ void game_init()
 #endif
 
 #if SERVER
-	//u32 num = random_int(2, 10);
-	u32 num = 10;
-	//u32 num = 2;
-	//u32 num = 0;
+	u32 num = random_int(2, 10);
 	for(u32 i=0; i<num; ++i)
 	{
 		server_spawn_unit();
 	}
 
-	for(u32 i=0; i<num; ++i)
-	{
-		Unit* unit = scene.units[i];
-		u32 target_id;
-		do
-		{
-			target_id = random_int(0, num);
-		} while(target_id == unit->id);
-
-		//unit->target = scene.units[target_id];
-	}
+	game.ai_spawn_timer.interval = 10.f;
+	game.ai_spawn_timer.variance = 5.f;
 #endif
 }
 
@@ -158,18 +146,29 @@ void game_user_leave(Online_User* user)
 		}
 	}
 
-	assert(owned_unit);
-	server_destroy_unit(owned_unit->id);
+	if (owned_unit)
+		server_destroy_unit(owned_unit->id);
 }
 #endif
 
 void game_update()
 {
 #if CLIENT
-	if (game.local_unit)
-		player_control(game.local_unit);
+
+	Unit* local_unit = scene_get_unit(game.local_unit);
+	if (local_unit)
+		player_control(local_unit);
+
 	camera_update(&scene.camera);
 	render_set_vp(camera_view_matrix(&scene.camera), camera_projection_matrix(&scene.camera));
+
+#elif SERVER
+
+	if (timer_update(&game.ai_spawn_timer))
+	{
+		server_spawn_unit();
+	}
+
 #endif
 
 	scene_update();

@@ -124,19 +124,12 @@ void channel_broadcast(Channel* channel, bool reliable)
 	client_send_to_server(reliable, channel->write_buffer, channel->write_buffer_offset);
 #endif
 
-	// We also want this message!
-	channel->read_buffer = (const u8*)channel->write_buffer;
-	channel->read_buffer_size = channel->write_buffer_offset;
-	// Offset by the RPC header, since we only use it to find the channel
-	channel->read_buffer_offset = sizeof(Rpc_Channel_Event);
+	channel_push_read_stack(channel, nullptr, channel->write_buffer, channel->write_buffer_offset);
 
 	// Call the event ptr
 	channel->event_proc(channel, nullptr);
 
-	// Reset the read stuff after event has been handled!
-	channel->read_buffer = nullptr;
-	channel->read_buffer_size = 0;
-	channel->read_buffer_offset = 0;
+	channel_pop_read_stack(channel);
 }
 
 void channel_recv(Online_User* user, const void* data, u32 size)
@@ -150,20 +143,35 @@ void channel_recv(Online_User* user, const void* data, u32 size)
 	if (channel == nullptr)
 		return;
 
-	channel->read_buffer_sender = user;
-	channel->read_buffer = (const u8*)data;
-	channel->read_buffer_size = size;
-	// Offset by the RPC header, since we only use it to find the channel
-	channel->read_buffer_offset = sizeof(Rpc_Channel_Event);
+	channel_push_read_stack(channel, user, data, size);
 
 	// Call the event ptr
 	channel->event_proc(channel, user);
 
-	// Reset the read stuff after event has been handled!
-	channel->read_buffer_sender = nullptr;
-	channel->read_buffer = nullptr;
-	channel->read_buffer_size = 0;
-	channel->read_buffer_offset = 0;
+	channel_pop_read_stack(channel);
+}
+
+void channel_push_read_stack(Channel* channel, Online_User* sender, const void* data, u32 size)
+{
+	Channel_Read_Buffer* buffer = (Channel_Read_Buffer*)malloc(sizeof(Channel_Read_Buffer));
+	buffer->sender = sender;
+	buffer->data = (u8*)data;
+	buffer->size = size;
+	buffer->offset = sizeof(Rpc_Channel_Event); // The data is raw, so offset by the event header
+
+	Channel_Read_Buffer* previous = channel->read_buffer_stack;
+	buffer->previous = previous;
+
+	channel->read_buffer_stack = buffer;
+}
+
+void channel_pop_read_stack(Channel* channel)
+{
+	Channel_Read_Buffer* buffer_to_pop = channel->read_buffer_stack;
+	assert(buffer_to_pop);
+
+	channel->read_buffer_stack = buffer_to_pop->previous;
+	free(buffer_to_pop);
 }
 
 #if SERVER
@@ -199,10 +207,11 @@ void channel_write(Channel* channel, const void* data, u32 size)
 
 void channel_read(Channel* channel, void* data, u32 size)
 {
-	assert_msg(channel->read_buffer != nullptr, "Trying to read from channel, but it does not have a current read buffer");
-	assert_msg(channel->read_buffer_offset + size <= channel->read_buffer_size, "Trying to read past the channels read buffer");
+	Channel_Read_Buffer* buffer = channel->read_buffer_stack;
+	assert_msg(buffer != nullptr, "Trying to read from channel, but it does not have a current read buffer");
+	assert_msg(buffer->offset + size <= buffer->size, "Trying to read past the channels read buffer");
 
-	memcpy(data, channel->read_buffer + channel->read_buffer_offset, size);
-	channel->read_buffer_offset += size;
+	memcpy(data, buffer->data + buffer->offset, size);
+	buffer->offset += size;
 
 }

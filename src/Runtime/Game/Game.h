@@ -1,5 +1,8 @@
 #pragma once
 #include "Runtime/Player/Player.h"
+#include "Runtime/Game/HandleTypes.h"
+#include "Core/Time/IntervalTimer.h"
+
 struct Channel;
 struct Online_User;
 
@@ -10,8 +13,12 @@ struct Game
 	Channel* channel;
 
 #if CLIENT
-	Unit* local_unit = nullptr;
+	Unit_Handle local_unit;
 	u32 tile_size;
+#endif
+
+#if SERVER
+	Interval_Timer ai_spawn_timer;
 #endif
 };
 extern Game game;

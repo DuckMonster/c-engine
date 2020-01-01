@@ -6,7 +6,7 @@
 #include "Runtime/Game/Scene.h"
 #include "Runtime/Unit/Unit.h"
 
-void projectile_init(Projectile* projectile, Unit* owner, u32 proj_id, const Vec2& position, const Vec2& direction)
+void projectile_init(Projectile* projectile, const Unit_Handle& owner, u32 proj_id, const Vec2& position, const Vec2& direction)
 {
 	projectile->proj_id = proj_id;
 	projectile->owner = owner;
@@ -41,6 +41,8 @@ void projectile_free(Projectile* projectile)
 
 void projectile_update(Projectile* projectile)
 {
+	Unit* owner = scene_get_unit(projectile->owner);
+
 	// Movement ray (before moving)
 	Ray move_ray;
 	move_ray.origin = Vec3(projectile->position, 0.f);
@@ -54,7 +56,7 @@ void projectile_update(Projectile* projectile)
 	THINGS_FOREACH(&scene.units)
 	{
 		Unit* unit = it;
-		if (unit == projectile->owner)
+		if (unit == owner)
 			continue;
 
 		float intersect_time = 0.f;
@@ -81,10 +83,8 @@ void projectile_update(Projectile* projectile)
 
 	if (hit_unit)
 	{
-//#if SERVER
-		if (unit_has_control(projectile->owner))
-			unit_hit(hit_unit, projectile->direction * 20.f);
-//#endif
+		if (owner && unit_has_control(owner))
+			unit_hit(hit_unit, projectile->owner, projectile->direction * 20.f);
 
 		scene_destroy_projectile(projectile);
 		return;
