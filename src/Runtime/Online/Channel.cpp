@@ -147,6 +147,9 @@ void channel_recv(Online_User* user, const void* data, u32 size)
 	if (channel == nullptr)
 		return;
 
+	if (channel->state != Channel_State::Open && channel->state != Channel_State::Pending_Out)
+		return;
+
 	channel_push_read_stack(channel, user, data, size);
 
 	// Call the event ptr

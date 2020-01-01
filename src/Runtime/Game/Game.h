@@ -10,10 +10,12 @@ struct Online_User;
 
 struct Game
 {
+	Thing_Array<Player> players;
+
 	Channel* channel;
 
 #if CLIENT
-	Unit_Handle local_unit;
+	Player* local_player = nullptr;
 	u32 tile_size;
 #endif
 

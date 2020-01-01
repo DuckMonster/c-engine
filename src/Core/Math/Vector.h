@@ -150,48 +150,48 @@ inline Vec2 operator-(const Vec2& v) { return Vec2(-v.x, -v.y); }
 inline Vec3 operator-(const Vec3& v) { return Vec3(-v.x, -v.y, -v.z); }
 inline Vec4 operator-(const Vec4& v) { return Vec4(-v.x, -v.y, -v.z, -v.w); }
 
-inline bool nearly_equal(const Vec2& a, const Vec2& b, float margin = KINDA_SMALL_NUMBER)
+inline bool is_nearly_equal(const Vec2& a, const Vec2& b, float margin = KINDA_SMALL_NUMBER)
 {
 	return
-		nearly_equal(a.x, b.x, margin) &&
-		nearly_equal(a.y, b.y, margin);
+		is_nearly_equal(a.x, b.x, margin) &&
+		is_nearly_equal(a.y, b.y, margin);
 }
-inline bool nearly_equal(const Vec3& a, const Vec3& b, float margin = KINDA_SMALL_NUMBER)
+inline bool is_nearly_equal(const Vec3& a, const Vec3& b, float margin = KINDA_SMALL_NUMBER)
 {
 	return
-		nearly_equal(a.x, b.x, margin) &&
-		nearly_equal(a.y, b.y, margin) &&
-		nearly_equal(a.z, b.z, margin);
+		is_nearly_equal(a.x, b.x, margin) &&
+		is_nearly_equal(a.y, b.y, margin) &&
+		is_nearly_equal(a.z, b.z, margin);
 }
-inline bool nearly_equal(const Vec4& a, const Vec4& b, float margin = KINDA_SMALL_NUMBER)
+inline bool is_nearly_equal(const Vec4& a, const Vec4& b, float margin = KINDA_SMALL_NUMBER)
 {
 	return
-		nearly_equal(a.x, b.x, margin) &&
-		nearly_equal(a.y, b.y, margin) &&
-		nearly_equal(a.z, b.z, margin) &&
-		nearly_equal(a.w, b.w, margin);
+		is_nearly_equal(a.x, b.x, margin) &&
+		is_nearly_equal(a.y, b.y, margin) &&
+		is_nearly_equal(a.z, b.z, margin) &&
+		is_nearly_equal(a.w, b.w, margin);
 }
 
-inline bool nearly_zero(const Vec2& v, float margin = KINDA_SMALL_NUMBER)
+inline bool is_nearly_zero(const Vec2& v, float margin = KINDA_SMALL_NUMBER)
 {
 	return
-		nearly_zero(v.x, margin) &&
-		nearly_zero(v.y, margin);
+		is_nearly_zero(v.x, margin) &&
+		is_nearly_zero(v.y, margin);
 }
-inline bool nearly_zero(const Vec3& v, float margin = KINDA_SMALL_NUMBER)
+inline bool is_nearly_zero(const Vec3& v, float margin = KINDA_SMALL_NUMBER)
 {
 	return
-		nearly_zero(v.x, margin) &&
-		nearly_zero(v.y, margin) &&
-		nearly_zero(v.z, margin);
+		is_nearly_zero(v.x, margin) &&
+		is_nearly_zero(v.y, margin) &&
+		is_nearly_zero(v.z, margin);
 }
-inline bool nearly_zero(const Vec4& v, float margin = KINDA_SMALL_NUMBER)
+inline bool is_nearly_zero(const Vec4& v, float margin = KINDA_SMALL_NUMBER)
 {
 	return
-		nearly_zero(v.x, margin) &&
-		nearly_zero(v.y, margin) &&
-		nearly_zero(v.z, margin) &&
-		nearly_zero(v.w, margin);
+		is_nearly_zero(v.x, margin) &&
+		is_nearly_zero(v.y, margin) &&
+		is_nearly_zero(v.z, margin) &&
+		is_nearly_zero(v.w, margin);
 }
 
 inline Vec2 normalize(const Vec2& v)
@@ -212,7 +212,7 @@ inline Vec4 normalize(const Vec4& v)
 inline Vec2 normalize_safe(const Vec2& v)
 {
 	float len = sqrtf(v.x * v.x + v.y * v.y);
-	if (nearly_zero(len))
+	if (is_nearly_zero(len))
 		return Vec2_X;
 
 	return v / len;
@@ -220,7 +220,7 @@ inline Vec2 normalize_safe(const Vec2& v)
 inline Vec3 normalize_safe(const Vec3& v)
 {
 	float len = sqrtf(v.x * v.x + v.y * v.y + v.z * v.z);
-	if (nearly_zero(len))
+	if (is_nearly_zero(len))
 		return Vec3_X;
 
 	return v / len;
@@ -228,7 +228,7 @@ inline Vec3 normalize_safe(const Vec3& v)
 inline Vec4 normalize_safe(const Vec4& v)
 {
 	float len = sqrtf(v.x * v.x + v.y * v.y + v.z * v.z + v.w * v.w);
-	if (nearly_zero(len))
+	if (is_nearly_zero(len))
 		return Vec4_X;
 
 	return v / len;

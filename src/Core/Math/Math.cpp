@@ -9,7 +9,7 @@ void swap(float& a, float& b)
 
 float mod_range(float value, float min, float max)
 {
-	if (nearly_equal(max, min))
+	if (is_nearly_equal(max, min))
 		return min;
 
 	if (min > max)

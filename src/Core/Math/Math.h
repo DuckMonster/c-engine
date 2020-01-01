@@ -6,11 +6,11 @@
 #define KINDA_SMALL_NUMBER 0.0001f
 #define SMALL_NUMBER 0.0000001f
 
-inline bool nearly_equal(float a, float b, float margin = KINDA_SMALL_NUMBER)
+inline bool is_nearly_equal(float a, float b, float margin = KINDA_SMALL_NUMBER)
 {
 	return (a - b) < margin && (a - b) > -margin;
 }
-inline bool nearly_zero(float v, float margin = KINDA_SMALL_NUMBER)
+inline bool is_nearly_zero(float v, float margin = KINDA_SMALL_NUMBER)
 {
 	return v < margin && v > -margin;
 }

@@ -47,7 +47,7 @@ struct Unit
 #endif
 };
 
-void unit_init(Unit*unit, u32 id, const Vec2& position);
+void unit_init(Unit* unit, u32 id, const Vec2& position);
 void unit_free(Unit* unit);
 void unit_update(Unit* unit);
 

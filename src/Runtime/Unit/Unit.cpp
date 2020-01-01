@@ -247,6 +247,7 @@ void unit_update(Unit* unit)
 #endif
 
 	// Sync position!
+#if 0
 	if (unit_has_control(unit))
 	{
 		if (timer_update(&unit->position_sync_timer))
@@ -261,6 +262,7 @@ void unit_update(Unit* unit)
 	{
 		unit_move_towards(unit, unit->net_position);
 	}
+#endif
 }
 
 #if SERVER
@@ -269,17 +271,6 @@ void unit_sync_to(Unit* unit, Online_User* user)
 }
 #endif
 
-void unit_serialize_to(Unit* unit, Online_User* user)
-{
-	if (scene_get_unit(unit->target))
-	{
-		channel_reset(unit->channel);
-		channel_write_u8(unit->channel, EVENT_Set_Target);
-		channel_write_u32(unit->channel, unit->target.index);
-		channel_send(unit->channel, user, true);
-	}
-}
-
 void unit_move_towards(Unit* unit, const Vec2& target)
 {
 	unit_move_direction(unit, target - unit->position);
@@ -287,7 +278,7 @@ void unit_move_towards(Unit* unit, const Vec2& target)
 
 void unit_move_direction(Unit* unit, const Vec2& direction)
 {
-	if (nearly_zero(direction))
+	if (is_nearly_zero(direction))
 		return;
 
 	Vec2 dir_norm = normalize(direction);

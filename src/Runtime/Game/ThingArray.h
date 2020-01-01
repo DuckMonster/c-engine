@@ -69,15 +69,19 @@ Type* thing_add_at(Thing_Array<Type>* array, u32 index)
 }
 
 template<typename Type>
-void thing_remove(Thing_Array<Type>* array, Type* entry)
+void thing_remove_at(Thing_Array<Type>* array, u32 index)
 {
-	u32 index = entry - array->data;
 	assert_msg(index < array->size, "Tried to remove entry from thing array that is not created from the same array");
 	assert_msg(array->enable[index], "Tried to remove entry from thing array that is not enabled");
 
 	array->enable[index] = false;
 	array->generation[index]++;
-	*entry = Type();
+	array->data[index] = Type();
+}
+template<typename Type>
+void thing_remove(Thing_Array<Type>* array, Type* entry)
+{
+	thing_remove_at(array, entry - array->data);
 }
 
 template<typename Type>
