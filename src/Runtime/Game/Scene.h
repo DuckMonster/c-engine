@@ -136,6 +136,7 @@ void scene_update();
 Unit* scene_make_unit(i32 id, const Vec2& position);
 inline Unit* scene_make_unit(const Vec2& position) { scene_make_unit(-1, position); }
 void scene_destroy_unit(Unit* unit);
+u32 scene_get_free_unit_id();
 
 Projectile* scene_make_projectile(Unit* owner, u32 proj_id, const Vec2& origin, const Vec2& direction);
 void scene_destroy_projectile(Projectile* projectile);

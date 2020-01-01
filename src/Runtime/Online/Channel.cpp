@@ -150,6 +150,7 @@ void channel_recv(Online_User* user, const void* data, u32 size)
 	if (channel == nullptr)
 		return;
 
+	channel->read_buffer_sender = user;
 	channel->read_buffer = (const u8*)data;
 	channel->read_buffer_size = size;
 	// Offset by the RPC header, since we only use it to find the channel
@@ -159,10 +160,18 @@ void channel_recv(Online_User* user, const void* data, u32 size)
 	channel->event_proc(channel, user);
 
 	// Reset the read stuff after event has been handled!
+	channel->read_buffer_sender = nullptr;
 	channel->read_buffer = nullptr;
 	channel->read_buffer_size = 0;
 	channel->read_buffer_offset = 0;
 }
+
+#if SERVER
+void channel_rebroadcast_last(Channel* channel, bool reliable)
+{
+	server_broadcast_except(channel->read_buffer_sender, reliable, channel->read_buffer, channel->read_buffer_size);
+}
+#endif
 
 void channel_reset(Channel* channel)
 {

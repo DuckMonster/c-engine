@@ -3,6 +3,14 @@
 #define RENDER_SHADOW_BUFFER_UNIFORM "u_ShadowBuffer"
 #define RENDER_SHADOW_BUFFER_TEXTURE_INDEX 2
 
+enum Render_Pass
+{
+	PASS_Game,
+	PASS_UI,
+	PASS_Shadow,
+	PASS_Overlay
+};
+
 struct Render_State
 {
 	Mat4 view;
@@ -11,6 +19,8 @@ struct Render_State
 	Mat4 light;
 	u32 render_scale;
 	u32 tile_size;
+
+	Render_Pass current_pass;
 };
 extern Render_State render_global;
 

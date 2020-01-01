@@ -1,6 +1,8 @@
 #include "ServiceRecv.h"
 #include "Core/Net/Net.h"
 
+#define MAX_RECV 65536
+
 Connection* get_connection_from_ip(const Ip_Address& addr)
 {
 	Connection* connection = nullptr;
@@ -52,7 +54,7 @@ void handle_incoming(Connection* connection, Packet* packet, bool stale)
 	if (packet->type == Packet_Type::Ack)
 	{
 		connection_lock(connection, Connection_Lock::Out);
-		packet_list_remove_id(&connection->outgoing, packet->id);
+		packet_list_destroy_all_id(&connection->outgoing, packet->id);
 		connection_unlock(connection, Connection_Lock::Out);
 
 		delete packet;
@@ -147,12 +149,12 @@ void flush_incoming(Connection* connection)
 
 void net_service_recv(void*)
 {
-	u8 recv_buffer[1024];
+	u8 recv_buffer[MAX_RECV];
 	Ip_Address recv_addr;
 
 	while(net.active)
 	{
-		i32 recv_size = sock_recv_from(&net.socket, recv_buffer, 1024, &recv_addr);
+		i32 recv_size = sock_recv_from(&net.socket, recv_buffer, MAX_RECV, &recv_addr);
 		if (recv_size < sizeof(Packet))
 		{
 			net_log("Received packet smaller than sizeof(Packet)...");

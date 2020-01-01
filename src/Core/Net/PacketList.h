@@ -20,6 +20,6 @@ struct Packet_List
 
 void packet_list_add(Packet_List* list, Packet* packet);
 Packet* packet_list_remove(Packet_List* list, Packet* packet);
-Packet* packet_list_remove_id(Packet_List* list, u32 id);
+void packet_list_destroy_all_id(Packet_List* list, u32 id);
 bool packet_list_contains_id(Packet_List* list, u32 id);
 void packet_list_clear(Packet_List* list);

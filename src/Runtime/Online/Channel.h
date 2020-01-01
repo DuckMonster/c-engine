@@ -44,6 +44,7 @@ struct Channel
 	u32 write_buffer_offset = 0;
 	Online_User* write_except_user = nullptr;
 
+	Online_User* read_buffer_sender = nullptr;
 	const u8* read_buffer = nullptr;
 	u32 read_buffer_size = 0;
 	u32 read_buffer_offset = 0;
@@ -63,6 +64,13 @@ void channel_send(Channel* channel, Online_User* user, bool reliable);
 void channel_broadcast(Channel* channel, bool reliable);
 void channel_recv(Online_User* user, const void* data, u32 size);
 
+#if SERVER
+// These are only valid to call during an event read
+// This will re-broadcast the currently read message out to all users
+// NOTE: The message will NOT be re-sent to the sender, since they've already executed the event
+void channel_rebroadcast_last(Channel* channel, bool reliable);
+#endif
+
 void channel_reset(Channel* channel);
 
 // Writing
@@ -78,7 +86,7 @@ inline void channel_write_u32(Channel* channel, const u32 value) { channel_write
 inline void channel_write_i32(Channel* channel, const i32 value) { channel_write_t(channel, value); }
 inline void channel_write_vec2(Channel* channel, const Vec2& value) { channel_write_t(channel, value); }
 inline void channel_write_vec3(Channel* channel, const Vec3& value) { channel_write_t(channel, value); }
-inline void channel_write_vec3(Channel* channel, const Vec4& value) { channel_write_t(channel, value); }
+inline void channel_write_vec4(Channel* channel, const Vec4& value) { channel_write_t(channel, value); }
 
 // Reading
 #define channel_read_t(channel, val) channel_read(channel, val, sizeof(*val))

@@ -49,14 +49,6 @@ void projectile_update(Projectile* projectile)
 	// Do movement
 	projectile->position += projectile->direction * projectile->speed * time_delta();
 
-#if CLIENT
-	float sphere_scale = saturate(projectile->lifetime / 0.05f);
-	projectile->drawable->transform = mat_position_rotation_scale(
-		Vec3(projectile->position, 0.5f), quat_from_x(Vec3(projectile->direction, 0.f)), projectile->size * sphere_scale
-	);
-	projectile->line_drawer->position = Vec3(projectile->position, 0.5f);
-#endif
-
 	// Then! Do collision checking to see if we hit something
 	Unit* hit_unit = nullptr;
 	THINGS_FOREACH(&scene.units)
@@ -70,16 +62,29 @@ void projectile_update(Projectile* projectile)
 		{
 			if (intersect_time < projectile->speed * time_delta())
 			{
+				Vec2 diff = constrain_to_direction(unit->position - projectile->position, projectile->direction);
+				projectile->position += diff;
+
 				hit_unit = unit;
 				break;
 			}
 		}
 	}
 
+#if CLIENT
+	float sphere_scale = saturate(projectile->lifetime / 0.05f);
+	projectile->drawable->transform = mat_position_rotation_scale(
+		Vec3(projectile->position, 0.5f), quat_from_x(Vec3(projectile->direction, 0.f)), projectile->size * sphere_scale
+	);
+	projectile->line_drawer->position = Vec3(projectile->position, 0.5f);
+#endif
+
 	if (hit_unit)
 	{
+//#if SERVER
 		if (unit_has_control(projectile->owner))
-			unit_hit(hit_unit, projectile->direction * 4.f);
+			unit_hit(hit_unit, projectile->direction * 20.f);
+//#endif
 
 		scene_destroy_projectile(projectile);
 		return;

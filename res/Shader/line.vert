@@ -14,4 +14,4 @@ void main()
 	gl_Position = vec4(a_Position, 1.0);
 	vs_out.time = a_Time;
 	vs_out.width = a_Width;
-}
+} 

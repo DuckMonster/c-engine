@@ -9,6 +9,8 @@ enum Unit_Event
 	EVENT_Set_Position,
 	EVENT_Shoot,
 	EVENT_Hit,
+	EVENT_Set_Target,
+	EVENT_Set_Aim_Direction,
 };
 
 void unit_event_proc(Channel* chnl, Online_User* src)
@@ -30,14 +32,7 @@ void unit_event_proc(Channel* chnl, Online_User* src)
 			unit->position = position;
 
 #if SERVER
-			if (src != nullptr)
-			{
-				channel_reset(chnl);
-				channel_write_except(chnl, src);
-				channel_write_u8(chnl, EVENT_Set_Position);
-				channel_write_vec2(chnl, position);
-				channel_broadcast(chnl, false);
-			}
+			channel_rebroadcast_last(chnl, false);
 #endif
 			break;
 		}
@@ -56,28 +51,51 @@ void unit_event_proc(Channel* chnl, Online_User* src)
 #endif
 
 #if SERVER
-			if (src != nullptr)
-			{
-				channel_reset(chnl);
-				channel_write_except(chnl, src);
-				channel_write_u8(chnl, EVENT_Shoot);
-				channel_write_vec2(chnl, origin);
-				channel_write_vec2(chnl, direction);
-				channel_broadcast(chnl, false);
-			}
+			channel_rebroadcast_last(chnl, true);
 #endif
 			break;
 		}
 
 		case EVENT_Hit:
 		{
-#if SERVER
 			Vec2 impulse;
 			channel_read(chnl, &impulse);
 
-			unit->position += impulse;
+			unit->health -= 1.f;
+			if (unit->health <= 0.f)
+				scene_destroy_unit(unit);
+
+			unit->impact_velocity = impulse;
+
+#if CLIENT
+			unit->hit_timer = unit_hit_duration;
 #endif
 
+#if SERVER
+			channel_rebroadcast_last(chnl, true);
+#endif
+
+			break;
+		}
+
+		case EVENT_Set_Target:
+		{
+			u32 id;
+			channel_read(chnl, &id);
+			unit->target = scene.units[id];
+
+			break;
+		}
+
+		case EVENT_Set_Aim_Direction:
+		{
+			if (unit_has_control(unit))
+				return;
+
+			Vec2 direction;
+			channel_read(chnl, &direction);
+
+			unit->aim_direction = direction;
 			break;
 		}
 	}
@@ -92,7 +110,10 @@ void unit_init(Unit* unit, u32 id, const Vec2& position)
 	unit->channel = channel_open("UNIT", id, unit_event_proc);
 	unit->channel->user_ptr = unit;
 
+	unit->health = unit->health_max;
+
 #if CLIENT
+
 	unit->billboard = scene_make_billboard(sprite_sheet_load("Sprite/unit_sheet.dat"));
 	unit->billboard->position = Vec3(position, 0.f);
 	unit->billboard->anchor = Vec2(0.5f, 1.f);
@@ -103,8 +124,12 @@ void unit_init(Unit* unit, u32 id, const Vec2& position)
 
 	unit->health_bar = scene_make_health_bar();
 	unit->health_bar->position = Vec3(position, 2.f);
+
 #elif SERVER
+
 	unit->ai_walk_target = position;
+	unit->ai_shoot_timer = random_float(2.f, 8.f);
+
 #endif
 }
 
@@ -114,12 +139,17 @@ void unit_free(Unit* unit)
 
 #if CLIENT
 	scene_destroy_billboard(unit->billboard);
-	unit->billboard = nullptr;
+	scene_destroy_billboard(unit->gun_billboard);
+	scene_destroy_health_bar(unit->health_bar);
 #endif
 }
 
 void unit_update(Unit* unit)
 {
+	// Apply impact velocity
+	unit->position += unit->impact_velocity * time_delta();
+	unit->impact_velocity -= unit->impact_velocity * unit_impact_drag * time_delta();
+
 #if CLIENT
 
 	// Unit billboard
@@ -133,7 +163,7 @@ void unit_update(Unit* unit)
 	//	aim target, and setting that as the angle
 	Vec2 unit_screen = scene_project_to_screen(Vec3(unit->position, 0.f));
 	Vec2 gun_screen = scene_project_to_screen(Vec3(unit->position + unit->aim_direction, 0.f));
-	Vec2 screen_direction = gun_screen - unit_screen;
+	Vec2 screen_direction = normalize_safe(gun_screen - unit_screen);
 
 	// Lerp it 
 	float target_angle = atan2(screen_direction.y, screen_direction.x);
@@ -149,15 +179,57 @@ void unit_update(Unit* unit)
 	unit->health_bar->position = Vec3(unit->position, 2.f);
 	unit->health_bar->health_percent = unit->health / unit->health_max;
 
+	// When hit, flash for a bit!
+	unit->hit_timer -= time_delta();
+	unit->billboard->fill_color = Vec4(Vec3(1.f), unit->hit_timer > 0.f ? 1.f : 0.f);
+
 #elif SERVER
 
 	// AI movement
 	if (unit->owner == nullptr)
 	{
-		unit_move_towards(unit, unit->ai_walk_target);
+		unit->walk_timer -= time_delta();
+		if (unit->walk_timer <= 0.f)
+		{
+			unit_move_towards(unit, unit->ai_walk_target);
+			if (distance_sqrd(unit->position, unit->ai_walk_target) < 0.2f)
+			{
+				unit->walk_timer = random_float(2.f, 4.f);
+				unit->ai_walk_target = Vec2(random_float(-5.f, 5.f), random_float(-5.f, 5.f));
+			}
+		}
+
+		if (unit->target)
+		{
+			Vec2 direction = normalize_safe(unit->target->position - unit->position);
+			unit->aim_direction = direction;
+
+			unit->ai_shoot_timer -= time_delta();
+			if (unit->ai_shoot_timer <= 0.f)
+			{
+				unit_shoot(unit, unit->target->position);
+				unit->ai_shoot_timer = random_float(1.f, 2.f);
+			}
+
+			channel_reset(unit->channel);
+			channel_write_u8(unit->channel, EVENT_Set_Aim_Direction);
+			channel_write_vec2(unit->channel, direction);
+			channel_broadcast(unit->channel, false);
+		}
 	}
 
 #endif
+}
+
+void unit_serialize_to(Unit* unit, Online_User* user)
+{
+	if (unit->target)
+	{
+		channel_reset(unit->channel);
+		channel_write_u8(unit->channel, EVENT_Set_Target);
+		channel_write_u32(unit->channel, unit->target->id);
+		channel_send(unit->channel, user, true);
+	}
 }
 
 void unit_move_towards(Unit* unit, const Vec2& target)

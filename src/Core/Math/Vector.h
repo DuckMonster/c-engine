@@ -56,6 +56,25 @@ struct Vec4
 	const float& operator[](u32 index) const { return ((float*)this)[index]; }
 };
 
+// Vector constants
+const Vec2 Vec2_X = Vec2(1.f, 0.f);
+const Vec2 Vec2_Y = Vec2(0.f, 1.f);
+const Vec2 Vec2_Zero = Vec2(0.f, 0.f);
+const Vec2 Vec2_One = Vec2(1.f, 1.f);
+
+const Vec3 Vec3_X = Vec3(1.f, 0.f, 0.f);
+const Vec3 Vec3_Y = Vec3(0.f, 1.f, 0.f);
+const Vec3 Vec3_Z = Vec3(0.f, 0.f, 1.f);
+const Vec3 Vec3_Zero = Vec3(0.f, 0.f, 0.f);
+const Vec3 Vec3_One = Vec3(1.f, 1.f, 1.f);
+
+const Vec4 Vec4_X = Vec4(1.f, 0.f, 0.f, 0.f);
+const Vec4 Vec4_Y = Vec4(0.f, 1.f, 0.f, 0.f);
+const Vec4 Vec4_Z = Vec4(0.f, 0.f, 1.f, 0.f);
+const Vec4 Vec4_W = Vec4(0.f, 0.f, 0.f, 1.f);
+const Vec4 Vec4_Zero = Vec4(0.f, 0.f, 0.f, 0.f);
+const Vec4 Vec4_One = Vec4(1.f, 1.f, 1.f, 1.f);
+
 // Conversion operators
 inline Vec2::Vec2(const Vec3& v) : x(v.x), y(v.y) {}
 inline Vec2::Vec2(const Vec4& v) : x(v.x), y(v.y) {}
@@ -190,6 +209,30 @@ inline Vec4 normalize(const Vec4& v)
 	float len = sqrtf(v.x * v.x + v.y * v.y + v.z * v.z + v.w * v.w);
 	return v / len;
 }
+inline Vec2 normalize_safe(const Vec2& v)
+{
+	float len = sqrtf(v.x * v.x + v.y * v.y);
+	if (nearly_zero(len))
+		return Vec2_X;
+
+	return v / len;
+}
+inline Vec3 normalize_safe(const Vec3& v)
+{
+	float len = sqrtf(v.x * v.x + v.y * v.y + v.z * v.z);
+	if (nearly_zero(len))
+		return Vec3_X;
+
+	return v / len;
+}
+inline Vec4 normalize_safe(const Vec4& v)
+{
+	float len = sqrtf(v.x * v.x + v.y * v.y + v.z * v.z + v.w * v.w);
+	if (nearly_zero(len))
+		return Vec4_X;
+
+	return v / len;
+}
 
 inline float length(const Vec2& v)
 {
@@ -269,9 +312,17 @@ inline Vec3 cross(const Vec3& a, const Vec3& b)
 	);
 }
 
+inline Vec2 constrain_to_plane(const Vec2& vec, const Vec2& plane)
+{
+	return vec - plane * dot(vec, plane);
+}
 inline Vec3 constrain_to_plane(const Vec3& vec, const Vec3& plane)
 {
 	return vec - plane * dot(vec, plane);
+}
+inline Vec2 constrain_to_direction(const Vec2& vec, const Vec2& direction)
+{
+	return direction * dot(vec, direction);
 }
 inline Vec3 constrain_to_direction(const Vec3& vec, const Vec3& direction)
 {
@@ -281,22 +332,3 @@ inline Vec3 constrain_to_direction(const Vec3& vec, const Vec3& direction)
 inline Vec2 lerp(Vec2 a, Vec2 b, float t) { return a + (b - a) * t; }
 inline Vec3 lerp(Vec3 a, Vec3 b, float t) { return a + (b - a) * t; }
 inline Vec4 lerp(Vec4 a, Vec4 b, float t) { return a + (b - a) * t; }
-
-// Vector constants
-const Vec2 Vec2_X = Vec2(1.f, 0.f);
-const Vec2 Vec2_Y = Vec2(0.f, 1.f);
-const Vec2 Vec2_Zero = Vec2(0.f, 0.f);
-const Vec2 Vec2_One = Vec2(1.f, 1.f);
-
-const Vec3 Vec3_X = Vec3(1.f, 0.f, 0.f);
-const Vec3 Vec3_Y = Vec3(0.f, 1.f, 0.f);
-const Vec3 Vec3_Z = Vec3(0.f, 0.f, 1.f);
-const Vec3 Vec3_Zero = Vec3(0.f, 0.f, 0.f);
-const Vec3 Vec3_One = Vec3(1.f, 1.f, 1.f);
-
-const Vec4 Vec4_X = Vec4(1.f, 0.f, 0.f, 0.f);
-const Vec4 Vec4_Y = Vec4(0.f, 1.f, 0.f, 0.f);
-const Vec4 Vec4_Z = Vec4(0.f, 0.f, 1.f, 0.f);
-const Vec4 Vec4_W = Vec4(0.f, 0.f, 0.f, 1.f);
-const Vec4 Vec4_Zero = Vec4(0.f, 0.f, 0.f, 0.f);
-const Vec4 Vec4_One = Vec4(1.f, 1.f, 1.f, 1.f);

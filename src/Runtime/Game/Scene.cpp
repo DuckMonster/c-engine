@@ -27,6 +27,9 @@ void scene_update()
 
 	THINGS_FOREACH(&scene.projectiles)
 		projectile_update(it);
+
+	THINGS_FOREACH(&scene.health_bars)
+		health_bar_update(it);
 }
 
 Unit* scene_make_unit(i32 id, const Vec2& position)
@@ -46,6 +49,19 @@ void scene_destroy_unit(Unit* unit)
 	unit_free(unit);
 	thing_remove(&scene.units, unit);
 }
+
+u32 scene_get_free_unit_id()
+{
+	for(u32 i=0; i<scene.units.size; ++i)
+	{
+		if (!scene.units[i])
+			return i;
+	}
+
+	error("No free unit id could be found");
+	return -1;
+}
+
 
 Projectile* scene_make_projectile(Unit* owner, u32 proj_id, const Vec2& origin, const Vec2& direction)
 {
@@ -118,14 +134,17 @@ void scene_render(const Render_State& state)
 	THINGS_FOREACH(&scene.drawables)
 		drawable_render(it, state);
 
-	THINGS_FOREACH(&scene.line_drawers)
-		line_drawer_render(it, state);
-
 	THINGS_FOREACH(&scene.billboards)
 		billboard_render(it, state);
 
-	THINGS_FOREACH(&scene.health_bars)
-		health_bar_render(it, state);
+	if (state.current_pass == PASS_Game)
+	{
+		THINGS_FOREACH(&scene.line_drawers)
+			line_drawer_render(it, state);
+
+		THINGS_FOREACH(&scene.health_bars)
+			health_bar_render(it, state);
+	}
 }
 
 Ray scene_mouse_ray()

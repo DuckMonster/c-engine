@@ -14,8 +14,8 @@ void main()
 {
 	vec3 from = gl_in[0].gl_Position.xyz;
 	vec3 to = gl_in[1].gl_Position.xyz;
-	float from_size = vs_out[0].width * max(1.f - vs_out[0].time * 0.7, 0.0);
-	float to_size = vs_out[1].width * max(1.f - vs_out[1].time * 0.7, 0.0);// / (1.f + vs_out[1].time * 5.0));
+	float from_size = vs_out[0].width * max(1.f - vs_out[0].time * 2.5, 0.0);
+	float to_size = vs_out[1].width * max(1.f - vs_out[1].time * 2.5, 0.0);// / (1.f + vs_out[1].time * 5.0));
 
 	vec3 dir = to - from;
 	vec3 right = normalize(cross(dir, vec3(0.0, 0.0, 1.0)));

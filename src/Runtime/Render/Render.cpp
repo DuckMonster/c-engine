@@ -81,6 +81,7 @@ void render_draw()
 	state.view = light_view;
 	state.projection = light_proj;
 	state.view_projection = state.light;
+	state.current_pass = PASS_Shadow;
 	render_draw_scene(state);
 
 	framebuffer_reset();
@@ -100,6 +101,7 @@ void render_draw()
 
 	texture_bind(&shadow_buffer.textures[0], 2);
 
+	state.current_pass = PASS_Game;
 	render_draw_scene(state);
 
 	framebuffer_reset();

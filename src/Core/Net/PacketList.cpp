@@ -84,7 +84,7 @@ Packet* packet_list_remove(Packet_List* list, Packet* packet)
 	return nullptr;
 }
 
-Packet* packet_list_remove_id(Packet_List* list, u32 id)
+void packet_list_destroy_all_id(Packet_List* list, u32 id)
 {
 	Packet_Block* ptr = list->first;
 	while(ptr != nullptr)
@@ -103,19 +103,17 @@ Packet* packet_list_remove_id(Packet_List* list, u32 id)
 			if (list->last == ptr)
 				list->last = ptr->prev;
 
-			ptr->next = nullptr;
-			ptr->prev = nullptr;
+			Packet_Block* temp = ptr;
+			ptr = ptr->next;
 
-			Packet* packet = ptr->packet;
-			delete ptr;
+			delete temp->packet;
+			delete temp;
 
-			return packet;
+			continue;
 		}
 
 		ptr = ptr->next;
 	}
-
-	return nullptr;
 }
 
 bool packet_list_contains_id(Packet_List* list, u32 id)
