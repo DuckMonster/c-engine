@@ -2,6 +2,7 @@
 #include "Core/Input/Input.h"
 #include "Runtime/Unit/Unit.h"
 #include "Runtime/Game/Scene.h"
+#include "Runtime/Game/Game.h"
 #include "Runtime/Online/Online.h"
 
 enum Player_Events
@@ -50,21 +51,26 @@ void player_init(Player* player, u32 id, const Unit_Handle& unit_to_control)
 	player->id = id;
 	player->controlled_unit = unit_to_control;
 
-	Unit* unit = scene_get_unit(unit_to_control);
-	assert(unit);
-
 	player->channel = channel_open("PLYR", id, player_event_proc);
 	player->channel->user_ptr = player;
+
+	Unit* unit = scene_get_unit(unit_to_control);
 
 #if CLIENT
 	if (client_is_self(id))
 	{
 		player->is_local = true;
-		unit->is_local = true;
+		if (unit)
+			unit->player_owner = game_player_handle(player);
 	}
 
 	player->force_sync_timer.interval = 1.f / player_force_sync_frequency;
 #endif
+}
+
+void player_free(Player* player)
+{
+	channel_close(player->channel);
 }
 
 #if CLIENT

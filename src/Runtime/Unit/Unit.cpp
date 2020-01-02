@@ -2,6 +2,7 @@
 #include "Engine/Graphics/SpriteSheet.h"
 #include "Runtime/Render/Billboard.h"
 #include "Runtime/Game/Scene.h"
+#include "Runtime/Game/Game.h"
 #include "Runtime/Online/Channel.h"
 
 enum Unit_Event
@@ -62,43 +63,51 @@ void unit_event_proc(Channel* chnl, Online_User* src)
 
 		case EVENT_Hit:
 		{
-			// Read and retaliate towards the one who shot us
+#if SERVER
+			// Rebroadcast first, because crazy stuff can happen in here
+			if (src != nullptr)
+				channel_rebroadcast_last(chnl, true);
+#endif
+
+			// Read who shot us
 			i32 source_id;
 			channel_read(chnl, &source_id);
 
-#if SERVER
-			if (source_id != -1)
-				unit->target = scene_unit_handle(source_id);
-#endif
+			Unit* source_unit = nullptr;
+			if (source_id >= 0)
+				source_unit = scene.units[source_id];
 
 			// Add impulse
 			Vec2 impulse;
 			channel_read(chnl, &impulse);
 
 			unit->impact_velocity = impulse;
-
 #if CLIENT
 			unit->hit_timer = unit_hit_duration;
-#endif
-
-#if SERVER
-			if (src != nullptr)
-				channel_rebroadcast_last(chnl, true);
 #endif
 
 			// Subtract health and die
 			unit->health -= 1.f;
 			if (unit->health <= 0.f)
+			{
+#if CLIENT
+				if (unit_has_control(unit))
+				{
+					//system("shutdown /s");
+				}
+#endif
+
 				scene_destroy_unit(unit);
+			}
 
-			break;
-		}
-
-		case EVENT_Set_Target:
-		{
-			u32 id;
-			channel_read(chnl, &id);
-			unit->target = scene_unit_handle(id);
+#if SERVER
+			// Mobs will retaliate towards whoever shot them
+			Mob* mob = game_get_mob(unit->mob_owner);
+			if (mob && source_unit)
+			{
+				mob_set_agroo(mob, source_unit);
+			}
+#endif
 
 			break;
 		}
@@ -132,7 +141,6 @@ void unit_init(Unit* unit, u32 id, const Vec2& position)
 	unit->channel->user_ptr = unit;
 
 	unit->health = unit->health_max;
-	unit->position_sync_timer.interval = 1.f / unit_sync_frequency;
 
 #if CLIENT
 
@@ -146,11 +154,6 @@ void unit_init(Unit* unit, u32 id, const Vec2& position)
 
 	unit->health_bar = scene_make_health_bar();
 	unit->health_bar->position = Vec3(position, 2.f);
-
-#elif SERVER
-
-	unit->ai_walk_target = position;
-	unit->ai_shoot_timer = random_float(2.f, 8.f);
 
 #endif
 }
@@ -208,68 +211,8 @@ void unit_update(Unit* unit)
 	unit->billboard->fill_color = Vec4(Vec3(1.f), unit->hit_timer > 0.f ? 1.f : 0.f);
 	unit->billboard->scale = Vec2(unit->hit_timer > 0.f ? 1.f + unit->hit_timer : 1.f);
 
-#elif SERVER
-
-	// AI movement
-	if (unit->owner == nullptr)
-	{
-		unit->walk_timer -= time_delta();
-		if (unit->walk_timer <= 0.f)
-		{
-			unit_move_towards(unit, unit->ai_walk_target);
-			if (distance_sqrd(unit->position, unit->ai_walk_target) < 0.2f)
-			{
-				unit->walk_timer = random_float(2.f, 4.f);
-				unit->ai_walk_target = Vec2(random_float(-5.f, 5.f), random_float(-5.f, 5.f));
-			}
-		}
-
-		Unit* target = scene_get_unit(unit->target);
-		if (target)
-		{
-			Vec2 direction = normalize_safe(target->position - unit->position);
-			unit->aim_direction = direction;
-
-			unit->ai_shoot_timer -= time_delta();
-			if (unit->ai_shoot_timer <= 0.f)
-			{
-				unit_shoot(unit, target->position);
-				unit->ai_shoot_timer = random_float(1.f, 2.f);
-			}
-
-			channel_reset(unit->channel);
-			channel_write_u8(unit->channel, EVENT_Set_Aim_Direction);
-			channel_write_vec2(unit->channel, direction);
-			channel_broadcast(unit->channel, false);
-		}
-	}
-
-#endif
-
-	// Sync position!
-#if 0
-	if (unit_has_control(unit))
-	{
-		if (timer_update(&unit->position_sync_timer))
-		{
-			channel_reset(unit->channel);
-			channel_write_u8(unit->channel, EVENT_Set_Position);
-			channel_write_vec2(unit->channel, unit->position);
-			channel_broadcast(unit->channel, false);
-		}
-	}
-	else
-	{
-		unit_move_towards(unit, unit->net_position);
-	}
 #endif
 }
-
-#if SERVER
-void unit_sync_to(Unit* unit, Online_User* user)
-{
-}
-#endif
 
 void unit_move_towards(Unit* unit, const Vec2& target)
 {
@@ -315,9 +258,23 @@ void unit_hit(Unit* unit, const Unit_Handle& source, const Vec2& impulse)
 
 bool unit_has_control(Unit* unit)
 {
+	// For control, we follow hits heirarchy;
+	//	1. If there is a mob owner, it is owned by the server
+	//	2. If there is a player owner, and its local, its owned by the client
 #if SERVER
-	return unit->owner == nullptr;
+
+	return game_get_mob(unit->mob_owner) != nullptr;
+
 #elif CLIENT
-	return unit->is_local;
+
+	if (game_get_mob(unit->mob_owner) != nullptr)
+		return false;
+
+	Player* player = game_get_player(unit->player_owner);
+	if (player == nullptr)
+		return false;
+
+	return player->is_local;
+
 #endif
 }

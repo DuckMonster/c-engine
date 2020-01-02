@@ -76,6 +76,9 @@ Mat4 camera_projection_matrix(Camera* camera)
 
 	// How much must we scale the whole frustum up/down to match this multiple?
 	float pixel_scale_error = pixel_scale / round_pixel_scale;
+	if (pixel_scale < 1.f)
+		pixel_scale_error = 1.f;
+
 	size_scale *= pixel_scale_error;
 
 	/* Zooming */

@@ -13,6 +13,8 @@ enum Game_Event
 	EVENT_Unit_Destroy,
 	EVENT_Player_Join,
 	EVENT_Player_Leave,
+	EVENT_Mob_Create,
+	EVENT_Mob_Destroy,
 };
 
 void game_event_proc(Channel* chnl, Online_User* src)
@@ -51,6 +53,7 @@ void game_event_proc(Channel* chnl, Online_User* src)
 			channel_read(chnl, &unit_id);
 
 			Unit_Handle unit_hndl;
+
 			// If unit_id < 0, then the player doesn't control a unit
 			if (unit_id >= 0)
 				unit_hndl = scene_unit_handle(unit_id);
@@ -61,6 +64,7 @@ void game_event_proc(Channel* chnl, Online_User* src)
 			debug_log("Creating player %d", player_id);
 
 #if CLIENT
+			// Set local player if this is it
 			if (client_is_self(player_id))
 				game.local_player = player;
 #endif
@@ -73,8 +77,38 @@ void game_event_proc(Channel* chnl, Online_User* src)
 			u32 player_id;
 			channel_read(chnl, &player_id);
 
-			thing_remove_at(&game.players, player_id);
+			Player* player = game.players[player_id];
+			assert(player);
 
+			player_free(player);
+			thing_remove(&game.players, player);
+			break;
+		}
+
+		case EVENT_Mob_Create:
+		{
+			u32 mob_id;
+			i32 unit_id;
+			channel_read(chnl, &mob_id);
+			channel_read(chnl, &unit_id);
+
+			Unit_Handle unit_hndl;
+			// If unit_id < 0, then the mob doesn't control a unit
+			if (unit_id >= 0)
+				unit_hndl = scene_unit_handle(unit_id);
+
+			Mob* mob = thing_add_at(&game.mobs, mob_id);
+			mob_init(mob, mob_id, unit_hndl);
+
+			break;
+		}
+
+		case EVENT_Mob_Destroy:
+		{
+			u32 mob_id;
+			channel_read(chnl, &mob_id);
+
+			thing_remove_at(&game.mobs, mob_id);
 			break;
 		}
 
@@ -114,6 +148,7 @@ void server_destroy_unit(u32 unit_id)
 void game_init()
 {
 	thing_array_init(&game.players, MAX_PLAYERS);
+	thing_array_init(&game.mobs, MAX_MOBS);
 	scene_init();
 
 	game.channel = channel_open("GAME", 0, game_event_proc);
@@ -125,15 +160,60 @@ void game_init()
 
 #if SERVER
 	//u32 num = random_int(2, 10);
-	u32 num = 0;
+	u32 num = 1;
 	for(u32 i=0; i<num; ++i)
 	{
-		server_spawn_unit();
+		Unit* unit = server_spawn_unit();
+		game_create_mob_for_unit(unit);
 	}
 
 	game.ai_spawn_timer.interval = 10.f;
 	game.ai_spawn_timer.variance = 5.f;
 #endif
+}
+
+void game_update()
+{
+	THINGS_FOREACH(&game.players)
+		player_update(it);
+	THINGS_FOREACH(&game.mobs)
+		mob_update(it);
+
+#if CLIENT
+
+	camera_update(&scene.camera);
+	render_set_vp(camera_view_matrix(&scene.camera), camera_projection_matrix(&scene.camera));
+
+#elif SERVER
+
+	if (timer_update(&game.ai_spawn_timer))
+	{
+		//server_spawn_unit();
+	}
+
+#endif
+
+	scene_update();
+}
+
+Player* game_get_player(const Player_Handle& player_hndl)
+{
+	return thing_resolve(&game.players, player_hndl);
+}
+
+Player_Handle game_player_handle(Player* player)
+{
+	return thing_get_handle(&game.players, player);
+}
+
+Mob* game_get_mob(const Mob_Handle& mob_hndl)
+{
+	return thing_resolve(&game.mobs, mob_hndl);
+}
+
+Mob_Handle game_mob_handle(Mob* mob)
+{
+	return thing_get_handle(&game.mobs, mob);
 }
 
 #if SERVER
@@ -166,8 +246,23 @@ void game_user_added(Online_User* user)
 		channel_send(game.channel, user, true);
 	}
 
+	THINGS_FOREACH(&game.mobs)
+	{
+		Mob* mob = it;
+		Unit* unit = scene_get_unit(mob->controlled_unit);
+
+		channel_reset(game.channel);
+		channel_write_u8(game.channel, EVENT_Mob_Create);
+		channel_write_u32(game.channel, mob->id);
+		if (unit)
+			channel_write_i32(game.channel, unit->id);
+		else
+			channel_write_i32(game.channel, -1);
+
+		channel_send(game.channel, user, true);
+	}
+
 	Unit* player_unit = server_spawn_unit();
-	player_unit->owner = user;
 
 	channel_reset(game.channel);
 	channel_write_u8(game.channel, EVENT_Player_Join);
@@ -178,41 +273,29 @@ void game_user_added(Online_User* user)
 
 void game_user_leave(Online_User* user)
 {
-	Unit* owned_unit = nullptr;
-	THINGS_FOREACH(&scene.units)
-	{
-		if (it->owner == user)
-		{
-			owned_unit = it;
-			break;
-		}
-	}
+	Player* player = game.players[user->id];
+	assert(player);
 
+	// Destroy the unit controlled by the player (if there is one)
+	Unit* owned_unit = scene_get_unit(player->controlled_unit);
 	if (owned_unit)
 		server_destroy_unit(owned_unit->id);
-}
-#endif
 
-void game_update()
+	// Destroy the player itself
+	channel_reset(game.channel);
+	channel_write_u8(game.channel, EVENT_Player_Leave);
+	channel_write_u32(game.channel, user->id);
+	channel_broadcast(game.channel, true);
+}
+
+void game_create_mob_for_unit(Unit* unit)
 {
-	THINGS_FOREACH(&game.players)
-	{
-		player_update(it);
-	}
+	u32 mob_id = thing_find_first_free(&game.mobs);
 
-#if CLIENT
-
-	camera_update(&scene.camera);
-	render_set_vp(camera_view_matrix(&scene.camera), camera_projection_matrix(&scene.camera));
-
-#elif SERVER
-
-	if (timer_update(&game.ai_spawn_timer))
-	{
-		//server_spawn_unit();
-	}
-
-#endif
-
-	scene_update();
+	channel_reset(game.channel);
+	channel_write_u8(game.channel, EVENT_Mob_Create);
+	channel_write_u32(game.channel, mob_id);
+	channel_write_u32(game.channel, unit->id);
+	channel_broadcast(game.channel, true);
 }
+#endif

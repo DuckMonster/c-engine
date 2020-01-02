@@ -86,6 +86,8 @@ void run()
 	game_init();
 
 	float hot_reload_timer = 0.f;
+	Interval_Timer stat_timer;
+	stat_timer.interval = 5.f;
 
 	while(context.is_open)
 	{
@@ -111,6 +113,11 @@ void run()
 			hot_reload_timer = 0.f;
 		}
 #endif
+
+		if (timer_update(&stat_timer))
+		{
+			debug_log("ms: %.2f", time_delta() * 1000.f);
+		}
 
 		client_update();
 		if (client.connection_state == Client_Connection_State::Disconnected)

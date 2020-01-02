@@ -32,6 +32,19 @@ struct Thing_Array
 };
 
 template<typename Type>
+u32 thing_find_first_free(Thing_Array<Type>* array)
+{
+	for(u32 i=0; i<array->size; ++i)
+	{
+		if (!array->enable[i])
+			return i;
+	}
+
+	error("Couldn't find free entry in thing array, its full!");
+	return -1;
+}
+
+template<typename Type>
 void thing_array_init(Thing_Array<Type>* array, u32 size)
 {
 	array->data = new Type[size];
@@ -78,6 +91,7 @@ void thing_remove_at(Thing_Array<Type>* array, u32 index)
 	array->generation[index]++;
 	array->data[index] = Type();
 }
+
 template<typename Type>
 void thing_remove(Thing_Array<Type>* array, Type* entry)
 {
@@ -136,6 +150,9 @@ Thing_Handle<Type> thing_get_handle_at(Thing_Array<Type>* array, u32 index)
 template<typename Type>
 Thing_Handle<Type> thing_get_handle(Thing_Array<Type>* array, Type* instance)
 {
+	if (instance == nullptr)
+		return Thing_Handle<Type>();
+
 	return thing_get_handle_at(array, instance - array->data);
 }
 

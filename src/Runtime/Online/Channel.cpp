@@ -46,6 +46,7 @@ Channel* channel_create(const Channel_Id& id)
 Channel* channel_open(const char* id_str, u32 id_index, Channel_Event_Proc event_proc)
 {
 	Channel_Id id;
+	mem_zero(id.str, 4);
 	memcpy(id.str, id_str, min(4, strlen(id_str)));
 	id.index = id_index;
 

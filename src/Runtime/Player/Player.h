@@ -27,4 +27,5 @@ struct Player
 };
 
 void player_init(Player* player, u32 id, const Unit_Handle& unit_to_control);
+void player_free(Player* player);
 void player_update(Player* player);

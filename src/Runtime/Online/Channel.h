@@ -1,4 +1,6 @@
 #pragma once
+#include "Runtime/Game/ThingArray.h"
+
 struct Online_User;
 struct Rpc_Channel_Event;
 
