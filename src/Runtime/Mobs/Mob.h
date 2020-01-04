@@ -18,6 +18,7 @@ struct Mob
 };
 
 void mob_init(Mob* mob, u32 id, const Unit_Handle& unit_to_control);
+void mob_free(Mob* mob);
 #if SERVER
 void mob_set_agroo(Mob* mob, Unit* unit);
 #endif

@@ -1,5 +1,8 @@
 #include "Game.h"
+#include "Core/Input/Input.h"
+#include "Core/Context/Context.h"
 #include "Engine/Config/Config.h"
+#include "Engine/Graphics/Material.h"
 #include "Runtime/Render/Render.h"
 #include "Runtime/Game/Scene.h"
 #include "Runtime/Online/Online.h"
@@ -108,7 +111,11 @@ void game_event_proc(Channel* chnl, Online_User* src)
 			u32 mob_id;
 			channel_read(chnl, &mob_id);
 
-			thing_remove_at(&game.mobs, mob_id);
+			Mob* mob = game.mobs[mob_id];
+			assert(mob);
+			mob_free(mob);
+
+			thing_remove(&game.mobs, mob);
 			break;
 		}
 
@@ -117,33 +124,6 @@ void game_event_proc(Channel* chnl, Online_User* src)
 			break;
 	}
 }
-
-#if SERVER
-Unit* server_spawn_unit()
-{
-	u32 unit_id = scene_get_free_unit_id();
-
-	Vec2 spawn_position;
-	spawn_position.x = random_float(-5.f, 5.f);
-	spawn_position.y = random_float(-5.f, 5.f);
-
-	channel_reset(game.channel);
-	channel_write_u8(game.channel, EVENT_Unit_Spawn);
-	channel_write_u32(game.channel, unit_id);
-	channel_write_vec2(game.channel, spawn_position);
-	channel_broadcast(game.channel, true);
-
-	return scene.units[unit_id];
-}
-
-void server_destroy_unit(u32 unit_id)
-{
-	channel_reset(game.channel);
-	channel_write_u8(game.channel, EVENT_Unit_Destroy);
-	channel_write_u32(game.channel, unit_id);
-	channel_broadcast(game.channel, true);
-}
-#endif
 
 void game_init()
 {
@@ -156,6 +136,8 @@ void game_init()
 #if CLIENT
 	game.tile_size = 24;
 	config_get("game.tile_size", &game.tile_size);
+
+	game.floor = scene_make_drawable(mesh_load("Mesh/plane.fbx"), material_load("Material/floor.mat"));
 #endif
 
 #if SERVER
@@ -163,7 +145,7 @@ void game_init()
 	u32 num = 1;
 	for(u32 i=0; i<num; ++i)
 	{
-		Unit* unit = server_spawn_unit();
+		Unit* unit = game_spawn_random_unit();
 		game_create_mob_for_unit(unit);
 	}
 
@@ -181,14 +163,15 @@ void game_update()
 
 #if CLIENT
 
-	camera_update(&scene.camera);
-	render_set_vp(camera_view_matrix(&scene.camera), camera_projection_matrix(&scene.camera));
+	camera_update(&game.camera);
+	render_set_vp(camera_view_matrix(&game.camera), camera_projection_matrix(&game.camera));
 
 #elif SERVER
 
 	if (timer_update(&game.ai_spawn_timer))
 	{
-		//server_spawn_unit();
+		Unit* new_unit = game_spawn_random_unit();
+		game_create_mob_for_unit(new_unit);
 	}
 
 #endif
@@ -216,7 +199,69 @@ Mob_Handle game_mob_handle(Mob* mob)
 	return thing_get_handle(&game.mobs, mob);
 }
 
+#if CLIENT
+Ray game_mouse_ray()
+{
+	return game_screen_to_ray(Vec2(input_mouse_x(), input_mouse_y()));
+}
+
+Ray game_screen_to_ray(Vec2 screen)
+{
+	Mat4 vp = camera_view_projection_matrix(&game.camera);
+	vp = inverse(vp);
+
+	screen /= Vec2(context.width, context.height);
+	screen = screen * 2.f - 1.f;
+	screen.y = -screen.y;
+
+	Vec4 world_near = vp * Vec4(screen, -1.f, 1.f);
+	world_near /= world_near.w;
+	Vec4 world_far = vp * Vec4(screen, 1.f, 1.f);
+	world_far /= world_far.w;
+
+	Ray result;
+	result.origin = (Vec3)world_near;
+	result.direction = normalize(Vec3(world_far - world_near));
+
+	return result;
+}
+
+Vec2 game_project_to_screen(const Vec3& position)
+{
+	Mat4 view_projection = camera_view_projection_matrix(&game.camera);
+	Vec4 ndc_position = view_projection * Vec4(position, 1.f);
+
+	Vec2 screen = Vec2(ndc_position) * Vec2(0.5f, -0.5f) + 0.5f;
+	return screen * Vec2(context.width, context.height);
+}
+#endif
+
 #if SERVER
+Unit* game_spawn_random_unit()
+{
+	u32 unit_id = scene_get_free_unit_id();
+
+	Vec2 spawn_position;
+	spawn_position.x = random_float(-5.f, 5.f);
+	spawn_position.y = random_float(-5.f, 5.f);
+
+	channel_reset(game.channel);
+	channel_write_u8(game.channel, EVENT_Unit_Spawn);
+	channel_write_u32(game.channel, unit_id);
+	channel_write_vec2(game.channel, spawn_position);
+	channel_broadcast(game.channel, true);
+
+	return scene.units[unit_id];
+}
+
+void game_destroy_unit(Unit* unit)
+{
+	channel_reset(game.channel);
+	channel_write_u8(game.channel, EVENT_Unit_Destroy);
+	channel_write_u32(game.channel, unit->id);
+	channel_broadcast(game.channel, true);
+}
+
 void game_user_added(Online_User* user)
 {
 	THINGS_FOREACH(&scene.units)
@@ -262,7 +307,7 @@ void game_user_added(Online_User* user)
 		channel_send(game.channel, user, true);
 	}
 
-	Unit* player_unit = server_spawn_unit();
+	Unit* player_unit = game_spawn_random_unit();
 
 	channel_reset(game.channel);
 	channel_write_u8(game.channel, EVENT_Player_Join);
@@ -279,7 +324,7 @@ void game_user_leave(Online_User* user)
 	// Destroy the unit controlled by the player (if there is one)
 	Unit* owned_unit = scene_get_unit(player->controlled_unit);
 	if (owned_unit)
-		server_destroy_unit(owned_unit->id);
+		game_destroy_unit(owned_unit);
 
 	// Destroy the player itself
 	channel_reset(game.channel);
@@ -296,6 +341,14 @@ void game_create_mob_for_unit(Unit* unit)
 	channel_write_u8(game.channel, EVENT_Mob_Create);
 	channel_write_u32(game.channel, mob_id);
 	channel_write_u32(game.channel, unit->id);
+	channel_broadcast(game.channel, true);
+}
+
+void game_destroy_mob(Mob* mob)
+{
+	channel_reset(game.channel);
+	channel_write_u8(game.channel, EVENT_Mob_Destroy);
+	channel_write_u32(game.channel, mob->id);
 	channel_broadcast(game.channel, true);
 }
 #endif

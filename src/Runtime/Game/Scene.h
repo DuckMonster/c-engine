@@ -1,12 +1,10 @@
 #pragma once
 #include "Core/Container/SparseList.h"
-#include "Core/Math/Ray.h"
 #include "Runtime/Render/Drawable.h"
 #include "Runtime/Render/Billboard.h"
 #include "Runtime/Render/HealthBar.h"
 #include "Runtime/Effect/LineDrawer.h"
 #include "Runtime/Unit/Unit.h"
-#include "Runtime/Game/Camera.h"
 #include "Runtime/Game/Projectile.h"
 #include "ThingArray.h"
 
@@ -20,17 +18,14 @@
 
 struct Scene
 {
-#if CLIENT
-	Drawable* floor;
-	Camera camera;
-#endif
-
 	Thing_Array<Unit> units;
 	Thing_Array<Projectile> projectiles;
+#if CLIENT
 	Thing_Array<Drawable> drawables;
 	Thing_Array<Billboard> billboards;
 	Thing_Array<Line_Drawer> line_drawers;
 	Thing_Array<Health_Bar> health_bars;
+#endif
 };
 extern Scene scene;
 
@@ -63,8 +58,4 @@ Health_Bar* scene_make_health_bar();
 void scene_destroy_health_bar(Health_Bar* bar);
 
 void scene_render(const Render_State& state);
-
-Ray scene_mouse_ray();
-Ray scene_screen_to_ray(Vec2 screen);
-Vec2 scene_project_to_screen(const Vec3& position);
 #endif

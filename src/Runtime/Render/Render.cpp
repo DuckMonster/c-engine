@@ -7,6 +7,7 @@
 #include "Engine/Graphics/Texture.h"
 #include "Engine/Graphics/FrameBuffer.h"
 #include "Runtime/Effect/LineDrawer.h"
+#include "Runtime/Game/Game.h"
 #include "Runtime/Game/Scene.h"
 #include "Drawable.h"
 #include "Billboard.h"
@@ -75,7 +76,7 @@ void render_draw()
 	Mat4 light_vp_inv;
 
 	light_proj = mat_ortho(-15.f, 15.f, -15.f, 15.f, -10.f, 10.f);
-	light_view = mat_look_forward(scene.camera.position, Vec3(1.f, 1.f, -1.f), Vec3_Z);
+	light_view = mat_look_forward(game.camera.position, Vec3(1.f, 1.f, -1.f), Vec3_Z);
 	state.light = light_proj * light_view;
 
 	state.view = light_view;

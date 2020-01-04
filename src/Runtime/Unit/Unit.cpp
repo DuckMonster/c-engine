@@ -188,8 +188,8 @@ void unit_update(Unit* unit)
 
 	// Calculate the gun rotation by getting the angle in screen-space from the unit to the 
 	//	aim target, and setting that as the angle
-	Vec2 unit_screen = scene_project_to_screen(Vec3(unit->position, 0.f));
-	Vec2 gun_screen = scene_project_to_screen(Vec3(unit->position + unit->aim_direction, 0.f));
+	Vec2 unit_screen = game_project_to_screen(Vec3(unit->position, 0.f));
+	Vec2 gun_screen = game_project_to_screen(Vec3(unit->position + unit->aim_direction, 0.f));
 	Vec2 screen_direction = normalize_safe(gun_screen - unit_screen);
 
 	// Lerp it 

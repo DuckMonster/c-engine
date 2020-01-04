@@ -20,7 +20,7 @@ void camera_update(Camera* camera)
 		Unit* local_unit = scene_get_unit(game.local_player->controlled_unit);
 		if (local_unit)
 		{
-			Ray mouse_ray = scene_mouse_ray();
+			Ray mouse_ray = game_mouse_ray();
 			Vec3 mouse_pos = ray_plane_intersect(mouse_ray, Vec3(0.f, 0.f, 0.5f), Vec3_Z);
 
 			camera->target_position = Vec3(local_unit->position, 0.f);

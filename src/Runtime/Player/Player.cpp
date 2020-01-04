@@ -80,7 +80,7 @@ void player_update_local_input(Player* player)
 
 	/* Calculate input */
 	Vec2 forward;
-	forward = (Vec2)camera_forward(&scene.camera);
+	forward = (Vec2)camera_forward(&game.camera);
 	forward = normalize(forward);
 
 	Vec2 right;
@@ -113,13 +113,13 @@ void player_update_local_input(Player* player)
 	player->move_input = direction;
 
 	/* Calculate mouse position */
-	Ray mouse_ray = scene_mouse_ray();
+	Ray mouse_ray = game_mouse_ray();
 	player->aim_position = Vec2(ray_plane_intersect(mouse_ray, Vec3(0.f, 0.f, 0.5f), Vec3_Z));
 
 	/* Shooting */
 	if (input_mouse_button_pressed(Mouse_Btn::Left))
 	{
-		Ray mouse_ray = scene_mouse_ray();
+		Ray mouse_ray = game_mouse_ray();
 		Vec3 mouse_pos = ray_plane_intersect(mouse_ray, Vec3(0.f, 0.f, 0.5f), Vec3_Z);
 
 		unit_shoot(unit, (Vec2)mouse_pos);

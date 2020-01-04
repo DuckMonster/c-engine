@@ -3,6 +3,7 @@
 #include "Engine/Graphics/Material.h"
 #include "Runtime/Render/Drawable.h"
 #include "Runtime/Effect/LineDrawer.h"
+#include "Runtime/Game/Game.h"
 #include "Runtime/Game/Scene.h"
 #include "Runtime/Unit/Unit.h"
 

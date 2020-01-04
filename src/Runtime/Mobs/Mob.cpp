@@ -59,6 +59,16 @@ void mob_init(Mob* mob, u32 id, const Unit_Handle& unit_to_control)
 	mob->shoot_timer.variance = 1.f;
 }
 
+void mob_free(Mob* mob)
+{
+	channel_close(mob->channel);
+
+	// If the unit is still alive, tell them we're not controlling it anymore
+	Unit* unit = scene_get_unit(mob->controlled_unit);
+	if (unit)
+		unit->mob_owner = Mob_Handle();
+}
+
 #if SERVER
 void mob_set_agroo(Mob* mob, Unit* unit)
 {
@@ -73,7 +83,12 @@ void mob_update(Mob* mob)
 {
 	Unit* unit = scene_get_unit(mob->controlled_unit);
 	if (!unit)
+	{
+#if SERVER
+		game_destroy_mob(mob);
+#endif
 		return;
+	}
 
 	unit_move_towards(unit, mob->target_position);
 

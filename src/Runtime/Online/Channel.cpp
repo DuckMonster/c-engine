@@ -53,11 +53,15 @@ Channel* channel_open(const char* id_str, u32 id_index, Channel_Event_Proc event
 	Channel* channel = channel_get(id);
 	if (channel)
 	{
-		assert(channel->state == Channel_State::Pending_In);
+		// Okay, so the channel exists...
+		// This either means the channel has already been opened, which is an error
+		// OR, its been opened on the other side, and the channel is currently pending an opening locally, which is fine
+		assert_msg(channel->state == Channel_State::Pending_In, "Tried to open channel [%.4s:%d], but it is already open", id_str, id_index);
 		channel->state = Channel_State::Open;
 	}
 	else
 	{
+		// Its not open, so create it
 		channel = channel_create(id);
 		channel->state = Channel_State::Pending_Out;
 	}
@@ -190,7 +194,7 @@ void channel_pop_read_stack(Channel* channel)
 void channel_rebroadcast_last(Channel* channel, bool reliable)
 {
 	Channel_Read_Buffer* buffer = channel->read_buffer_stack;
-	assert_msg(buffer != nullptr, "Rebroadcasting last when having no active read buffer");
+	assert_msg(buffer != nullptr, "Channel [%.4s:%d]: Rebroadcasting last when having no active read buffer", channel->id.str, channel->id.index);
 
 	server_broadcast_except(buffer->sender, reliable, buffer->data, buffer->size);
 }
@@ -214,7 +218,7 @@ void channel_write_except(Channel* channel, Online_User* user)
 
 void channel_write(Channel* channel, const void* data, u32 size)
 {
-	assert_msg(channel->write_buffer_offset + size <= WRITE_BUFFER_SIZE, "Channel ran out of writing buffer space");
+	assert_msg(channel->write_buffer_offset + size <= WRITE_BUFFER_SIZE, "Channel [%.4s:%d] ran out of writing buffer space", channel->id.str, channel->id.index);
 
 	memcpy(channel->write_buffer + channel->write_buffer_offset, data, size);
 	channel->write_buffer_offset += size;
@@ -223,8 +227,8 @@ void channel_write(Channel* channel, const void* data, u32 size)
 void channel_read(Channel* channel, void* data, u32 size)
 {
 	Channel_Read_Buffer* buffer = channel->read_buffer_stack;
-	assert_msg(buffer != nullptr, "Trying to read from channel, but it does not have a current read buffer");
-	assert_msg(buffer->offset + size <= buffer->size, "Trying to read past the channels read buffer");
+	assert_msg(buffer != nullptr, "Channel [%.4s:%d]: Trying to read from channel, but it does not have a current read buffer", channel->id.str, channel->id.index);
+	assert_msg(buffer->offset + size <= buffer->size, "Channel [%.4s:%d]: Trying to read past the channels read buffer", channel->id.str, channel->id.index);
 
 	memcpy(data, buffer->data + buffer->offset, size);
 	buffer->offset += size;

@@ -10,13 +10,11 @@ void scene_init()
 {
 	thing_array_init(&scene.projectiles, MAX_PROJECTILES);
 	thing_array_init(&scene.units, MAX_UNITS);
+#if CLIENT
 	thing_array_init(&scene.drawables, MAX_DRAWABLES);
 	thing_array_init(&scene.billboards, MAX_BILLBOARDS);
 	thing_array_init(&scene.line_drawers, MAX_LINE_DRAWERS);
 	thing_array_init(&scene.health_bars, MAX_HEALTH_BARS);
-
-#if CLIENT
-	scene.floor = scene_make_drawable(mesh_load("Mesh/plane.fbx"), material_load("Material/floor.mat"));
 #endif
 }
 
@@ -28,8 +26,10 @@ void scene_update()
 	THINGS_FOREACH(&scene.projectiles)
 		projectile_update(it);
 
+#if CLIENT
 	THINGS_FOREACH(&scene.health_bars)
 		health_bar_update(it);
+#endif
 }
 
 Unit* scene_make_unit(i32 id, const Vec2& position)
@@ -160,40 +160,5 @@ void scene_render(const Render_State& state)
 		THINGS_FOREACH(&scene.health_bars)
 			health_bar_render(it, state);
 	}
-}
-
-Ray scene_mouse_ray()
-{
-	return scene_screen_to_ray(Vec2(input_mouse_x(), input_mouse_y()));
-}
-
-Ray scene_screen_to_ray(Vec2 screen)
-{
-	Mat4 vp = camera_view_projection_matrix(&scene.camera);
-	vp = inverse(vp);
-
-	screen /= Vec2(context.width, context.height);
-	screen = screen * 2.f - 1.f;
-	screen.y = -screen.y;
-
-	Vec4 world_near = vp * Vec4(screen, -1.f, 1.f);
-	world_near /= world_near.w;
-	Vec4 world_far = vp * Vec4(screen, 1.f, 1.f);
-	world_far /= world_far.w;
-
-	Ray result;
-	result.origin = (Vec3)world_near;
-	result.direction = normalize(Vec3(world_far - world_near));
-
-	return result;
-}
-
-Vec2 scene_project_to_screen(const Vec3& position)
-{
-	Mat4 view_projection = camera_view_projection_matrix(&scene.camera);
-	Vec4 ndc_position = view_projection * Vec4(position, 1.f);
-
-	Vec2 screen = Vec2(ndc_position) * Vec2(0.5f, -0.5f) + 0.5f;
-	return screen * Vec2(context.width, context.height);
 }
 #endif
