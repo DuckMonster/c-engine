@@ -1,6 +1,6 @@
 #pragma once
-#include "Core/Math/Ray.h"
 #include "Core/Time/IntervalTimer.h"
+#include "Engine/Collision/CollisionTypes.h"
 #include "Runtime/Player/Player.h"
 #include "Runtime/Mobs/Mob.h"
 #include "Runtime/Game/HandleTypes.h"

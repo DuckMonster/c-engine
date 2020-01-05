@@ -1,5 +1,6 @@
 #include "Player.h"
 #include "Core/Input/Input.h"
+#include "Engine/Collision/HitTest.h"
 #include "Runtime/Unit/Unit.h"
 #include "Runtime/Game/Scene.h"
 #include "Runtime/Game/Game.h"
@@ -114,15 +115,16 @@ void player_update_local_input(Player* player)
 
 	/* Calculate mouse position */
 	Ray mouse_ray = game_mouse_ray();
-	player->aim_position = Vec2(ray_plane_intersect(mouse_ray, Vec3(0.f, 0.f, 0.5f), Vec3_Z));
+	Plane ground_plane;
+	ground_plane.normal = Vec3_Z;
+
+	Hit_Result ground_hit = test_ray_plane(mouse_ray, ground_plane);
+	player->aim_position = Vec2(ground_hit.position);
 
 	/* Shooting */
 	if (input_mouse_button_pressed(Mouse_Btn::Left))
 	{
-		Ray mouse_ray = game_mouse_ray();
-		Vec3 mouse_pos = ray_plane_intersect(mouse_ray, Vec3(0.f, 0.f, 0.5f), Vec3_Z);
-
-		unit_shoot(unit, (Vec2)mouse_pos);
+		unit_shoot(unit, player->aim_position);
 	}
 }
 #endif

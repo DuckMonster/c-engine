@@ -166,14 +166,6 @@ void game_update()
 	{
 		camera_update(&game.camera);
 		render_set_vp(camera_view_matrix(&game.camera), camera_projection_matrix(&game.camera));
-
-		if (input_key_down(Key::F))
-		{
-			Ray mouse_ray = game_mouse_ray();
-			Vec3 mouse_aim_location = ray_plane_intersect(mouse_ray, Vec3(0.f, 0.f, 0.5f), Vec3_Z);
-
-			scene_draw_sphere(mouse_aim_location, 0.5f);
-		}
 	}
 	else
 	{

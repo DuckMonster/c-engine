@@ -329,6 +329,17 @@ inline Vec3 constrain_to_direction(const Vec3& vec, const Vec3& direction)
 	return direction * dot(vec, direction);
 }
 
+inline Vec2 reflect(const Vec2& vec, const Vec2& reflection_normal)
+{
+	Vec2 projected_vec = constrain_to_direction(vec, reflection_normal);
+	return vec - projected_vec * 2.f;
+}
+inline Vec3 reflect(const Vec3& vec, const Vec3& reflection_normal)
+{
+	Vec3 projected_vec = constrain_to_direction(vec, reflection_normal);
+	return vec - projected_vec * 2.f;
+}
+
 inline Vec2 lerp(Vec2 a, Vec2 b, float t) { return a + (b - a) * t; }
 inline Vec3 lerp(Vec3 a, Vec3 b, float t) { return a + (b - a) * t; }
 inline Vec4 lerp(Vec4 a, Vec4 b, float t) { return a + (b - a) * t; }

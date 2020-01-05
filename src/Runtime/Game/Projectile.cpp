@@ -1,10 +1,12 @@
 #include "Projectile.h"
 #include "Engine/Graphics/Mesh.h"
 #include "Engine/Graphics/Material.h"
+#include "Engine/Collision/HitTest.h"
 #include "Runtime/Render/Drawable.h"
 #include "Runtime/Effect/LineDrawer.h"
 #include "Runtime/Game/Game.h"
 #include "Runtime/Game/Scene.h"
+#include "Runtime/Game/SceneQuery.h"
 #include "Runtime/Unit/Unit.h"
 
 void projectile_init(Projectile* projectile, const Unit_Handle& owner, u32 proj_id, const Vec2& position, const Vec2& direction)
@@ -44,35 +46,12 @@ void projectile_update(Projectile* projectile)
 {
 	Unit* owner = scene_get_unit(projectile->owner);
 
-	// Movement ray (before moving)
-	Ray move_ray;
-	move_ray.origin = Vec3(projectile->position, 0.f);
-	move_ray.direction = Vec3(projectile->direction, 0.f);
+	// Movement ray start (before moving)
+	Line move_line;
+	move_line.start = Vec3(projectile->position, 0.5f);
 
 	// Do movement
 	projectile->position += projectile->direction * projectile->speed * time_delta();
-
-	// Then! Do collision checking to see if we hit something
-	Unit* hit_unit = nullptr;
-	THINGS_FOREACH(&scene.units)
-	{
-		Unit* unit = it;
-		if (unit == owner)
-			continue;
-
-		float intersect_time = 0.f;
-		if (ray_sphere_intersect(move_ray, Vec3(unit->position, 0.f), 1.f, &intersect_time))
-		{
-			if (intersect_time < projectile->speed * time_delta())
-			{
-				Vec2 diff = constrain_to_direction(unit->position - projectile->position, projectile->direction);
-				projectile->position += diff;
-
-				hit_unit = unit;
-				break;
-			}
-		}
-	}
 
 #if CLIENT
 	float sphere_scale = saturate(projectile->lifetime / 0.05f);
@@ -82,10 +61,16 @@ void projectile_update(Projectile* projectile)
 	projectile->line_drawer->position = Vec3(projectile->position, 0.5f);
 #endif
 
-	if (hit_unit)
+	// Movement line end (after moving)
+	move_line.end = Vec3(projectile->position, 0.5f);
+
+	// Then! Do collision checking to see if we hit something
+	Scene_Query_Result query_result = scene_query_line(move_line);
+	if (query_result.hit.has_hit)
 	{
-		if (owner && unit_has_control(owner))
-			unit_hit(hit_unit, projectile->owner, projectile->direction * 20.f);
+		Unit* unit = query_result.unit;
+		if (unit && owner && unit_has_control(owner))
+			unit_hit(unit, projectile->owner, projectile->direction * 20.f);
 
 		scene_destroy_projectile(projectile);
 		return;
