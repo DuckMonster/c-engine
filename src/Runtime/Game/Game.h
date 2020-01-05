@@ -5,6 +5,7 @@
 #include "Runtime/Mobs/Mob.h"
 #include "Runtime/Game/HandleTypes.h"
 #include "Runtime/Game/Camera.h"
+#include "Runtime/Editor/Editor.h"
 
 struct Channel;
 struct Online_User;
@@ -26,6 +27,9 @@ struct Game
 
 	Drawable* floor;
 	Camera camera;
+
+	bool is_editor = false;
+	Editor editor;
 #endif
 
 #if SERVER

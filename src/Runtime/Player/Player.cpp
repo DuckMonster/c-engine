@@ -136,7 +136,8 @@ void player_update(Player* player)
 	if (unit_has_control(unit))
 	{
 #if CLIENT
-		player_update_local_input(player);
+		if (!game.is_editor)
+			player_update_local_input(player);
 #endif
 	}
 	else

@@ -99,6 +99,17 @@ void thing_remove(Thing_Array<Type>* array, Type* entry)
 }
 
 template<typename Type>
+u32 thing_num(Thing_Array<Type>* array)
+{
+	u32 num = 0;
+	for(u32 i=0; i<array->size; ++i)
+		if (array->enable[i])
+			num++;
+
+	return num;
+}
+
+template<typename Type>
 bool _thing_iterate(Thing_Array<Type>* array, Type*& it)
 {
 	if (it == nullptr)

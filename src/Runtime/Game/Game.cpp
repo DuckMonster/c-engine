@@ -138,6 +138,7 @@ void game_init()
 	config_get("game.tile_size", &game.tile_size);
 
 	game.floor = scene_make_drawable(mesh_load("Mesh/plane.fbx"), material_load("Material/floor.mat"));
+	editor_init(&game.editor);
 #endif
 
 #if SERVER
@@ -156,33 +157,43 @@ void game_init()
 
 void game_update()
 {
-	THINGS_FOREACH(&game.players)
-		player_update(it);
-	THINGS_FOREACH(&game.mobs)
-		mob_update(it);
-
 #if CLIENT
+	// Toggle editor mode
+	if (input_key_pressed(Key::Tab))
+		game.is_editor = !game.is_editor;
 
-	camera_update(&game.camera);
-	render_set_vp(camera_view_matrix(&game.camera), camera_projection_matrix(&game.camera));
-
-	if (input_key_down(Key::F))
+	if (!game.is_editor)
 	{
-		Ray mouse_ray = game_mouse_ray();
-		Vec3 mouse_aim_location = ray_plane_intersect(mouse_ray, Vec3(0.f, 0.f, 0.5f), Vec3_Z);
+		camera_update(&game.camera);
+		render_set_vp(camera_view_matrix(&game.camera), camera_projection_matrix(&game.camera));
 
-		scene_draw_sphere(mouse_aim_location, 0.5f);
+		if (input_key_down(Key::F))
+		{
+			Ray mouse_ray = game_mouse_ray();
+			Vec3 mouse_aim_location = ray_plane_intersect(mouse_ray, Vec3(0.f, 0.f, 0.5f), Vec3_Z);
+
+			scene_draw_sphere(mouse_aim_location, 0.5f);
+		}
+	}
+	else
+	{
+		editor_update(&game.editor);
 	}
 
 #elif SERVER
 
-	if (timer_update(&game.ai_spawn_timer))
+	if (thing_num(&game.mobs) < 5 && timer_update(&game.ai_spawn_timer))
 	{
 		Unit* new_unit = game_spawn_random_unit();
 		game_create_mob_for_unit(new_unit);
 	}
 
 #endif
+
+	THINGS_FOREACH(&game.players)
+		player_update(it);
+	THINGS_FOREACH(&game.mobs)
+		mob_update(it);
 
 	scene_update();
 }
