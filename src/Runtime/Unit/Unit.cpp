@@ -211,8 +211,6 @@ void unit_update(Unit* unit)
 	unit->billboard->fill_color = Vec4(Vec3(1.f), unit->hit_timer > 0.f ? 1.f : 0.f);
 	unit->billboard->scale = Vec2(unit->hit_timer > 0.f ? 1.f + unit->hit_timer : 1.f);
 
-	scene_draw_line(Vec3(unit->position, 0.5f), Vec3(unit->position, 0.5f) + Vec3(unit->aim_direction, 0.f) * 2.f, Color_Blue);
-
 #endif
 }
 

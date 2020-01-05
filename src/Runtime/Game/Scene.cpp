@@ -18,11 +18,7 @@ void scene_init()
 
 	primitives_init(&scene.primitive_manager);
 
-	scene_draw_line(Vec3(0.f, 0.f, 2.f), Vec3(10.f, 0.f, 2.f), Color_Red, 5.f);
-	scene_draw_point(Vec3(0.f, 0.f, 2.f), Color_White, 1.f);
-	scene_draw_point(Vec3(10.f, 0.f, 2.f), Color_White, 2.f);
-	scene_draw_sphere(Vec3(0.f, 0.f, 2.f), 1.f, Color_White, 3.f);
-	scene_draw_sphere(Vec3(10.f, 0.f, 2.f), 1.f, Color_White, 4.f);
+	scene_draw_line(Vec3_Zero, Vec3_Z * 4.f, Color_Blue, 5.f);
 #endif
 }
 

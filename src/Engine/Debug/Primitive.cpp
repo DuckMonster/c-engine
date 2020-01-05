@@ -1,45 +1,56 @@
 #include "Primitive.h"
 #include "Engine/Graphics/Material.h"
 
+const u32 sphere_ring_resolution = 32;
+const u32 sphere_num_rings = 5;
+
+u32 build_sphere_rings(Vec3* verts, const Vec3& axis_a, const Vec3& axis_b)
+{
+	float angle_delta = TAU / (sphere_ring_resolution);
+	float ring_height_delta = 2.f / (sphere_num_rings + 1);
+
+	const Vec3 plane_normal = cross(axis_a, axis_b);
+	u32 offset = 0;
+
+	for(u32 s=0; s<sphere_num_rings; ++s)
+	{
+		// "1 -" because we want the distance from sphere center
+		// However, we're iterating from the top to bottom, distance wise
+		float ring_height = 1.f - ring_height_delta * (s + 1);
+
+		// a^2 + b^2 = 1
+		// a^2 = 1 - b^2
+		// a = sqrt(1 - b^2)
+		float ring_scale = sqrt(1.f - square(ring_height));
+
+		for(u32 i=0; i<sphere_ring_resolution; ++i)
+		{
+			float angle = angle_delta * i;
+			float angle_next = angle_delta * (i + 1);
+			verts[offset++] = (axis_a * cos(angle) + axis_b * sin(angle)) * ring_scale + plane_normal * ring_height;
+			verts[offset++] = (axis_a * cos(angle_next) + axis_b * sin(angle_next)) * ring_scale + plane_normal * ring_height;
+		}
+	}
+
+	return offset;
+}
+
 Vec3* make_sphere_primitive_mesh(u32* num_verts)
 {
-	const u32 ring_resolution = 32;
-	float angle_delta = TAU / (ring_resolution);
+	float angle_delta = TAU / (sphere_ring_resolution);
 
 	// +1 since we want to include the first vertex twice, to complete the loop
 	// Also, each vertex is added twice, since its the end of one line, and the start of the next line
 	// Then, a final *3 since its three rings, one for each cardinal plane
-	*num_verts = ((ring_resolution + 1) * 2) * 3;
+	*num_verts = ((sphere_ring_resolution + 1) * 2) * sphere_num_rings * 3;
 
 	Vec3* verts = new Vec3[*num_verts];
 	u32 offset = 0;
 
 	// X-Y ring
-	for(u32 i=0; i<ring_resolution; ++i)
-	{
-		float angle = angle_delta * i;
-		float angle_next = angle_delta * (i + 1);
-		verts[offset++] = Vec3(cos(angle), sin(angle), 0.f);
-		verts[offset++] = Vec3(cos(angle_next), sin(angle_next), 0.f);
-	}
-
-	// X-Z ring
-	for(u32 i=0; i<ring_resolution; ++i)
-	{
-		float angle = angle_delta * i;
-		float angle_next = angle_delta * (i + 1);
-		verts[offset++] = Vec3(cos(angle), 0.f, sin(angle));
-		verts[offset++] = Vec3(cos(angle_next), 0.f, sin(angle_next));
-	}
-
-	// Y-Z ring
-	for(u32 i=0; i<ring_resolution; ++i)
-	{
-		float angle = angle_delta * i;
-		float angle_next = angle_delta * (i + 1);
-		verts[offset++] = Vec3(0.f, cos(angle), sin(angle));
-		verts[offset++] = Vec3(0.f, cos(angle_next), sin(angle_next));
-	}
+	offset += build_sphere_rings(verts, Vec3_X, Vec3_Y);
+	offset += build_sphere_rings(verts + offset, Vec3_X, Vec3_Z);
+	offset += build_sphere_rings(verts + offset, Vec3_Y, Vec3_Z);
 
 	return verts;
 }

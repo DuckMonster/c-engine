@@ -12,3 +12,5 @@ struct Hit_Result
 Hit_Result hit_make(const Vec3& position, const Vec3& normal, float time = 0.f);
 Hit_Result test_ray_plane(const Ray& ray, const Plane& plane);
 Hit_Result test_ray_sphere(const Ray& ray, const Sphere& sphere);
+Hit_Result test_line_plane(const Line& line, const Plane& plane);
+Hit_Result test_line_sphere(const Line& line, const Sphere& sphere);

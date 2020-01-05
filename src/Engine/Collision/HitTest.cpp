@@ -13,36 +13,89 @@ Hit_Result hit_make(const Vec3& position, const Vec3& normal, float time)
 
 Hit_Result test_ray_plane(const Ray& ray, const Plane& plane)
 {
-	Vec3 to_plane = plane.point - ray.origin;
-	float dist = dot(to_plane, plane.normal);
-	float grad = dot(ray.direction, plane.normal);
+	// Get the height of the ray from the plane
+	Vec3 plane_to_ray = ray.origin - plane.point;
+	float ray_height = dot(plane_to_ray, plane.normal);
 
-	// If grad and dist are not the same sign, the intersection point is behind the ray origin
-	if (grad * dist < 0)
+	// Get the angle of the ray compared to the normal
+	float ray_angle = dot(ray.direction, -plane.normal);
+
+	// Paralell check, they will never intersect
+	if (is_nearly_zero(ray_angle))
 		return Hit_Result();
 
-	return hit_make(ray.origin + ray.direction * (dist / grad), plane.normal);
+	// Time to impact with plane
+	float impact_time = ray_height / ray_angle;
+
+	// Backwards check, we only care about forward intersections
+	if (impact_time < 0.f)
+		return Hit_Result();
+
+	return hit_make(ray.origin + ray.direction * impact_time, plane.normal * sign(ray_height), impact_time);
 }
 
 Hit_Result test_ray_sphere(const Ray& ray, const Sphere& sphere)
 {
 	float radius_sqrd = square(sphere.radius);
 
-	// Check if the ray is inside the sphere, in which we just early out
-	Vec3 sphere_to_ray = ray.origin - sphere.origin;
-	if (length_sqrd(sphere_to_ray) <= radius_sqrd)
-		return hit_make(ray.origin, normalize(sphere_to_ray));
+	Vec3 ray_to_sphere = sphere.origin - ray.origin;
+	if (length_sqrd(ray_to_sphere) < radius_sqrd)
+	{
+		// Ray origin is inside the sphere, we have a start-penetrating scenario
+		return hit_make(ray.origin, normalize(-ray_to_sphere), 0.f);
+	}
 
-	Vec3 closest_point = constrain_to_direction(sphere.origin - ray.origin, ray.direction);
+	float closest_point_time = dot(ray_to_sphere, ray.direction);
 
-	// Closest point on ray is further away than radius, no intersection
-	if (distance_sqrd(closest_point, sphere.origin) > radius_sqrd)
+	// Dont intersect if the closest point is behind us
+	if (closest_point_time < 0.f)
 		return Hit_Result();
 
-	return Hit_Result();
+	Vec3 closest_point = ray.origin + ray.direction * closest_point_time;
+	float distance_to_sphere_sqrd = length_sqrd(closest_point - sphere.origin);
+
+	// If the closest point is further away than the radius, we're clearly not intersecting
+	if (distance_to_sphere_sqrd > radius_sqrd)
+		return Hit_Result();
+
+	float penetration_depth = sqrt(radius_sqrd - distance_to_sphere_sqrd);
+	float intersection_time = closest_point_time - penetration_depth;
+	Vec3 intersection_point = ray.origin + ray.direction * intersection_time;
+	Vec3 intersection_normal = normalize(intersection_point - sphere.origin);
+
+	return hit_make(intersection_point, intersection_normal, intersection_time);
 }
 
 Hit_Result test_line_sphere(const Line& line, const Sphere& sphere)
 {
-	return Hit_Result();
+	float line_length_sqrd = length_sqrd(line.end - line.start);
+
+	// Do a ray-sphere intersection test, and see if the intersection happened 
+	// close enough to be within the line bounds
+	Ray line_ray = ray_from_to(line.start, line.end);
+
+	Hit_Result ray_hit = test_ray_sphere(line_ray, sphere);
+
+	// Intersection happened outside of line bounds, disregard
+	if (square(ray_hit.time) > line_length_sqrd)
+		return Hit_Result();
+
+	return ray_hit;
+}
+
+Hit_Result test_line_plane(const Line& line, const Plane& plane)
+{
+	float line_length_sqrd = length_sqrd(line.end - line.start);
+
+	// Do a ray-sphere intersection test, and see if the intersection happened 
+	// close enough to be within the line bounds
+	Ray line_ray = ray_from_to(line.start, line.end);
+
+	Hit_Result ray_hit = test_ray_plane(line_ray, plane);
+
+	// Intersection happened outside of line bounds, disregard
+	if (square(ray_hit.time) > line_length_sqrd)
+		return Hit_Result();
+
+	return ray_hit;
 }
