@@ -1,2 +1,2 @@
 vertex: "Shader/Primitive/prim_line.vert"
-fragment: "Shader/Primitive/prim_line.frag"
+fragment: "Shader/Primitive/prim.frag"

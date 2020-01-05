@@ -1,5 +1,6 @@
 #pragma once
 #include "Core/Container/SparseList.h"
+#include "Engine/Debug/Primitive.h"
 #include "Runtime/Render/Drawable.h"
 #include "Runtime/Render/Billboard.h"
 #include "Runtime/Render/HealthBar.h"
@@ -25,6 +26,8 @@ struct Scene
 	Thing_Array<Billboard> billboards;
 	Thing_Array<Line_Drawer> line_drawers;
 	Thing_Array<Health_Bar> health_bars;
+
+	Primitive_Manager primitive_manager;
 #endif
 };
 extern Scene scene;
@@ -56,6 +59,11 @@ void scene_destroy_line_drawer(Line_Drawer* line_drawer);
 
 Health_Bar* scene_make_health_bar();
 void scene_destroy_health_bar(Health_Bar* bar);
+
+// Drawing primitives
+void scene_draw_line(const Vec3& from, const Vec3& to, const Vec4& color = Color_White, float duration = 0.f);
+void scene_draw_point(const Vec3& position, const Vec4& color = Color_White, float duration = 0.f);
+void scene_draw_sphere(const Vec3& origin, float radius, const Vec4& color = Color_White, float duration = 0.f);
 
 void scene_render(const Render_State& state);
 #endif

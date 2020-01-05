@@ -15,6 +15,14 @@ void scene_init()
 	thing_array_init(&scene.billboards, MAX_BILLBOARDS);
 	thing_array_init(&scene.line_drawers, MAX_LINE_DRAWERS);
 	thing_array_init(&scene.health_bars, MAX_HEALTH_BARS);
+
+	primitives_init(&scene.primitive_manager);
+
+	scene_draw_line(Vec3(0.f, 0.f, 2.f), Vec3(10.f, 0.f, 2.f), Color_Red, 5.f);
+	scene_draw_point(Vec3(0.f, 0.f, 2.f), Color_White, 1.f);
+	scene_draw_point(Vec3(10.f, 0.f, 2.f), Color_White, 2.f);
+	scene_draw_sphere(Vec3(0.f, 0.f, 2.f), 1.f, Color_White, 3.f);
+	scene_draw_sphere(Vec3(10.f, 0.f, 2.f), 1.f, Color_White, 4.f);
 #endif
 }
 
@@ -143,6 +151,22 @@ void scene_destroy_health_bar(Health_Bar* bar)
 	thing_remove(&scene.health_bars, bar);
 }
 
+// Drawing primitives
+void scene_draw_line(const Vec3& from, const Vec3& to, const Vec4& color, float duration)
+{
+	primitive_draw_line(&scene.primitive_manager, from, to, color, duration);
+}
+
+void scene_draw_point(const Vec3& position, const Vec4& color, float duration)
+{
+	primitive_draw_point(&scene.primitive_manager, position, color, duration);
+}
+
+void scene_draw_sphere(const Vec3& origin, float radius, const Vec4& color, float duration)
+{
+	primitive_draw_sphere(&scene.primitive_manager, origin, radius, color, duration);
+}
+
 void scene_render(const Render_State& state)
 {
 	/* Drawables */
@@ -159,6 +183,8 @@ void scene_render(const Render_State& state)
 
 		THINGS_FOREACH(&scene.health_bars)
 			health_bar_render(it, state);
+
+		primitives_render(&scene.primitive_manager, state);
 	}
 }
 #endif
