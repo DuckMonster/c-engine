@@ -4,8 +4,8 @@
 
 Fbx_Mapping_Type fbx_parse_element_mapping_type(const char* mapping_str, u32 str_len)
 {
-	if (strncmp(mapping_str, "ByPolygonVertex", str_len) == 0)
-		return Fbx_Mapping_Type::ByPolygonVertex;
+	if (strncmp(mapping_str, "By_Polygon_Vertex", str_len) == 0)
+		return Fbx_Mapping_Type::By_Polygon_Vertex;
 
 	return Fbx_Mapping_Type::Invalid;
 }
@@ -15,9 +15,9 @@ Fbx_Reference_Type fbx_parse_element_reference_type(const char* reference_str, u
 	if (strncmp(reference_str, "Direct", str_len) == 0)
 		return Fbx_Reference_Type::Direct;
 	if (strncmp(reference_str, "IndexToDirect", str_len) == 0)
-		return Fbx_Reference_Type::IndexToDirect;
+		return Fbx_Reference_Type::Index_To_Direct;
 	if (strncmp(reference_str, "Index", str_len) == 0)
-		return Fbx_Reference_Type::IndexToDirect;
+		return Fbx_Reference_Type::Index_To_Direct;
 
 	return Fbx_Reference_Type::Invalid;
 }

@@ -1,5 +1,6 @@
 #include "Mob.h"
 #include "Runtime/Game/Scene.h"
+#include "Runtime/Game/SceneQuery.h"
 #include "Runtime/Game/Game.h"
 
 enum Mob_Events
@@ -28,11 +29,13 @@ void mob_event_proc(Channel* chnl, Online_User* src)
 
 		case EVENT_Set_Agroo:
 		{
-			u32 id;
+			i32 id;
 			channel_read(chnl, &id);
 
-			mob->agroo_target = scene_unit_handle(id);
-
+			if (id < 0)
+				mob->agroo_target = Unit_Handle();
+			else
+				mob->agroo_target = scene_unit_handle(id);
 			break;
 		}
 	}
@@ -74,7 +77,10 @@ void mob_set_agroo(Mob* mob, Unit* unit)
 {
 	channel_reset(mob->channel);
 	channel_write_u8(mob->channel, EVENT_Set_Agroo);
-	channel_write_u32(mob->channel, unit->id);
+	if (unit)
+		channel_write_i32(mob->channel, unit->id);
+	else
+		channel_write_i32(mob->channel, -1);
 	channel_broadcast(mob->channel, true);
 }
 #endif
@@ -90,7 +96,7 @@ void mob_update(Mob* mob)
 		return;
 	}
 
-	unit_move_towards(unit, mob->target_position);
+	//unit_move_towards(unit, mob->target_position);
 
 #if SERVER
 	if (timer_update(&mob->idle_timer))
@@ -107,7 +113,23 @@ void mob_update(Mob* mob)
 	{
 		unit->aim_direction = normalize(shoot_target_unit->position - unit->position);
 
+		Line vision_line;
+		vision_line.start = Vec3(unit->position, 0.5f);
+		vision_line.end = Vec3(shoot_target_unit->position, 0.5f);
+
+		Scene_Query_Params params;
+		params.ignore_unit = unit;
+		params.debug_render = true;
+
+		Scene_Query_Result query_result = scene_query_line(vision_line, params);
+
 #if SERVER
+		if (query_result.hit.has_hit && !query_result.unit)
+		{
+			mob_set_agroo(mob, nullptr);
+			return;
+		}
+
 		if (timer_update(&mob->shoot_timer))
 		{
 			unit_shoot(unit, shoot_target_unit->position);

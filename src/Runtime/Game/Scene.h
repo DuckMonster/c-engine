@@ -1,6 +1,7 @@
 #pragma once
 #include "Core/Container/SparseList.h"
 #include "Engine/Debug/Primitive.h"
+#include "Engine/Collision/CollisionTypes.h"
 #include "Runtime/Render/Drawable.h"
 #include "Runtime/Render/Billboard.h"
 #include "Runtime/Render/HealthBar.h"
@@ -29,6 +30,8 @@ struct Scene
 
 	Primitive_Manager primitive_manager;
 #endif
+
+	Sphere obstacle;
 };
 extern Scene scene;
 

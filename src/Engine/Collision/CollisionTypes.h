@@ -24,3 +24,15 @@ struct Sphere
 	Vec3 origin;
 	float radius;
 };
+
+struct Convex_Shape_Face
+{
+	u32 num_verts = 0;
+	Vec3 normal;
+};
+struct Convex_Shape
+{
+	Convex_Shape_Face* faces = nullptr;
+	u32* indicies = nullptr;
+	Vec3* vertices = nullptr;
+};

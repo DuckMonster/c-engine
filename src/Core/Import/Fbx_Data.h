@@ -70,7 +70,7 @@ struct Fbx_String
 enum class Fbx_Mapping_Type
 {
 	Invalid,
-	ByPolygonVertex
+	By_Polygon_Vertex
 };
 
 /* Layer element referenec type (UV, Normals, etc.) */
@@ -78,7 +78,7 @@ enum class Fbx_Reference_Type
 {
 	Invalid,
 	Direct,
-	IndexToDirect
+	Index_To_Direct
 };
 
 #define fbx_get_property(type, node, index) (type*)(node->properties[index].data)

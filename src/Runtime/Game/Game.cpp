@@ -1,6 +1,7 @@
 #include "Game.h"
 #include "Core/Input/Input.h"
 #include "Core/Context/Context.h"
+#include "Engine/Collision/MeshCollider.h"
 #include "Engine/Config/Config.h"
 #include "Engine/Graphics/Material.h"
 #include "Runtime/Render/Render.h"
@@ -138,6 +139,8 @@ void game_init()
 	config_get("game.tile_size", &game.tile_size);
 
 	game.floor = scene_make_drawable(mesh_load("Mesh/plane.fbx"), material_load("Material/floor.mat"));
+	Drawable* sphere = scene_make_drawable(mesh_load("Mesh/sphere.fbx"), material_load("Material/default.mat"));
+	sphere->transform = mat_position_scale(Vec3(5.f, 5.f, 5.f), Vec3(2.f, 2.f, 2.f));
 	editor_init(&game.editor);
 #endif
 
@@ -150,9 +153,11 @@ void game_init()
 		game_create_mob_for_unit(unit);
 	}
 
-	game.ai_spawn_timer.interval = 10.f;
+	game.ai_spawn_timer.interval = 2.f;
 	game.ai_spawn_timer.variance = 5.f;
 #endif
+
+	mesh_collider_load("Mesh/test_collider.fbx");
 }
 
 void game_update()

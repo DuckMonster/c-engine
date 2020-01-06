@@ -95,60 +95,62 @@ void mesh_res_create(Resource* resource)
 
 	Fbx_Scene* scene = fbx_import(resource->path);
 	if (scene == nullptr)
-	{
 		return;
-	}
 
-	Fbx_Mesh& f_mesh = scene->meshes[0];
+	defer { fbx_free(scene); };
+
+	Fbx_Mesh& fbx_mesh = scene->meshes[0];
 
 	mesh_create(mesh);
-	mesh_add_buffers(mesh, 4);
-	mesh_map_buffer(mesh, 0, 0, 3, 0, 0);
-	mesh_map_buffer(mesh, 1, 1, 3, 0, 0);
-	mesh_map_buffer(mesh, 2, 2, 2, 0, 0);
+	mesh_add_buffers(mesh, 2);
+	mesh_map_buffer(mesh, 0, 0, 3, 8, 0); // Positions
+	mesh_map_buffer(mesh, 0, 1, 3, 8, 3); // Normals
+	mesh_map_buffer(mesh, 0, 2, 2, 8, 6); // UVs
 
-	if (f_mesh.positions != nullptr)
-		mesh_buffer_data(mesh, 0, f_mesh.positions, sizeof(Vec3) * f_mesh.num_verts);
-
-	if (f_mesh.normals != nullptr)
-		mesh_buffer_data(mesh, 1, f_mesh.normals, sizeof(Vec3) * f_mesh.num_verts);
-
-	if (f_mesh.uvs != nullptr)
-		mesh_buffer_data(mesh, 2, f_mesh.uvs, sizeof(Vec2) * f_mesh.num_verts);
-
+	// Build the mapping of all the vertices
+	struct Vertex
 	{
-		// Count how many triangles we have
-		u32 num_triangles = 0;
-		for(u32 i=0; i<f_mesh.num_faces; ++i)
-		{
-			Fbx_Face& face = f_mesh.faces[i];
-			num_triangles += 1 + (face.vert_count - 3);
-		}
+		Vec3 position;
+		Vec3 normal;
+		Vec2 uv;
+	};
 
-		u32* indicies = arena_malloc_t(&scene->mem_arena, u32, num_triangles * 3);
-
-		u32 i=0;
-		for(u32 f=0; f<f_mesh.num_faces; ++f)
-		{
-			Fbx_Face& face = f_mesh.faces[f];
-
-			for(u32 t=0; t<1 + (face.vert_count - 3); ++t)
-			{
-				indicies[i] = f_mesh.indicies[face.index_offset];
-				indicies[i + 1] = f_mesh.indicies[face.index_offset + t + 1];
-				indicies[i + 2] = f_mesh.indicies[face.index_offset + t + 2];
-
-				i += 3;
-			}
-		}
-
-		mesh_element_data(mesh, 3, indicies, num_triangles * sizeof(u32) * 3);
-
-		mesh->draw_count = num_triangles * 3;
-		mesh->use_elements = true;
+	Vertex* vertex_array = new Vertex[fbx_mesh.num_verts];
+	for(u32 i=0; i<fbx_mesh.num_verts; ++i)
+	{
+		vertex_array[i].position = fbx_mesh.positions[fbx_mesh.position_index[i]];
+		vertex_array[i].normal = fbx_mesh.normals[fbx_mesh.normal_index[i]];
+		vertex_array[i].uv = fbx_mesh.uvs[fbx_mesh.uv_index[i]];
 	}
 
-	fbx_free(scene);
+	mesh_buffer_data(mesh, 0, vertex_array, sizeof(Vertex) * fbx_mesh.num_verts);
+
+	// Build the elements buffer to split all faces into triangles
+	u32 num_triangles = 0;
+	for(u32 i=0; i<fbx_mesh.num_faces; ++i)
+	{
+		// First 3 vertices make one triangle.
+		// Each additional vertex makes one more triangle.
+		num_triangles += 1 + (fbx_mesh.faces[i].vert_count - 3);
+	}
+
+	u32* element_data = new u32[num_triangles * 3];
+	u32 element_offset = 0;
+	for(u32 i=0; i<fbx_mesh.num_faces; ++i)
+	{
+		Fbx_Face& face = fbx_mesh.faces[i];
+		for(u32 v=2; v<face.vert_count; ++v)
+		{
+			// Triangle fan: v[0] - v[n-1] - v[n]
+			element_data[element_offset++] = face.index_offset;
+			element_data[element_offset++] = face.index_offset + v - 1;
+			element_data[element_offset++] = face.index_offset + v;
+		}
+	}
+
+	mesh_element_data(mesh, 1, element_data, sizeof(u32) * num_triangles * 3);
+	mesh->use_elements = true;
+	mesh->draw_count = num_triangles * 3;
 }
 
 void mesh_res_destroy(Resource* resource)

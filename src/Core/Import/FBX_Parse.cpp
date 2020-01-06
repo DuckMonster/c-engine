@@ -15,13 +15,25 @@ struct Fbx_Header
 };
 
 /* Header for parsing a node */
-struct Fbx_Node_Header
+struct Fbx_Node_Header_32
 {
 	u32 end_offset;
 	u32 property_count;
 	u32 property_end_offset;
 	u8 name_len;
 };
+
+/* After FBX 7500, node headers use 64 bits instead of 32 bits */
+struct Fbx_Node_Header_64
+{
+	u64 end_offset;
+	u64 property_count;
+	u64 property_end_offset;
+	u8 name_len;
+};
+
+// The default we use should be 64 bit
+typedef Fbx_Node_Header_64 Fbx_Node_Header;
 
 /* Header for parsing an array */
 struct Fbx_Array_Header
@@ -40,6 +52,8 @@ struct Fbx_String_Header
 /* A data buffer for easier reading of the input stream */
 struct Fbx_Buffer
 {
+	u32 version;
+
 	u8* data;
 	u32 length;
 	u32 pointer;
@@ -163,7 +177,24 @@ bool fbx_read_property(Fbx_Buffer* buffer, Fbx_Property* prop, Mem_Arena* mem_ar
 Fbx_Node* fbx_read_node(Fbx_Buffer* buffer, Mem_Arena* mem_arena)
 {
 	Fbx_Node_Header header;
-	fbx_read_t(buffer, header);
+
+	// Before 7500, node headers use 32 bit values
+	if (buffer->version < 7500)
+	{
+		// Read 32 bits, and just copy over the values
+		Fbx_Node_Header_32 header_32;
+		fbx_read_t(buffer, header_32);
+
+		header.end_offset = header_32.end_offset;
+		header.property_count = header_32.property_count;
+		header.property_end_offset = header_32.property_end_offset;
+		header.name_len = header_32.name_len;
+	}
+	else
+	{
+		// We can just read
+		fbx_read_t(buffer, header);
+	}
 
 	if (is_null_node(header))
 		return nullptr;
@@ -236,6 +267,9 @@ Fbx_Node* fbx_parse_node_tree(const char* path, Mem_Arena* mem_arena)
 	// Read the fbx header
 	Fbx_Header header;
 	fbx_read_t(&buffer, header);
+
+	// Save the version into the header
+	buffer.version = header.version;
 
 	// Create the root node
 	Fbx_Node* root_node = arena_malloc_t(mem_arena, Fbx_Node, 1);

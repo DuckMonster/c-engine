@@ -20,6 +20,9 @@ void scene_init()
 
 	scene_draw_line(Vec3_Zero, Vec3_Z * 4.f, Color_Blue, 5.f);
 #endif
+
+	scene.obstacle.origin = Vec3(5.f, 0.f, 0.f);
+	scene.obstacle.radius = 2.f;
 }
 
 void scene_update()
@@ -33,6 +36,8 @@ void scene_update()
 #if CLIENT
 	THINGS_FOREACH(&scene.health_bars)
 		health_bar_update(it);
+
+	scene_draw_sphere(scene.obstacle.origin, scene.obstacle.radius, Color_Red);
 #endif
 }
 
