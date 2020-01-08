@@ -55,6 +55,38 @@ Vec3* make_sphere_primitive_mesh(u32* num_verts)
 	return verts;
 }
 
+u32 build_box_lines(Vec3* verts, const Vec3& axis_a, const Vec3& axis_b)
+{
+	Vec3 normal_axis = cross(axis_a, axis_b);
+
+	u32 num_verts = 0;
+	verts[num_verts++] = (axis_a + axis_b + normal_axis) * 0.5f;
+	verts[num_verts++] = (axis_a + axis_b - normal_axis) * 0.5f;
+
+	verts[num_verts++] = (axis_a - axis_b + normal_axis) * 0.5f;
+	verts[num_verts++] = (axis_a - axis_b - normal_axis) * 0.5f;
+
+	verts[num_verts++] = (-axis_a - axis_b + normal_axis) * 0.5f;
+	verts[num_verts++] = (-axis_a - axis_b - normal_axis) * 0.5f;
+
+	verts[num_verts++] = (-axis_a + axis_b + normal_axis) * 0.5f;
+	verts[num_verts++] = (-axis_a + axis_b - normal_axis) * 0.5f;
+
+	return num_verts;
+}
+
+Vec3* make_box_primitive_mesh(u32* num_verts)
+{
+	Vec3* verts = new Vec3[8 * 3];
+	u32 offset = 0;
+	offset += build_box_lines(verts + offset, Vec3_X, Vec3_Y);
+	offset += build_box_lines(verts + offset, Vec3_X, Vec3_Z);
+	offset += build_box_lines(verts + offset, Vec3_Y, Vec3_Z);
+
+	*num_verts = offset;
+	return verts;
+}
+
 void primitive_add(Primitive_Manager* manager, Primitive_Type type, void* ptr, float duration)
 {
 	Primitive_Draw* draw = new Primitive_Draw();
@@ -113,9 +145,9 @@ void primitives_init(Primitive_Manager* manager)
 	manager->point_mesh.draw_mode = GL_POINTS;
 	manager->point_mesh.draw_count = 1;
 
-	// Sphere stuff
-	manager->sphere_material = material_load("Material/Primitive/prim_sphere.mat");
+	manager->mesh_material = material_load("Material/Primitive/prim_mesh.mat");
 
+	// Sphere stuff
 	u32 sphere_num_verts;
 	Vec3* sphere_verts = make_sphere_primitive_mesh(&sphere_num_verts);
 	mesh_create(&manager->sphere_mesh);
@@ -124,6 +156,20 @@ void primitives_init(Primitive_Manager* manager)
 	mesh_buffer_data(&manager->sphere_mesh, 0, sphere_verts, sizeof(Vec3) * sphere_num_verts);
 	manager->sphere_mesh.draw_mode = GL_LINES;
 	manager->sphere_mesh.draw_count = sphere_num_verts;
+
+	delete sphere_verts;
+
+	// Box stuff
+	u32 box_num_verts;
+	Vec3* box_verts = make_box_primitive_mesh(&box_num_verts);
+	mesh_create(&manager->box_mesh);
+	mesh_add_buffers(&manager->box_mesh, 1);
+	mesh_map_buffer(&manager->box_mesh, 0, 0, 3, 3, 0);
+	mesh_buffer_data(&manager->box_mesh, 0, box_verts, sizeof(Vec3) * box_num_verts);
+	manager->box_mesh.draw_mode = GL_LINES;
+	manager->box_mesh.draw_count = box_num_verts;
+
+	delete box_verts;
 }
 
 void primitives_render(Primitive_Manager* manager, const Render_State& state)
@@ -176,14 +222,28 @@ void primitives_render(Primitive_Manager* manager, const Render_State& state)
 			case PRIM_Sphere:
 			{
 				Primitive_Sphere* sphere = (Primitive_Sphere*)draw->ptr;
-				Mat4 sphere_matrix = mat_position_scale(sphere->origin, Vec3(sphere->radius));
+				Mat4 model = mat_position_scale(sphere->origin, Vec3(sphere->radius));
 
-				material_bind(manager->sphere_material);
-				material_set(manager->sphere_material, "u_SphereMatrix", sphere_matrix);
-				material_set(manager->sphere_material, "u_ViewProjection", state.view_projection);
-				material_set(manager->sphere_material, "u_Color", sphere->color);
+				material_bind(manager->mesh_material);
+				material_set(manager->mesh_material, "u_Model", model);
+				material_set(manager->mesh_material, "u_ViewProjection", state.view_projection);
+				material_set(manager->mesh_material, "u_Color", sphere->color);
 
 				mesh_draw(&manager->sphere_mesh);
+				break;
+			}
+
+			case PRIM_Aligned_Box:
+			{
+				Primitive_Aligned_Box* box= (Primitive_Aligned_Box*)draw->ptr;
+				Mat4 model = mat_position_scale(box->position, box->size);
+
+				material_bind(manager->mesh_material);
+				material_set(manager->mesh_material, "u_Model", model);
+				material_set(manager->mesh_material, "u_ViewProjection", state.view_projection);
+				material_set(manager->mesh_material, "u_Color", box->color);
+
+				mesh_draw(&manager->box_mesh);
 				break;
 			}
 		}
@@ -225,4 +285,14 @@ void primitive_draw_sphere(Primitive_Manager* manager, const Vec3& origin, float
 	sphere->color = color;
 
 	primitive_add(manager, PRIM_Sphere, sphere, duration);
+}
+
+void primitive_draw_aligned_box(Primitive_Manager* manager, const Vec3& position, const Vec3& size, const Vec4& color, float duration)
+{
+	Primitive_Aligned_Box* box = new Primitive_Aligned_Box();
+	box->position = position;
+	box->size = size;
+	box->color = color;
+
+	primitive_add(manager, PRIM_Aligned_Box, box, duration);
 }

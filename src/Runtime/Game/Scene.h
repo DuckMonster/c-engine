@@ -67,6 +67,7 @@ void scene_destroy_health_bar(Health_Bar* bar);
 void scene_draw_line(const Vec3& from, const Vec3& to, const Vec4& color = Color_White, float duration = 0.f);
 void scene_draw_point(const Vec3& position, const Vec4& color = Color_White, float duration = 0.f);
 void scene_draw_sphere(const Vec3& origin, float radius, const Vec4& color = Color_White, float duration = 0.f);
+void scene_draw_aligned_box(const Vec3& position, const Vec3& size, const Vec4& color = Color_White, float duration = 0.f);
 
 void scene_render(const Render_State& state);
 #endif

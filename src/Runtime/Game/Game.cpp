@@ -157,7 +157,7 @@ void game_init()
 	game.ai_spawn_timer.variance = 5.f;
 #endif
 
-	mesh_collider_load("Mesh/test_collider.fbx");
+	game.shape = mesh_collider_load("Mesh/test_collider.fbx");
 }
 
 void game_update()

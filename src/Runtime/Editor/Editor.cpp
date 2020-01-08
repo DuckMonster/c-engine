@@ -56,6 +56,9 @@ void editor_update(Editor* editor)
 		scene_draw_point(hit.position, Color_Red);
 		scene_draw_line(hit.position, hit.position + hit.normal, Color_Red);
 	}
+
+	// Ray-alignbox intersection
+	scene_draw_aligned_box(Vec3(-5.f, 2.f, 2.f), Vec3(3.f, 0.5f, 1.f));
 }
 
 void editor_render(Editor* editor)

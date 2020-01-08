@@ -168,6 +168,11 @@ void scene_draw_sphere(const Vec3& origin, float radius, const Vec4& color, floa
 	primitive_draw_sphere(&scene.primitive_manager, origin, radius, color, duration);
 }
 
+void scene_draw_aligned_box(const Vec3& position, const Vec3& size, const Vec4& color, float duration)
+{
+	primitive_draw_aligned_box(&scene.primitive_manager, position, size, color, duration);
+}
+
 void scene_render(const Render_State& state)
 {
 	/* Drawables */

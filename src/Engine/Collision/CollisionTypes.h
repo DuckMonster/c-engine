@@ -1,4 +1,5 @@
 #pragma once
+
 struct Ray
 {
 	Vec3 origin;
@@ -25,9 +26,16 @@ struct Sphere
 	float radius;
 };
 
+struct Aligned_Box
+{
+	Vec3 min;
+	Vec3 max;
+};
+Aligned_Box aligned_box_position_size(const Vec3& position, const Vec3& size);
+
 struct Convex_Shape_Face
 {
-	u32 num_verts = 0;
+	u32 vert_count = 0;
 	Vec3 normal;
 };
 struct Convex_Shape

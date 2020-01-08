@@ -20,6 +20,7 @@ struct Game
 	Thing_Array<Mob> mobs;
 
 	Channel* channel;
+	const Convex_Shape* shape;
 
 #if CLIENT
 	Player* local_player = nullptr;

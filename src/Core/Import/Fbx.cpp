@@ -189,7 +189,7 @@ Fbx_Mesh* fbx_process_mesh(Fbx_Node* mesh_node, Mem_Arena* mem_arena)
 		}
 	}
 
-#if 1
+#if 0
 	debug_log("Positions [%d]", mesh->num_positions);
 	for(u32 i=0; i<mesh->num_positions; ++i)
 	{
