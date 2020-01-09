@@ -66,6 +66,78 @@ Hit_Result test_ray_sphere(const Ray& ray, const Sphere& sphere)
 	return hit_make(intersection_point, intersection_normal, intersection_time);
 }
 
+Hit_Result test_ray_aligned_box(const Ray& ray, const Aligned_Box& box)
+{
+	Vec3 box_half_size = box.size * 0.5f;
+	Vec3 box_min = box.position - box_half_size;
+	Vec3 box_max = box.position + box_half_size;
+
+	float x_min_t = (box_min.x - ray.origin.x) / ray.direction.x;
+	float x_max_t = (box_max.x - ray.origin.x) / ray.direction.x;
+
+	float x_entry_t = min(x_min_t, x_max_t);
+	float x_exit_t = max(x_min_t, x_max_t);
+
+	float y_min_t = (box_min.y - ray.origin.y) / ray.direction.y;
+	float y_max_t = (box_max.y - ray.origin.y) / ray.direction.y;
+
+	float y_exit_t = max(y_min_t, y_max_t);
+	float y_entry_t = min(y_min_t, y_max_t);
+
+	float z_min_t = (box_min.z - ray.origin.z) / ray.direction.z;
+	float z_max_t = (box_max.z - ray.origin.z) / ray.direction.z;
+
+	float z_entry_t = min(z_min_t, z_max_t);
+	float z_exit_t = max(z_min_t, z_max_t);
+
+	float max_entry = max(x_entry_t, max(y_entry_t, z_entry_t));
+	float min_exit = min(x_exit_t, min(y_exit_t, z_exit_t));
+	if (max_entry > min_exit)
+		return Hit_Result();
+
+	if (max_entry < 0.f)
+		return Hit_Result();
+
+	Vec3 normal = Vec3_X;
+	Vec3 intersection_point = (ray.origin + ray.direction * max_entry) - box.position;
+	intersection_point = intersection_point / box.size;
+
+	if (abs(intersection_point.x) > abs(intersection_point.y) &&
+		abs(intersection_point.x) > abs(intersection_point.z))
+		normal = Vec3_X * sign(intersection_point.x);
+	else if (abs(intersection_point.y) > abs(intersection_point.z))
+		normal = Vec3_Y * sign(intersection_point.y);
+	else
+		normal = Vec3_Z * sign(intersection_point.z);
+
+	return hit_make(ray.origin + ray.direction * max_entry, normal, max_entry);
+}
+
+Hit_Result test_ray_box(const Ray& ray, const Box& box)
+{
+	// First we want to transform the ray into the box's local space, so that we can do 
+	//	an axis-aligned test.
+	Mat4 box_matrix = mat_position_rotation(box.position, box.orientation);
+	Mat4 box_matrix_inv = inverse(box_matrix);
+
+	Aligned_Box aligned_box;
+	aligned_box.position = Vec3_Zero;
+	aligned_box.size = box.size;
+
+	Ray local_ray;
+	local_ray.origin = box_matrix_inv * ray.origin;
+	local_ray.direction = Vec3(box_matrix_inv * Vec4(ray.direction, 0.f));
+
+	Hit_Result hit = test_ray_aligned_box(local_ray, aligned_box);
+	if (!hit.has_hit)
+		return Hit_Result();
+
+	// Then, if we got a hit in local-space, we will transform it back into world-space
+	hit.position = box_matrix * hit.position;
+	hit.normal = Vec3(box_matrix * Vec4(hit.normal, 0.f));
+	return hit;
+}
+
 Hit_Result test_line_sphere(const Line& line, const Sphere& sphere)
 {
 	float line_length_sqrd = length_sqrd(line.end - line.start);
@@ -92,6 +164,40 @@ Hit_Result test_line_plane(const Line& line, const Plane& plane)
 	Ray line_ray = ray_from_to(line.start, line.end);
 
 	Hit_Result ray_hit = test_ray_plane(line_ray, plane);
+
+	// Intersection happened outside of line bounds, disregard
+	if (square(ray_hit.time) > line_length_sqrd)
+		return Hit_Result();
+
+	return ray_hit;
+}
+
+Hit_Result test_line_aligned_box(const Line& line, const Aligned_Box& box)
+{
+	float line_length_sqrd = length_sqrd(line.end - line.start);
+
+	// Do a ray-sphere intersection test, and see if the intersection happened 
+	// close enough to be within the line bounds
+	Ray line_ray = ray_from_to(line.start, line.end);
+
+	Hit_Result ray_hit = test_ray_aligned_box(line_ray, box);
+
+	// Intersection happened outside of line bounds, disregard
+	if (square(ray_hit.time) > line_length_sqrd)
+		return Hit_Result();
+
+	return ray_hit;
+}
+
+Hit_Result test_line_box(const Line& line, const Box& box)
+{
+	float line_length_sqrd = length_sqrd(line.end - line.start);
+
+	// Do a ray-sphere intersection test, and see if the intersection happened 
+	// close enough to be within the line bounds
+	Ray line_ray = ray_from_to(line.start, line.end);
+
+	Hit_Result ray_hit = test_ray_box(line_ray, box);
 
 	// Intersection happened outside of line bounds, disregard
 	if (square(ray_hit.time) > line_length_sqrd)

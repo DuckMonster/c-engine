@@ -21,8 +21,15 @@ void scene_init()
 	scene_draw_line(Vec3_Zero, Vec3_Z * 4.f, Color_Blue, 5.f);
 #endif
 
-	scene.obstacle.origin = Vec3(5.f, 0.f, 0.f);
-	scene.obstacle.radius = 2.f;
+	scene.sphere.origin = Vec3(5.f, 0.f, 0.f);
+	scene.sphere.radius = 2.f;
+
+	scene.aligned_box.position = Vec3(-10.f, 3.f, 0.f);
+	scene.aligned_box.size = Vec3(4.f, 1.f, 2.f);
+
+	scene.box.position = Vec3(-8.f, -5.f, 0.f);
+	scene.box.size = Vec3(4.f, 2.f, 6.f);
+	scene.box.orientation = angle_axis(1.62f, normalize(Vec3(6.f, -2.f, 1.f)));
 }
 
 void scene_update()
@@ -37,7 +44,10 @@ void scene_update()
 	THINGS_FOREACH(&scene.health_bars)
 		health_bar_update(it);
 
-	scene_draw_sphere(scene.obstacle.origin, scene.obstacle.radius, Color_Red);
+	scene_draw_sphere(scene.sphere.origin, scene.sphere.radius, Color_Red);
+	scene_draw_box(scene.aligned_box.position, scene.aligned_box.size, Quat_Identity, Color_Red);
+	scene_draw_box(scene.box.position, scene.box.size, scene.box.orientation, Color_Red);
+
 #endif
 }
 
@@ -168,9 +178,9 @@ void scene_draw_sphere(const Vec3& origin, float radius, const Vec4& color, floa
 	primitive_draw_sphere(&scene.primitive_manager, origin, radius, color, duration);
 }
 
-void scene_draw_aligned_box(const Vec3& position, const Vec3& size, const Vec4& color, float duration)
+void scene_draw_box(const Vec3& position, const Vec3& size, const Quat& orientation, const Vec4& color, float duration)
 {
-	primitive_draw_aligned_box(&scene.primitive_manager, position, size, color, duration);
+	primitive_draw_box(&scene.primitive_manager, position, size, orientation, color, duration);
 }
 
 void scene_render(const Render_State& state)

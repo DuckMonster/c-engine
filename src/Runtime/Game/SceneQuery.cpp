@@ -2,7 +2,7 @@
 #include "Scene.h"
 
 #if CLIENT
-void scene_draw_line_query_result(const Line& line, const Hit_Result& hit, float duration)
+static void scene_draw_line_query_result(const Line& line, const Hit_Result& hit, float duration)
 {
 	if (hit.has_hit)
 	{
@@ -43,7 +43,21 @@ Scene_Query_Result scene_query_line(const Line& line, const Scene_Query_Params& 
 
 	// Query obstacle
 	{
-		Hit_Result hit = test_line_sphere(line, scene.obstacle);
+		Hit_Result hit = test_line_sphere(line, scene.sphere);
+		if (hit.has_hit && hit.time < result.hit.time)
+		{
+			result.hit = hit;
+			result.unit = nullptr;
+		}
+
+		hit = test_line_aligned_box(line, scene.aligned_box);
+		if (hit.has_hit && hit.time < result.hit.time)
+		{
+			result.hit = hit;
+			result.unit = nullptr;
+		}
+
+		hit = test_line_box(line, scene.box);
 		if (hit.has_hit && hit.time < result.hit.time)
 		{
 			result.hit = hit;

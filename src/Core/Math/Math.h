@@ -23,7 +23,9 @@ inline float degrees(float radians) { return radians / PI * 180.f; }
 inline float square(float val) { return val * val; }
 inline int square(int val) { return val * val; }
 inline int min(int a, int b) { return a > b ? b : a; }
+inline int max(int a, int b) { return a < b ? b : a; }
 inline float min(float a, float b) { return a > b ? b : a; }
+inline float max(float a, float b) { return a < b ? b : a; }
 inline float sign(float a) { return a >= 0.f ? 1.f : -1.f; }
 inline float saturate(float val) { return val < 0.f ? 0.f : (val > 1.f ? 1.f : val); }
 float mod_range(float value, float min, float max);

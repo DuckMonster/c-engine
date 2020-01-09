@@ -28,10 +28,17 @@ struct Sphere
 
 struct Aligned_Box
 {
-	Vec3 min;
-	Vec3 max;
+	Vec3 position;
+	Vec3 size;
 };
-Aligned_Box aligned_box_position_size(const Vec3& position, const Vec3& size);
+Aligned_Box aligned_box_from_min_max(const Vec3& min, const Vec3& max);
+
+struct Box
+{
+	Vec3 position;
+	Vec3 size;
+	Quat orientation;
+};
 
 struct Convex_Shape_Face
 {

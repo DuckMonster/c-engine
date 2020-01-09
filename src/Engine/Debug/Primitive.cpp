@@ -233,10 +233,10 @@ void primitives_render(Primitive_Manager* manager, const Render_State& state)
 				break;
 			}
 
-			case PRIM_Aligned_Box:
+			case PRIM_Box:
 			{
-				Primitive_Aligned_Box* box= (Primitive_Aligned_Box*)draw->ptr;
-				Mat4 model = mat_position_scale(box->position, box->size);
+				Primitive_Box* box= (Primitive_Box*)draw->ptr;
+				Mat4 model = mat_position_rotation_scale(box->position, box->orientation, box->size);
 
 				material_bind(manager->mesh_material);
 				material_set(manager->mesh_material, "u_Model", model);
@@ -287,12 +287,13 @@ void primitive_draw_sphere(Primitive_Manager* manager, const Vec3& origin, float
 	primitive_add(manager, PRIM_Sphere, sphere, duration);
 }
 
-void primitive_draw_aligned_box(Primitive_Manager* manager, const Vec3& position, const Vec3& size, const Vec4& color, float duration)
+void primitive_draw_box(Primitive_Manager* manager, const Vec3& position, const Vec3& size, const Quat& orientation, const Vec4& color, float duration)
 {
-	Primitive_Aligned_Box* box = new Primitive_Aligned_Box();
+	Primitive_Box* box = new Primitive_Box();
 	box->position = position;
 	box->size = size;
+	box->orientation = orientation;
 	box->color = color;
 
-	primitive_add(manager, PRIM_Aligned_Box, box, duration);
+	primitive_add(manager, PRIM_Box, box, duration);
 }

@@ -9,7 +9,7 @@ enum Primitive_Type
 	PRIM_Line,
 	PRIM_Point,
 	PRIM_Sphere,
-	PRIM_Aligned_Box,
+	PRIM_Box,
 };
 
 struct Primitive_Draw
@@ -42,10 +42,11 @@ struct Primitive_Sphere
 	Vec4 color;
 };
 
-struct Primitive_Aligned_Box
+struct Primitive_Box
 {
 	Vec3 position;
 	Vec3 size;
+	Quat orientation;
 	Vec4 color;
 };
 
@@ -76,4 +77,4 @@ void primitives_render(Primitive_Manager* manager, const Render_State& state);
 void primitive_draw_line(Primitive_Manager* manager, const Vec3& from, const Vec3& to, const Vec4& color, float duration);
 void primitive_draw_point(Primitive_Manager* manager, const Vec3& position, const Vec4& color, float duration);
 void primitive_draw_sphere(Primitive_Manager* manager, const Vec3& origin, float radius, const Vec4& color, float duration);
-void primitive_draw_aligned_box(Primitive_Manager* manager, const Vec3& position, const Vec3& size, const Vec4& color, float duration);
+void primitive_draw_box(Primitive_Manager* manager, const Vec3& position, const Vec3& size, const Quat& orientation, const Vec4& color, float duration);
