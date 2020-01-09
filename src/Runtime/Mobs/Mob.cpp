@@ -113,7 +113,7 @@ void mob_update(Mob* mob)
 	{
 		unit->aim_direction = normalize(shoot_target_unit->position - unit->position);
 
-		Line vision_line;
+		Line_Trace vision_line;
 		vision_line.start = Vec3(unit->position, 0.5f);
 		vision_line.end = Vec3(shoot_target_unit->position, 0.5f);
 

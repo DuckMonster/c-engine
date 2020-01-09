@@ -42,7 +42,7 @@ void editor_update(Editor* editor)
 	}
 
 	// Convert ray to line
-	Line line;
+	Line_Trace line;
 	line.start = ray.origin;
 	line.end = ray.origin + ray.direction * 5.f;
 
@@ -53,7 +53,7 @@ void editor_update(Editor* editor)
 	plane.point = Vec3_Zero;
 	plane.normal = Vec3_Z;
 
-	Hit_Result hit = test_line_plane(line, plane);
+	Hit_Result hit = test_line_trace_plane(line, plane);
 	draw_hit_result(hit);
 
 	// Ray-sphere intersection
@@ -62,18 +62,18 @@ void editor_update(Editor* editor)
 	sphere.radius = 2.f;
 
 	scene_draw_sphere(sphere.origin, sphere.radius, Color_Blue);
-	hit = test_line_sphere(line, sphere);
+	hit = test_line_trace_sphere(line, sphere);
 	draw_hit_result(hit);
 
 	// Ray-aligned_box intersection
 	scene_draw_box(aligned_box.position, aligned_box.size, Quat_Identity, Color_Blue);
 
-	hit = test_line_aligned_box(line, aligned_box);
+	hit = test_line_trace_aligned_box(line, aligned_box);
 	draw_hit_result(hit);
 
 	// Ray-box intersection
 	scene_draw_box(box.position, box.size, box.orientation, Color_Blue);
-	hit = test_line_box(line, box);
+	hit = test_line_trace_box(line, box);
 	draw_hit_result(hit);
 }
 

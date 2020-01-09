@@ -138,7 +138,7 @@ Hit_Result test_ray_box(const Ray& ray, const Box& box)
 	return hit;
 }
 
-Hit_Result test_line_sphere(const Line& line, const Sphere& sphere)
+Hit_Result test_line_trace_sphere(const Line_Trace& line, const Sphere& sphere)
 {
 	float line_length_sqrd = length_sqrd(line.end - line.start);
 
@@ -155,7 +155,7 @@ Hit_Result test_line_sphere(const Line& line, const Sphere& sphere)
 	return ray_hit;
 }
 
-Hit_Result test_line_plane(const Line& line, const Plane& plane)
+Hit_Result test_line_trace_plane(const Line_Trace& line, const Plane& plane)
 {
 	float line_length_sqrd = length_sqrd(line.end - line.start);
 
@@ -172,7 +172,7 @@ Hit_Result test_line_plane(const Line& line, const Plane& plane)
 	return ray_hit;
 }
 
-Hit_Result test_line_aligned_box(const Line& line, const Aligned_Box& box)
+Hit_Result test_line_trace_aligned_box(const Line_Trace& line, const Aligned_Box& box)
 {
 	float line_length_sqrd = length_sqrd(line.end - line.start);
 
@@ -189,7 +189,7 @@ Hit_Result test_line_aligned_box(const Line& line, const Aligned_Box& box)
 	return ray_hit;
 }
 
-Hit_Result test_line_box(const Line& line, const Box& box)
+Hit_Result test_line_trace_box(const Line_Trace& line, const Box& box)
 {
 	float line_length_sqrd = length_sqrd(line.end - line.start);
 

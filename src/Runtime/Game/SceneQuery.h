@@ -15,4 +15,4 @@ struct Scene_Query_Result
 	Unit* unit = nullptr;
 };
 
-Scene_Query_Result scene_query_line(const Line& line, const Scene_Query_Params& params = Scene_Query_Params());
+Scene_Query_Result scene_query_line(const Line_Trace& line, const Scene_Query_Params& params = Scene_Query_Params());

@@ -228,14 +228,14 @@ void unit_move_direction(Unit* unit, const Vec2& direction)
 	Vec2 dir_norm = normalize(direction);
 	Vec2 move_delta = dir_norm * unit->move_speed * time_delta();
 
-	Line move_line;
-	move_line.start = Vec3(unit->position, 0.f);
-	move_line.end = move_line.start + Vec3(move_delta, 0.f);
+	Line_Trace move_trace;
+	move_trace.start = Vec3(unit->position, 0.f);
+	move_trace.end = move_trace.start + Vec3(move_delta, 0.f);
 
 	Scene_Query_Params params;
 	params.ignore_unit = unit;
 
-	Scene_Query_Result query_result = scene_query_line(move_line, params);
+	Scene_Query_Result query_result = scene_query_line(move_trace, params);
 	if (query_result.hit.has_hit)
 	{
 		move_delta = constrain_to_plane(move_delta, normalize(Vec2(query_result.hit.normal)));

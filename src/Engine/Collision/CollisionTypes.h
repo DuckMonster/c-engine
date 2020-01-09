@@ -14,7 +14,7 @@ struct Plane
 	Vec3 normal;
 };
 
-struct Line
+struct Line_Trace
 {
 	Vec3 start;
 	Vec3 end;

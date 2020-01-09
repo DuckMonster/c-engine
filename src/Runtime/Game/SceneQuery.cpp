@@ -2,7 +2,7 @@
 #include "Scene.h"
 
 #if CLIENT
-static void scene_draw_line_query_result(const Line& line, const Hit_Result& hit, float duration)
+static void scene_draw_line_query_result(const Line_Trace& line, const Hit_Result& hit, float duration)
 {
 	if (hit.has_hit)
 	{
@@ -17,7 +17,7 @@ static void scene_draw_line_query_result(const Line& line, const Hit_Result& hit
 }
 #endif
 
-Scene_Query_Result scene_query_line(const Line& line, const Scene_Query_Params& params)
+Scene_Query_Result scene_query_line(const Line_Trace& line, const Scene_Query_Params& params)
 {
 	// Query all units
 	Scene_Query_Result result;
@@ -33,7 +33,7 @@ Scene_Query_Result scene_query_line(const Line& line, const Scene_Query_Params& 
 		unit_sphere.origin = Vec3(unit->position, 0.5f);
 		unit_sphere.radius = 0.5f;
 
-		Hit_Result hit = test_line_sphere(line, unit_sphere);
+		Hit_Result hit = test_line_trace_sphere(line, unit_sphere);
 		if (hit.has_hit && hit.time < result.hit.time)
 		{
 			result.hit = hit;
@@ -43,21 +43,21 @@ Scene_Query_Result scene_query_line(const Line& line, const Scene_Query_Params& 
 
 	// Query obstacle
 	{
-		Hit_Result hit = test_line_sphere(line, scene.sphere);
+		Hit_Result hit = test_line_trace_sphere(line, scene.sphere);
 		if (hit.has_hit && hit.time < result.hit.time)
 		{
 			result.hit = hit;
 			result.unit = nullptr;
 		}
 
-		hit = test_line_aligned_box(line, scene.aligned_box);
+		hit = test_line_trace_aligned_box(line, scene.aligned_box);
 		if (hit.has_hit && hit.time < result.hit.time)
 		{
 			result.hit = hit;
 			result.unit = nullptr;
 		}
 
-		hit = test_line_box(line, scene.box);
+		hit = test_line_trace_box(line, scene.box);
 		if (hit.has_hit && hit.time < result.hit.time)
 		{
 			result.hit = hit;
