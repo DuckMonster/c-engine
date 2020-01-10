@@ -7,6 +7,20 @@ Hit_Result hit_make(const Vec3& position, const Vec3& normal, float time)
 	hit.position = position;
 	hit.normal = normal;
 	hit.time = time;
+	hit.started_penetrating = false;
+	hit.penetration_depth = 0.f;
+
+	return hit;
+}
+Hit_Result hit_make_depen(const Vec3& position, const Vec3& normal, float penetration_depth)
+{
+	Hit_Result hit;
+	hit.has_hit = true;
+	hit.position = position;
+	hit.normal = normal;
+	hit.time = 0.f;
+	hit.started_penetrating = true;
+	hit.penetration_depth = penetration_depth;
 
 	return hit;
 }
@@ -41,8 +55,11 @@ Hit_Result test_ray_sphere(const Ray& ray, const Sphere& sphere)
 	Vec3 ray_to_sphere = sphere.origin - ray.origin;
 	if (length_sqrd(ray_to_sphere) < radius_sqrd)
 	{
-		// Ray origin is inside the sphere, we have a start-penetrating scenario
-		return hit_make(ray.origin, normalize(-ray_to_sphere), 0.f);
+		// Ray origin is inside the sphere, we have a start-penetrating
+		float depth = sphere.radius - length(-ray_to_sphere);
+		Vec3 normal = normalize(-ray_to_sphere);
+
+		return hit_make_depen(ray.origin, normal, depth);
 	}
 
 	float closest_point_time = dot(ray_to_sphere, ray.direction);
@@ -140,7 +157,7 @@ Hit_Result test_ray_box(const Ray& ray, const Box& box)
 
 Hit_Result test_line_trace_sphere(const Line_Trace& line, const Sphere& sphere)
 {
-	float line_length_sqrd = length_sqrd(line.end - line.start);
+	float line_length = length(line.end - line.start);
 
 	// Do a ray-sphere intersection test, and see if the intersection happened 
 	// close enough to be within the line bounds
@@ -149,15 +166,17 @@ Hit_Result test_line_trace_sphere(const Line_Trace& line, const Sphere& sphere)
 	Hit_Result ray_hit = test_ray_sphere(line_ray, sphere);
 
 	// Intersection happened outside of line bounds, disregard
-	if (square(ray_hit.time) > line_length_sqrd)
+	if (ray_hit.time > line_length)
 		return Hit_Result();
 
+	// Convert from absolute distance to percentage
+	ray_hit.time /= line_length;
 	return ray_hit;
 }
 
 Hit_Result test_line_trace_plane(const Line_Trace& line, const Plane& plane)
 {
-	float line_length_sqrd = length_sqrd(line.end - line.start);
+	float line_length = length(line.end - line.start);
 
 	// Do a ray-sphere intersection test, and see if the intersection happened 
 	// close enough to be within the line bounds
@@ -166,15 +185,17 @@ Hit_Result test_line_trace_plane(const Line_Trace& line, const Plane& plane)
 	Hit_Result ray_hit = test_ray_plane(line_ray, plane);
 
 	// Intersection happened outside of line bounds, disregard
-	if (square(ray_hit.time) > line_length_sqrd)
+	if (ray_hit.time > line_length)
 		return Hit_Result();
 
+	// Convert from absolute distance to percentage
+	ray_hit.time /= line_length;
 	return ray_hit;
 }
 
 Hit_Result test_line_trace_aligned_box(const Line_Trace& line, const Aligned_Box& box)
 {
-	float line_length_sqrd = length_sqrd(line.end - line.start);
+	float line_length = length(line.end - line.start);
 
 	// Do a ray-sphere intersection test, and see if the intersection happened 
 	// close enough to be within the line bounds
@@ -183,15 +204,17 @@ Hit_Result test_line_trace_aligned_box(const Line_Trace& line, const Aligned_Box
 	Hit_Result ray_hit = test_ray_aligned_box(line_ray, box);
 
 	// Intersection happened outside of line bounds, disregard
-	if (square(ray_hit.time) > line_length_sqrd)
+	if (ray_hit.time > line_length)
 		return Hit_Result();
 
+	// Convert from absolute distance to percentage
+	ray_hit.time /= line_length;
 	return ray_hit;
 }
 
 Hit_Result test_line_trace_box(const Line_Trace& line, const Box& box)
 {
-	float line_length_sqrd = length_sqrd(line.end - line.start);
+	float line_length = length(line.end - line.start);
 
 	// Do a ray-sphere intersection test, and see if the intersection happened 
 	// close enough to be within the line bounds
@@ -200,8 +223,10 @@ Hit_Result test_line_trace_box(const Line_Trace& line, const Box& box)
 	Hit_Result ray_hit = test_ray_box(line_ray, box);
 
 	// Intersection happened outside of line bounds, disregard
-	if (square(ray_hit.time) > line_length_sqrd)
+	if (ray_hit.time > line_length)
 		return Hit_Result();
 
+	// Convert from absolute distance to percentage
+	ray_hit.time /= line_length;
 	return ray_hit;
 }

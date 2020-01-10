@@ -145,14 +145,6 @@ void game_init()
 #endif
 
 #if SERVER
-	//u32 num = random_int(2, 10);
-	u32 num = 1;
-	for(u32 i=0; i<num; ++i)
-	{
-		Unit* unit = game_spawn_random_unit();
-		game_create_mob_for_unit(unit);
-	}
-
 	game.ai_spawn_timer.interval = 2.f;
 	game.ai_spawn_timer.variance = 5.f;
 #endif

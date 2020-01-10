@@ -70,5 +70,9 @@ Scene_Query_Result scene_query_line(const Line_Trace& line, const Scene_Query_Pa
 		scene_draw_line_query_result(line, result.hit, params.debug_render_duration);
 #endif
 
+	// Do a bit of pullback at the end, to avoid movement and such being inside of geometry
+	if (result.hit.has_hit)
+		result.hit.time = max(result.hit.time - 0.08f, 0.f);
+
 	return result;
 }

@@ -43,6 +43,7 @@ void unit_update(Unit* unit);
 
 void unit_move_towards(Unit* unit, const Vec2& target);
 void unit_move_direction(Unit* unit, const Vec2& direction);
+void unit_move(Unit* unit, const Vec2& delta, bool real = true);
 void unit_shoot(Unit* unit, const Vec2& target);
 void unit_hit(Unit* unit, const Unit_Handle& source, const Vec2& impulse);
 bool unit_has_control(Unit* unit);

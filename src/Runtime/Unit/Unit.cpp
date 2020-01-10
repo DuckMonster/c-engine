@@ -217,7 +217,10 @@ void unit_update(Unit* unit)
 
 void unit_move_towards(Unit* unit, const Vec2& target)
 {
-	unit_move_direction(unit, target - unit->position);
+	if (is_nearly_equal(unit->position, target))
+		return;
+
+	unit_move(unit, normalize(target - unit->position) * unit->move_speed * time_delta());
 }
 
 void unit_move_direction(Unit* unit, const Vec2& direction)
@@ -225,23 +228,58 @@ void unit_move_direction(Unit* unit, const Vec2& direction)
 	if (is_nearly_zero(direction))
 		return;
 
-	Vec2 dir_norm = normalize(direction);
-	Vec2 move_delta = dir_norm * unit->move_speed * time_delta();
+	unit_move(unit, direction * unit->move_speed * time_delta());
 
-	Line_Trace move_trace;
-	move_trace.start = Vec3(unit->position, 0.f);
-	move_trace.end = move_trace.start + Vec3(move_delta, 0.f);
+	auto lambda = [](){};
+}
 
-	Scene_Query_Params params;
-	params.ignore_unit = unit;
+void unit_move(Unit* unit, const Vec2& delta, bool real)
+{
+	if (is_nearly_zero(delta))
+		return;
 
-	Scene_Query_Result query_result = scene_query_line(move_trace, params);
-	if (query_result.hit.has_hit)
+	Vec2 remaining_delta = delta;
+	Vec2 position = unit->position;
+	u32 iterations = 0;
+
+	while(!is_nearly_zero(delta) && (++iterations) < 10)
 	{
-		move_delta = constrain_to_plane(move_delta, normalize(Vec2(query_result.hit.normal)));
+		Line_Trace move_trace;
+		move_trace.start = Vec3(position, 0.f);
+		move_trace.end = move_trace.start + Vec3(remaining_delta, 0.f);
+
+		Scene_Query_Params params;
+		params.ignore_unit = unit;
+
+		Scene_Query_Result query_result = scene_query_line(move_trace, params);
+		if (query_result.hit.has_hit)
+		{
+			Vec2 normal = normalize(Vec2(query_result.hit.normal));
+
+			// We're penetrating something; depenetrate
+			if (query_result.hit.started_penetrating)
+			{
+				position += normal * (query_result.hit.penetration_depth + 0.01f);
+				continue;
+			}
+
+			// Apply the amount we managed to move before hitting something
+			Vec2 moved_delta = remaining_delta * query_result.hit.time;
+			position += moved_delta;
+			remaining_delta -= moved_delta;
+
+			// Then redirect the rest
+			remaining_delta = constrain_to_plane(remaining_delta, normal);
+		}
+		else
+		{
+			// We completed a full move! No more iterations needed.
+			position += remaining_delta;
+			break;
+		}
 	}
 
-	unit->position += move_delta;
+	unit->position = position;
 }
 
 void unit_shoot(Unit* unit, const Vec2& target)

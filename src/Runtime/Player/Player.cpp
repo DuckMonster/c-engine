@@ -117,6 +117,7 @@ void player_update_local_input(Player* player)
 	Ray mouse_ray = game_mouse_ray();
 	Plane ground_plane;
 	ground_plane.normal = Vec3_Z;
+	ground_plane.point = Vec3(0.f, 0.f, 0.5f);
 
 	Hit_Result ground_hit = test_ray_plane(mouse_ray, ground_plane);
 	player->aim_position = Vec2(ground_hit.position);
