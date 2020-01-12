@@ -12,7 +12,7 @@ struct Online_User;
 struct Drawable;
 
 #define MAX_PLAYERS 10
-#define MAX_MOBS 5
+#define MAX_MOBS 40
 
 struct Game
 {
@@ -56,11 +56,12 @@ Vec2 game_project_to_screen(const Vec3& position);
 #if SERVER
 
 Unit* game_spawn_random_unit();
+Unit* game_spawn_unit_at(const Vec2& position);
 void game_destroy_unit(Unit* unit);
 
 void game_user_added(Online_User* user);
 void game_user_leave(Online_User* user);
-void game_create_mob_for_unit(Unit* unit);
+Mob* game_create_mob_for_unit(Unit* unit);
 void game_destroy_mob(Mob* mob);
 
 #endif

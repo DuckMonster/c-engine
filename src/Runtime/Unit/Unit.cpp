@@ -33,7 +33,6 @@ void unit_event_proc(Channel* chnl, Online_User* src)
 
 			Vec2 position;
 			channel_read(chnl, &position);
-			unit->net_position = position;
 
 #if SERVER
 			if (src != nullptr)
@@ -136,7 +135,6 @@ void unit_init(Unit* unit, u32 id, const Vec2& position)
 {
 	unit->id = id;
 	unit->position = position;
-	unit->net_position = position;
 
 	unit->channel = channel_open("UNIT", id, unit_event_proc);
 	unit->channel->user_ptr = unit;
@@ -173,9 +171,7 @@ void unit_free(Unit* unit)
 void unit_update(Unit* unit)
 {
 	// Apply impact velocity
-	unit->position += unit->impact_velocity * time_delta();
-	if (!unit_has_control(unit))
-		unit->net_position += unit->impact_velocity * time_delta();
+	unit_move_delta(unit, unit->impact_velocity * time_delta());
 	unit->impact_velocity -= unit->impact_velocity * unit_impact_drag * time_delta();
 
 #if CLIENT
@@ -220,7 +216,7 @@ void unit_move_towards(Unit* unit, const Vec2& target)
 	if (is_nearly_equal(unit->position, target))
 		return;
 
-	unit_move(unit, normalize(target - unit->position) * unit->move_speed * time_delta());
+	unit_move_delta(unit, normalize(target - unit->position) * unit->move_speed * time_delta());
 }
 
 void unit_move_direction(Unit* unit, const Vec2& direction)
@@ -228,12 +224,10 @@ void unit_move_direction(Unit* unit, const Vec2& direction)
 	if (is_nearly_zero(direction))
 		return;
 
-	unit_move(unit, direction * unit->move_speed * time_delta());
-
-	auto lambda = [](){};
+	unit_move_delta(unit, direction * unit->move_speed * time_delta());
 }
 
-void unit_move(Unit* unit, const Vec2& delta, bool real)
+void unit_move_delta(Unit* unit, const Vec2& delta, bool real)
 {
 	if (is_nearly_zero(delta))
 		return;
@@ -242,14 +236,14 @@ void unit_move(Unit* unit, const Vec2& delta, bool real)
 	Vec2 position = unit->position;
 	u32 iterations = 0;
 
+	Scene_Query_Params params;
+	params.mask = ~QUERY_Unit;
+
 	while(!is_nearly_zero(delta) && (++iterations) < 10)
 	{
 		Line_Trace move_trace;
-		move_trace.start = Vec3(position, 0.f);
-		move_trace.end = move_trace.start + Vec3(remaining_delta, 0.f);
-
-		Scene_Query_Params params;
-		params.ignore_unit = unit;
+		move_trace.from = Vec3(position, 0.f);
+		move_trace.to = move_trace.from + Vec3(remaining_delta, 0.f);
 
 		Scene_Query_Result query_result = scene_query_line(move_trace, params);
 		if (query_result.hit.has_hit)

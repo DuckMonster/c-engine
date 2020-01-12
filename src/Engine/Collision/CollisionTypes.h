@@ -16,8 +16,8 @@ struct Plane
 
 struct Line_Trace
 {
-	Vec3 start;
-	Vec3 end;
+	Vec3 from;
+	Vec3 to;
 };
 
 struct Sphere

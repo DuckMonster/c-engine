@@ -83,6 +83,28 @@ void mob_set_agroo(Mob* mob, Unit* unit)
 		channel_write_i32(mob->channel, -1);
 	channel_broadcast(mob->channel, true);
 }
+
+void mob_update_target_position(Mob* mob, const Vec2& center, float radius_min, float radius_max)
+{
+	Unit* unit = scene_get_unit(mob->controlled_unit);
+	if (!unit)
+		return;
+
+	/* We only want to walk towards visible locations, unless enough fails in which case fuck it */
+	Vec2 target_position;
+	int tries = 5;
+	while(tries--)
+	{
+		target_position = center + random_point_on_circle() * random_float(radius_min, radius_max);
+		if (scene_query_vision(unit->position, target_position))
+			break;
+	}
+
+	channel_reset(mob->channel);
+	channel_write_u8(mob->channel, EVENT_Set_Target);
+	channel_write_vec2(mob->channel, target_position);
+	channel_broadcast(mob->channel, true);
+}
 #endif
 
 void mob_update(Mob* mob)
@@ -96,15 +118,37 @@ void mob_update(Mob* mob)
 		return;
 	}
 
-	//unit_move_towards(unit, mob->target_position);
+	unit_move_towards(unit, mob->target_position);
+
+	Unit* target_unit = scene_get_unit(mob->agroo_target);
+	if (target_unit)
+	{
+		// Check shoot range
+		float distance_to_target_sqrd = distance_sqrd(unit->position, target_unit->position);
+		bool is_within_range = distance_to_target_sqrd < square(mob_shoot_range);
+
+#if SERVER 
+		// Check vision
+		bool target_is_visible = scene_query_vision(unit->position, target_unit->position);
+		if (is_within_range && target_is_visible)
+		{
+			// Shoot!
+			if (timer_update(&mob->shoot_timer))
+				unit_shoot(unit, target_unit->position);
+		}
+		else
+		{
+			// Chase!
+			if (distance_sqrd(unit->position, mob->target_position) < square(1.f))
+				mob_update_target_position(mob, target_unit->position, mob_shoot_range * 0.3f, mob_shoot_range * 0.9f);
+		}
+#endif
+	}
 
 #if SERVER
 	if (timer_update(&mob->idle_timer))
 	{
-		channel_reset(mob->channel);
-		channel_write_u8(mob->channel, EVENT_Set_Target);
-		channel_write_vec2(mob->channel, random_point_on_circle() * random_float(0.f, 5.f));
-		channel_broadcast(mob->channel, true);
+		mob_update_target_position(mob, unit->position, 1.f, 5.f);
 	}
 #endif
 
@@ -112,28 +156,5 @@ void mob_update(Mob* mob)
 	if (shoot_target_unit)
 	{
 		unit->aim_direction = normalize(shoot_target_unit->position - unit->position);
-
-		Line_Trace vision_line;
-		vision_line.start = Vec3(unit->position, 0.5f);
-		vision_line.end = Vec3(shoot_target_unit->position, 0.5f);
-
-		Scene_Query_Params params;
-		params.ignore_unit = unit;
-		params.debug_render = true;
-
-		Scene_Query_Result query_result = scene_query_line(vision_line, params);
-
-#if SERVER
-		if (query_result.hit.has_hit && !query_result.unit)
-		{
-			mob_set_agroo(mob, nullptr);
-			return;
-		}
-
-		if (timer_update(&mob->shoot_timer))
-		{
-			unit_shoot(unit, shoot_target_unit->position);
-		}
-#endif
 	}
 }

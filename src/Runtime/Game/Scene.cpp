@@ -17,8 +17,6 @@ void scene_init()
 	thing_array_init(&scene.health_bars, MAX_HEALTH_BARS);
 
 	primitives_init(&scene.primitive_manager);
-
-	scene_draw_line(Vec3_Zero, Vec3_Z * 4.f, Color_Blue, 5.f);
 #endif
 
 	scene.sphere.origin = Vec3(5.f, 0.f, 0.f);

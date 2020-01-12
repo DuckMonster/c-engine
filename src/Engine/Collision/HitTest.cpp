@@ -55,7 +55,7 @@ Hit_Result test_ray_sphere(const Ray& ray, const Sphere& sphere)
 	Vec3 ray_to_sphere = sphere.origin - ray.origin;
 	if (length_sqrd(ray_to_sphere) < radius_sqrd)
 	{
-		// Ray origin is inside the sphere, we have a start-penetrating
+		// Ray origin is inside the sphere, we have a from-penetrating
 		float depth = sphere.radius - length(-ray_to_sphere);
 		Vec3 normal = normalize(-ray_to_sphere);
 
@@ -157,11 +157,11 @@ Hit_Result test_ray_box(const Ray& ray, const Box& box)
 
 Hit_Result test_line_trace_sphere(const Line_Trace& line, const Sphere& sphere)
 {
-	float line_length = length(line.end - line.start);
+	float line_length = length(line.to - line.from);
 
 	// Do a ray-sphere intersection test, and see if the intersection happened 
 	// close enough to be within the line bounds
-	Ray line_ray = ray_from_to(line.start, line.end);
+	Ray line_ray = ray_from_to(line.from, line.to);
 
 	Hit_Result ray_hit = test_ray_sphere(line_ray, sphere);
 
@@ -176,11 +176,11 @@ Hit_Result test_line_trace_sphere(const Line_Trace& line, const Sphere& sphere)
 
 Hit_Result test_line_trace_plane(const Line_Trace& line, const Plane& plane)
 {
-	float line_length = length(line.end - line.start);
+	float line_length = length(line.to - line.from);
 
 	// Do a ray-sphere intersection test, and see if the intersection happened 
 	// close enough to be within the line bounds
-	Ray line_ray = ray_from_to(line.start, line.end);
+	Ray line_ray = ray_from_to(line.from, line.to);
 
 	Hit_Result ray_hit = test_ray_plane(line_ray, plane);
 
@@ -195,11 +195,11 @@ Hit_Result test_line_trace_plane(const Line_Trace& line, const Plane& plane)
 
 Hit_Result test_line_trace_aligned_box(const Line_Trace& line, const Aligned_Box& box)
 {
-	float line_length = length(line.end - line.start);
+	float line_length = length(line.to - line.from);
 
 	// Do a ray-sphere intersection test, and see if the intersection happened 
 	// close enough to be within the line bounds
-	Ray line_ray = ray_from_to(line.start, line.end);
+	Ray line_ray = ray_from_to(line.from, line.to);
 
 	Hit_Result ray_hit = test_ray_aligned_box(line_ray, box);
 
@@ -214,11 +214,11 @@ Hit_Result test_line_trace_aligned_box(const Line_Trace& line, const Aligned_Box
 
 Hit_Result test_line_trace_box(const Line_Trace& line, const Box& box)
 {
-	float line_length = length(line.end - line.start);
+	float line_length = length(line.to - line.from);
 
 	// Do a ray-sphere intersection test, and see if the intersection happened 
 	// close enough to be within the line bounds
-	Ray line_ray = ray_from_to(line.start, line.end);
+	Ray line_ray = ray_from_to(line.from, line.to);
 
 	Hit_Result ray_hit = test_ray_box(line_ray, box);
 

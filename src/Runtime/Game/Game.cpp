@@ -145,7 +145,7 @@ void game_init()
 #endif
 
 #if SERVER
-	game.ai_spawn_timer.interval = 2.f;
+	game.ai_spawn_timer.interval = 10.f;
 	game.ai_spawn_timer.variance = 5.f;
 #endif
 
@@ -171,10 +171,25 @@ void game_update()
 
 #elif SERVER
 
-	if (thing_num(&game.mobs) < 5 && timer_update(&game.ai_spawn_timer))
+	if (thing_num(&game.players) > 0 &&
+		thing_num(&game.mobs) < 1 &&
+		timer_update(&game.ai_spawn_timer))
 	{
-		Unit* new_unit = game_spawn_random_unit();
-		game_create_mob_for_unit(new_unit);
+		Vec2 position = random_point_on_circle();
+
+		Unit* new_unit = game_spawn_unit_at(position * 20.f);
+		Mob* mob = game_create_mob_for_unit(new_unit);
+
+		Player* random_player = nullptr;
+		while(random_player == nullptr)
+		{
+			u32 random_index = random_int(game.players.index_min, game.players.index_max);
+			random_player = game.players[random_index];
+		}
+
+		Unit* player_unit = scene_get_unit(random_player->controlled_unit);
+		if (player_unit)
+			mob_set_agroo(mob, player_unit);
 	}
 
 #endif
@@ -247,16 +262,21 @@ Vec2 game_project_to_screen(const Vec3& position)
 #if SERVER
 Unit* game_spawn_random_unit()
 {
-	u32 unit_id = scene_get_free_unit_id();
-
 	Vec2 spawn_position;
 	spawn_position.x = random_float(-5.f, 5.f);
 	spawn_position.y = random_float(-5.f, 5.f);
 
+	return game_spawn_unit_at(spawn_position);
+}
+
+Unit* game_spawn_unit_at(const Vec2& position)
+{
+	u32 unit_id = scene_get_free_unit_id();
+
 	channel_reset(game.channel);
 	channel_write_u8(game.channel, EVENT_Unit_Spawn);
 	channel_write_u32(game.channel, unit_id);
-	channel_write_vec2(game.channel, spawn_position);
+	channel_write_vec2(game.channel, position);
 	channel_broadcast(game.channel, true);
 
 	return scene.units[unit_id];
@@ -341,7 +361,7 @@ void game_user_leave(Online_User* user)
 	channel_broadcast(game.channel, true);
 }
 
-void game_create_mob_for_unit(Unit* unit)
+Mob* game_create_mob_for_unit(Unit* unit)
 {
 	u32 mob_id = thing_find_first_free(&game.mobs);
 
@@ -350,6 +370,12 @@ void game_create_mob_for_unit(Unit* unit)
 	channel_write_u32(game.channel, mob_id);
 	channel_write_u32(game.channel, unit->id);
 	channel_broadcast(game.channel, true);
+
+	// Hopefully, after the message has been broadcast, the mob shouldve been created
+	Mob* mob = game.mobs[mob_id];
+	assert(mob);
+
+	return mob;
 }
 
 void game_destroy_mob(Mob* mob)

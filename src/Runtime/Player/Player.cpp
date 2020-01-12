@@ -37,7 +37,15 @@ void player_event_proc(Channel* chnl, Online_User* src)
 
 			Unit* unit = scene_get_unit(player->controlled_unit);
 			if (unit)
+			{
+#if SERVER
+				// On the server we want to snap the players, for more accurate mob behaviour
+				unit->position = position;
+#elif CLIENT
+				// On clients though, it looks hella ugly, so use the error method instead
 				player->net_position_error = position - unit->position;
+#endif
+			}
 
 #if SERVER
 			channel_rebroadcast_last(chnl, false);

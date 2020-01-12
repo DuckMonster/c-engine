@@ -43,10 +43,10 @@ void editor_update(Editor* editor)
 
 	// Convert ray to line
 	Line_Trace line;
-	line.start = ray.origin;
-	line.end = ray.origin + ray.direction * 5.f;
+	line.from = ray.origin;
+	line.to = ray.origin + ray.direction * 5.f;
 
-	scene_draw_line(line.start, line.end, Color_Green);
+	scene_draw_line(line.from, line.to, Color_Green);
 
 	// Ray-plane intersection
 	Plane plane;

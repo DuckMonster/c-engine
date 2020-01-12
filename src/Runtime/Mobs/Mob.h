@@ -3,6 +3,8 @@
 #include "Runtime/Game/HandleTypes.h"
 #include "Runtime/Online/Channel.h"
 
+const float mob_shoot_range = 8.f;
+
 struct Mob
 {
 	u32 id;
@@ -19,7 +21,10 @@ struct Mob
 
 void mob_init(Mob* mob, u32 id, const Unit_Handle& unit_to_control);
 void mob_free(Mob* mob);
+
 #if SERVER
 void mob_set_agroo(Mob* mob, Unit* unit);
+void mob_update_target_position(Mob* mob, const Vec2& center, float radius_min, float radius_max);
 #endif
+
 void mob_update(Mob* mob);

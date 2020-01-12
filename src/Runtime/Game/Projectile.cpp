@@ -46,9 +46,9 @@ void projectile_update(Projectile* projectile)
 {
 	Unit* owner = scene_get_unit(projectile->owner);
 
-	// Movement ray start (before moving)
+	// Movement ray from (before moving)
 	Line_Trace move_trace;
-	move_trace.start = Vec3(projectile->position, 0.5f);
+	move_trace.from = Vec3(projectile->position, 0.5f);
 
 	// Do movement
 	projectile->position += projectile->direction * projectile->speed * time_delta();
@@ -61,8 +61,8 @@ void projectile_update(Projectile* projectile)
 	projectile->line_drawer->position = Vec3(projectile->position, 0.5f);
 #endif
 
-	// Movement line end (after moving)
-	move_trace.end = Vec3(projectile->position, 0.5f);
+	// Movement line to (after moving)
+	move_trace.to = Vec3(projectile->position, 0.5f);
 
 	// Then! Do collision checking to see if we hit something
 	Scene_Query_Result query_result = scene_query_line(move_trace);
