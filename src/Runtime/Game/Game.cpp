@@ -172,7 +172,7 @@ void game_update()
 #elif SERVER
 
 	if (thing_num(&game.players) > 0 &&
-		thing_num(&game.mobs) < 1 &&
+		thing_num(&game.mobs) < 0 &&
 		timer_update(&game.ai_spawn_timer))
 	{
 		Vec2 position = random_point_on_circle();
@@ -223,6 +223,18 @@ Mob_Handle game_mob_handle(Mob* mob)
 }
 
 #if CLIENT
+Mat4 game_ndc_to_pixel()
+{
+	float half_width = context.width / 2.f;
+	float half_height = context.height / 2.f;
+	return Mat4(
+		half_width, 0.f, 0.f, 0.f,
+		0.f, -half_height, 0.f, 0.f,
+		0.f, 0.f, 1.f, 0.f,
+		half_width, half_height, 0.f, 1.f
+	);
+}
+
 Ray game_mouse_ray()
 {
 	return game_screen_to_ray(Vec2(input_mouse_x(), input_mouse_y()));
@@ -230,16 +242,13 @@ Ray game_mouse_ray()
 
 Ray game_screen_to_ray(Vec2 screen)
 {
+	Mat4 pixel_to_ndc = inverse(game_ndc_to_pixel());
 	Mat4 vp = camera_view_projection_matrix(&game.camera);
 	vp = inverse(vp);
 
-	screen /= Vec2(context.width, context.height);
-	screen = screen * 2.f - 1.f;
-	screen.y = -screen.y;
-
-	Vec4 world_near = vp * Vec4(screen, -1.f, 1.f);
+	Vec4 world_near = vp * pixel_to_ndc * Vec4(screen, -1.f, 1.f);
 	world_near /= world_near.w;
-	Vec4 world_far = vp * Vec4(screen, 1.f, 1.f);
+	Vec4 world_far = vp * pixel_to_ndc * Vec4(screen, 1.f, 1.f);
 	world_far /= world_far.w;
 
 	Ray result;
@@ -251,11 +260,10 @@ Ray game_screen_to_ray(Vec2 screen)
 
 Vec2 game_project_to_screen(const Vec3& position)
 {
+	Mat4 ndc_to_pixel = game_ndc_to_pixel();
 	Mat4 view_projection = camera_view_projection_matrix(&game.camera);
-	Vec4 ndc_position = view_projection * Vec4(position, 1.f);
 
-	Vec2 screen = Vec2(ndc_position) * Vec2(0.5f, -0.5f) + 0.5f;
-	return screen * Vec2(context.width, context.height);
+	return Vec2(ndc_to_pixel * view_projection * Vec4(position, 1.f));
 }
 #endif
 

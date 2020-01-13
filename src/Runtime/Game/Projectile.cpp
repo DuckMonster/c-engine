@@ -9,9 +9,8 @@
 #include "Runtime/Game/SceneQuery.h"
 #include "Runtime/Unit/Unit.h"
 
-void projectile_init(Projectile* projectile, const Unit_Handle& owner, u32 proj_id, const Vec2& position, const Vec2& direction)
+void projectile_init(Projectile* projectile, const Unit_Handle& owner, const Vec2& position, const Vec2& direction)
 {
-	projectile->proj_id = proj_id;
 	projectile->owner = owner;
 
 	projectile->position = position;
@@ -64,8 +63,11 @@ void projectile_update(Projectile* projectile)
 	// Movement line to (after moving)
 	move_trace.to = Vec3(projectile->position, 0.5f);
 
+	Scene_Query_Params params;
+	params.ignore_unit = owner;
+
 	// Then! Do collision checking to see if we hit something
-	Scene_Query_Result query_result = scene_query_line(move_trace);
+	Scene_Query_Result query_result = scene_query_line(move_trace, params);
 	if (query_result.hit.has_hit)
 	{
 		Unit* unit = query_result.unit;

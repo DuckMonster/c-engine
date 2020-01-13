@@ -5,6 +5,7 @@
 #include "Runtime/Game/SceneQuery.h"
 #include "Runtime/Game/Game.h"
 #include "Runtime/Online/Channel.h"
+#include "Runtime/Weapon/Weapon.h"
 
 enum Unit_Event
 {
@@ -43,16 +44,10 @@ void unit_event_proc(Channel* chnl, Online_User* src)
 
 		case EVENT_Shoot:
 		{
-			Vec2 origin;
-			Vec2 direction;
-			channel_read(chnl, &origin);
-			channel_read(chnl, &direction);
+			Vec2 target;
+			channel_read(chnl, &target);
 
-			scene_make_projectile(scene_unit_handle(unit), 0, origin + direction * 1.6f, direction);
-
-#if CLIENT
-			unit->gun_billboard->position -= Vec3(direction, 0.f) * 0.3f;
-#endif
+			weapon_shoot(unit->weapon, target);
 
 #if SERVER
 			if (src != nullptr)
@@ -136,6 +131,8 @@ void unit_init(Unit* unit, u32 id, const Vec2& position)
 	unit->id = id;
 	unit->position = position;
 
+	unit->weapon = scene_make_weapon(unit);
+
 	unit->channel = channel_open("UNIT", id, unit_event_proc);
 	unit->channel->user_ptr = unit;
 
@@ -147,10 +144,6 @@ void unit_init(Unit* unit, u32 id, const Vec2& position)
 	unit->billboard->position = Vec3(position, 0.f);
 	unit->billboard->anchor = Vec2(0.5f, 1.f);
 
-	unit->gun_billboard = scene_make_billboard(sprite_sheet_load("Sprite/weapon_sheet.dat"));
-	unit->gun_billboard->position = Vec3(position, 0.f);
-	unit->gun_billboard->anchor = Vec2(0.5f, 0.5f);
-
 	unit->health_bar = scene_make_health_bar();
 	unit->health_bar->position = Vec3(position, 2.f);
 
@@ -159,11 +152,11 @@ void unit_init(Unit* unit, u32 id, const Vec2& position)
 
 void unit_free(Unit* unit)
 {
+	scene_destroy_weapon(unit->weapon);
 	channel_close(unit->channel);
 
 #if CLIENT
 	scene_destroy_billboard(unit->billboard);
-	scene_destroy_billboard(unit->gun_billboard);
 	scene_destroy_health_bar(unit->health_bar);
 #endif
 }
@@ -178,26 +171,6 @@ void unit_update(Unit* unit)
 
 	// Unit billboard
 	unit->billboard->position = Vec3(unit->position, 0.f);
-
-	// Gun billboard
-	Vec3 gun_target = Vec3(unit->position, 0.f) + Vec3(unit->aim_direction * 0.6f, 0.5f);
-	unit->gun_billboard->position = lerp(unit->gun_billboard->position, gun_target, 21.f * time_delta());
-
-	// Calculate the gun rotation by getting the angle in screen-space from the unit to the 
-	//	aim target, and setting that as the angle
-	Vec2 unit_screen = game_project_to_screen(Vec3(unit->position, 0.f));
-	Vec2 gun_screen = game_project_to_screen(Vec3(unit->position + unit->aim_direction, 0.f));
-	Vec2 screen_direction = normalize_safe(gun_screen - unit_screen);
-
-	// Lerp it 
-	float target_angle = atan2(screen_direction.y, screen_direction.x);
-	unit->gun_billboard->rotation = lerp_radians(unit->gun_billboard->rotation, target_angle, 12.f * time_delta());
-
-	// Flip the gun if its aiming to the left, since it would be upside down
-	if (target_angle > HALF_PI || target_angle < -HALF_PI)
-		unit->gun_billboard->scale.y = -1.f;
-	else
-		unit->gun_billboard->scale.y = 1.f;
 
 	// Update health bar
 	unit->health_bar->position = Vec3(unit->position, 2.f);
@@ -273,17 +246,18 @@ void unit_move_delta(Unit* unit, const Vec2& delta, bool real)
 		}
 	}
 
+	// Weapons inherit a bit of the delta
+	Vec2 final_delta = position - unit->position;
+	unit->weapon->position += final_delta * unit_move_inheritance;
+
 	unit->position = position;
 }
 
 void unit_shoot(Unit* unit, const Vec2& target)
 {
-	Vec2 direction = normalize(target - unit->position);
-
 	channel_reset(unit->channel);
 	channel_write_u8(unit->channel, EVENT_Shoot);
-	channel_write_vec2(unit->channel, unit->position);
-	channel_write_vec2(unit->channel, direction);
+	channel_write_vec2(unit->channel, target);
 	channel_broadcast(unit->channel, false);
 }
 

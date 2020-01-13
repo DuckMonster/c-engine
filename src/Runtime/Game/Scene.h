@@ -7,11 +7,13 @@
 #include "Runtime/Render/HealthBar.h"
 #include "Runtime/Effect/LineDrawer.h"
 #include "Runtime/Unit/Unit.h"
+#include "Runtime/Weapon/Weapon.h"
 #include "Runtime/Game/Projectile.h"
 #include "ThingArray.h"
 
 #define MAX_PLAYERS 10
 #define MAX_UNITS 256
+#define MAX_WEAPONS 256
 #define MAX_PROJECTILES 256
 #define MAX_DRAWABLES 256
 #define MAX_BILLBOARDS 256
@@ -21,6 +23,7 @@
 struct Scene
 {
 	Thing_Array<Unit> units;
+	Thing_Array<Weapon> weapons;
 	Thing_Array<Projectile> projectiles;
 #if CLIENT
 	Thing_Array<Drawable> drawables;
@@ -49,7 +52,10 @@ Unit_Handle scene_unit_handle(Unit* unit);
 Unit_Handle scene_unit_handle(u32 id);
 Unit* scene_get_unit(const Unit_Handle& handle);
 
-Projectile* scene_make_projectile(const Unit_Handle& owner, u32 proj_id, const Vec2& origin, const Vec2& direction);
+Weapon* scene_make_weapon(Unit* owner);
+void scene_destroy_weapon(Weapon* weapon);
+
+Projectile* scene_make_projectile(const Unit_Handle& owner, const Vec2& origin, const Vec2& direction);
 void scene_destroy_projectile(Projectile* projectile);
 
 #if CLIENT

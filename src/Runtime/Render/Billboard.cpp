@@ -18,6 +18,49 @@ void billboard_init(Billboard* billboard, const Sprite_Sheet* sheet)
 	material_set(billboard->material, RENDER_SHADOW_BUFFER_UNIFORM, RENDER_SHADOW_BUFFER_TEXTURE_INDEX);
 }
 
+Mat4 get_billboard_rotation_matrix(const Billboard* billboard, const Render_State& state)
+{
+	// We do rotations in two ways!
+	if (billboard->rotation_type == ROTATION_Angle)
+	{
+		// Just a simple angular rotation around the screen-facing axis.
+		return Mat4(
+			cos(billboard->rotation_angle), -sin(billboard->rotation_angle), 0.f, 0.f,
+			sin(billboard->rotation_angle), cos(billboard->rotation_angle), 0.f, 0.f,
+			0.f, 0.f, 1.f, 0.f,
+			0.f, 0.f, 0.f, 1.f
+		);
+	}
+	else if (billboard->rotation_type == ROTATION_World_Direction)
+	{
+		Mat4 ndc_to_pixel = game_ndc_to_pixel();
+
+		// This one takes a world direction, the billboard will then be rotated so that it seems
+		//	like its facing that direction (flipping when it would be upside down)
+		// We do this by projecting the billboards position, and also the billboards offset, then getting the angle in-between
+		Vec3 offset = billboard->position + billboard->rotation_direction;
+		Vec2 projected_position = Vec2(ndc_to_pixel * state.view_projection * Vec4(billboard->position, 1.f));
+		Vec2 projected_offset = Vec2(ndc_to_pixel * state.view_projection * Vec4(offset, 1.f));
+
+		Vec2 position_to_offset = projected_offset - projected_position;
+		float projected_angle = atan2(position_to_offset.y, position_to_offset.x);
+
+		// We should flip when the angle is making us point to the left
+		float flip = (projected_angle > -HALF_PI && projected_angle < HALF_PI) ? 1.f : -1.f;
+
+		// Then rotate the billboard by that angle (adding in the flip in the rotation matrix)
+		return Mat4(
+			cos(projected_angle), -sin(projected_angle), 0.f, 0.f,
+			sin(projected_angle) * flip, cos(projected_angle) * flip, 0.f, 0.f,
+			0.f, 0.f, 1.f, 0.f,
+			0.f, 0.f, 0.f, 1.f
+		);
+	}
+
+	error("Invalid rotation type in billboard");
+	return Mat4();
+}
+
 Mat4 get_billboard_transform(const Billboard* billboard, const Render_State& state)
 {
 	// This makes the billboard face the camera :)
@@ -47,19 +90,14 @@ Mat4 get_billboard_transform(const Billboard* billboard, const Render_State& sta
 		1.f
 	);
 
-	Mat4 rotation = Mat4(
-		cos(billboard->rotation), -sin(billboard->rotation), 0.f, 0.f,
-		sin(billboard->rotation), cos(billboard->rotation), 0.f, 0.f,
-		0.f, 0.f, 1.f, 0.f,
-		0.f, 0.f, 0.f, 1.f
-	);
+	Mat4 rotation = get_billboard_rotation_matrix(billboard, state);
 
 	Mat4 position;
 	position[3] = Vec4(billboard->position, 1.f);
 
 	// 1. Billboard scaling (billboard->scale)
 	// 2. Anchor movement
-	// 3. Billboard rotation (billboard->rotation)
+	// 3. Billboard rotation (billboard->rotation_angle)
 	// 4. Pixel scaling
 	// 5. Camera inverse rotation
 	// 6. World location (billboard->location)

@@ -6,10 +6,12 @@ struct Billboard;
 struct Channel;
 struct Online_User;
 struct Health_Bar;
+struct Weapon;
 
 const float unit_impact_drag = 8.5f;
 const float unit_hit_duration = 0.15f;
 const float unit_sync_frequency = 10.f;
+const float unit_move_inheritance = 0.85f;
 
 struct Unit
 {
@@ -19,6 +21,7 @@ struct Unit
 	Vec2 impact_velocity;
 	float move_speed = 6.f;
 
+	Weapon* weapon = nullptr;
 	Channel* channel = nullptr;
 
 	float health;
@@ -29,7 +32,6 @@ struct Unit
 
 #if CLIENT
 	Billboard* billboard = nullptr;
-	Billboard* gun_billboard = nullptr;
 	Health_Bar* health_bar = nullptr;
 
 	float hit_timer = 0.f;

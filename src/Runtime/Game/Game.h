@@ -48,9 +48,12 @@ Mob* game_get_mob(const Mob_Handle& mob_hndl);
 Mob_Handle game_mob_handle(Mob* mob);
 
 #if CLIENT
+
+Mat4 game_ndc_to_pixel();
 Ray game_mouse_ray();
 Ray game_screen_to_ray(Vec2 screen);
 Vec2 game_project_to_screen(const Vec3& position);
+
 #endif
 
 #if SERVER

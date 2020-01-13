@@ -4,6 +4,12 @@ struct Render_State;
 struct Mesh;
 struct Material;
 
+enum Billboard_Rotation_Type
+{
+	ROTATION_Angle,
+	ROTATION_World_Direction,
+};
+
 struct Billboard
 {
 	const Mesh* mesh = nullptr;
@@ -13,11 +19,15 @@ struct Billboard
 	u32 tile_y = 0;
 
 	Vec2 scale = Vec2(1.f);
-	float rotation = 0.f;
 	Vec3 position;
 	Vec2 anchor = Vec2(0.5f, 0.5f);
 
 	Vec4 fill_color = Vec4(0.f);
+
+	// Rotation stuff
+	Billboard_Rotation_Type rotation_type = ROTATION_Angle;
+	float rotation_angle = 0.f;			// Used if ROTATION_Angle
+	Vec3 rotation_direction = Vec3_X;	// Used if ROTATION_World_Direction
 };
 
 #if CLIENT

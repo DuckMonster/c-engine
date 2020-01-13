@@ -8,8 +8,10 @@ Scene scene;
 
 void scene_init()
 {
-	thing_array_init(&scene.projectiles, MAX_PROJECTILES);
 	thing_array_init(&scene.units, MAX_UNITS);
+	thing_array_init(&scene.weapons, MAX_WEAPONS);
+	thing_array_init(&scene.projectiles, MAX_PROJECTILES);
+
 #if CLIENT
 	thing_array_init(&scene.drawables, MAX_DRAWABLES);
 	thing_array_init(&scene.billboards, MAX_BILLBOARDS);
@@ -34,6 +36,9 @@ void scene_update()
 {
 	THINGS_FOREACH(&scene.units)
 		unit_update(it);
+
+	THINGS_FOREACH(&scene.weapons)
+		weapon_update(it);
 
 	THINGS_FOREACH(&scene.projectiles)
 		projectile_update(it);
@@ -94,11 +99,24 @@ u32 scene_get_free_unit_id()
 	return -1;
 }
 
+Weapon* scene_make_weapon(Unit* owner)
+{
+	Weapon* weapon = thing_add(&scene.weapons);
+	weapon_init(weapon, owner);
 
-Projectile* scene_make_projectile(const Unit_Handle& owner, u32 proj_id, const Vec2& origin, const Vec2& direction)
+	return weapon;
+}
+
+void scene_destroy_weapon(Weapon* weapon)
+{
+	weapon_free(weapon);
+	thing_remove(&scene.weapons, weapon);
+}
+
+Projectile* scene_make_projectile(const Unit_Handle& owner, const Vec2& origin, const Vec2& direction)
 {
 	Projectile* projectile = thing_add(&scene.projectiles);
-	projectile_init(projectile, owner, proj_id, origin, direction);
+	projectile_init(projectile, owner, origin, direction);
 
 	return projectile;
 }
