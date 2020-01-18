@@ -1,17 +1,10 @@
 #pragma once
 #include "Core/Container/SparseList.h"
+#include "Runtime/Game/HandleTypes.h"
 #include "Engine/Debug/Primitive.h"
 #include "Engine/Collision/CollisionTypes.h"
-#include "Runtime/Render/Drawable.h"
-#include "Runtime/Render/Billboard.h"
-#include "Runtime/Render/HealthBar.h"
-#include "Runtime/Effect/LineDrawer.h"
-#include "Runtime/Unit/Unit.h"
-#include "Runtime/Weapon/Weapon.h"
-#include "Runtime/Game/Projectile.h"
 #include "ThingArray.h"
 
-#define MAX_PLAYERS 10
 #define MAX_UNITS 256
 #define MAX_WEAPONS 256
 #define MAX_PROJECTILES 256
@@ -19,6 +12,18 @@
 #define MAX_BILLBOARDS 256
 #define MAX_LINE_DRAWERS 256
 #define MAX_HEALTH_BARS 256
+
+struct Unit;
+struct Weapon;
+struct Projectile;
+struct Drawable;
+struct Billboard;
+struct Line_Drawer;
+struct Health_Bar;
+struct Mesh;
+struct Material;
+struct Texture;
+struct Sprite_Sheet;
 
 struct Scene
 {

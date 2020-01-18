@@ -1,8 +1,10 @@
 #include "Weapon.h"
+#include "Core/Input/Input.h"
 #include "Engine/Graphics/SpriteSheet.h"
 #include "Runtime/Game/Game.h"
 #include "Runtime/Game/Scene.h"
-#include "Core/Input/Input.h"
+#include "Runtime/Unit/Unit.h"
+#include "Runtime/Render/Billboard.h"
 
 void weapon_init(Weapon* weapon, Unit* owner)
 {

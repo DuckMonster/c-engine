@@ -162,10 +162,9 @@ void font_debug_draw(const Font* font)
 		material = material_load("Material/font.mat");
 		mesh_create(&mesh);
 		mesh_add_buffers(&mesh, 1);
-		mesh_map_buffer(&mesh, 0, 0, 2, 4, 0);
-		mesh_map_buffer(&mesh, 0, 1, 2, 4, 2);
+		mesh_add_buffer_mapping(&mesh, 0, 0, 2);
+		mesh_add_buffer_mapping(&mesh, 0, 1, 2);
 		mesh_buffer_data(&mesh, 0, mesh_verts, sizeof(mesh_verts));
-		mesh.draw_count = 6;
 	}
 
 	texture_bind(&font->atlas, 0);

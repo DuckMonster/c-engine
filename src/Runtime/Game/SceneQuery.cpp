@@ -1,5 +1,6 @@
 #include "SceneQuery.h"
 #include "Scene.h"
+#include "Runtime/Unit/Unit.h"
 
 #if CLIENT
 static void scene_draw_line_query_result(const Line_Trace& line, const Hit_Result& hit, float duration)

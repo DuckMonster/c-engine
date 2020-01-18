@@ -6,6 +6,9 @@
 #include "Runtime/Game/Game.h"
 #include "Runtime/Online/Channel.h"
 #include "Runtime/Weapon/Weapon.h"
+#include "Runtime/Render/HealthBar.h"
+#include "Runtime/Player/Player.h"
+#include "Runtime/Mobs/Mob.h"
 
 enum Unit_Event
 {

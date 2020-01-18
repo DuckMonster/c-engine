@@ -5,9 +5,12 @@
 #include "Engine/Config/Config.h"
 #include "Engine/Graphics/Material.h"
 #include "Runtime/Render/Render.h"
+#include "Runtime/Render/Drawable.h"
 #include "Runtime/Game/Scene.h"
 #include "Runtime/Online/Online.h"
 #include "Runtime/Unit/Unit.h"
+#include "Runtime/Player/Player.h"
+#include "Runtime/Mobs/Mob.h"
 
 Game game;
 

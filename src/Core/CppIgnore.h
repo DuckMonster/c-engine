@@ -2,6 +2,8 @@
 
 // conversion loss of data
 #pragma warning( disable: 4267 )
+// casting to greater size
+#pragma warning( disable: 4312 )
 // += loss of data
 #pragma warning( disable: 4244 )
 // '==' result of expression not used

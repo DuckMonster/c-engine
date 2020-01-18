@@ -3,6 +3,13 @@
 #include "Core/Context/Context.h"
 #include "Engine/Graphics/Mesh.h"
 #include "Engine/Graphics/Material.h"
+#include "Runtime/Unit/Unit.h"
+#include "Runtime/Weapon/Weapon.h"
+#include "Runtime/Game/Projectile.h"
+#include "Runtime/Render/HealthBar.h"
+#include "Runtime/Render/Drawable.h"
+#include "Runtime/Render/Billboard.h"
+#include "Runtime/Effect/LineDrawer.h"
 
 Scene scene;
 

@@ -2,6 +2,7 @@
 #include "Core/GL/GL.h"
 
 #define MESH_BUFFER_MAX 4
+#define MESH_MAPPING_MAX 4
 
 enum Mesh_Storage_Type
 {
@@ -10,11 +11,27 @@ enum Mesh_Storage_Type
 	Mesh_Storage_Stream
 };
 
+struct Mesh_Buffer_Mapping
+{
+	u32 attribute_index;
+	u32 element_count;
+	u32 element_offset;
+};
+
+struct Mesh_Buffer
+{
+	Mesh_Buffer_Mapping mapping[MESH_MAPPING_MAX];
+	u32 num_mappings = 0;
+
+	u32 total_element_count;
+	GLuint handle;
+};
+
 struct Mesh
 {
 	GLuint vao;
 
-	GLuint buffers[MESH_BUFFER_MAX] = { GL_INVALID_INDEX };
+	Mesh_Buffer buffers[MESH_BUFFER_MAX];
 	u8 num_buffers = 0;
 
 	bool use_elements = false;
@@ -24,7 +41,7 @@ struct Mesh
 
 void mesh_create(Mesh* mesh);
 void mesh_add_buffers(Mesh* mesh, u32 count);
-void mesh_map_buffer(Mesh* mesh, u32 buffer_index, u32 attribute_index, u32 element_count, u32 stride, u32 offset);
+void mesh_add_buffer_mapping(Mesh* mesh, u32 buffer_index, u32 attribute_index, u32 element_count);
 void mesh_buffer_data(Mesh* mesh, u32 buffer_index, void* data, u32 size, Mesh_Storage_Type storage_type = Mesh_Storage_Static);
 void mesh_element_data(Mesh* mesh, u32 buffer_index, void* data, u32 size);
 
@@ -33,6 +50,4 @@ void mesh_free(Mesh* mesh);
 void mesh_bind(const Mesh* mesh);
 void mesh_draw(const Mesh* mesh);
 
-void mesh_load_triangle(Mesh* mesh);
-void mesh_load_verts(Mesh* mesh, void* v_ptr, u32 size);
 const Mesh* mesh_load(const char* path);

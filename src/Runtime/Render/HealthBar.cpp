@@ -17,9 +17,8 @@ void health_bar_init(Health_Bar* bar)
 	mesh_create(&bar->mesh);
 
 	mesh_add_buffers(&bar->mesh, 1);
-	mesh_map_buffer(&bar->mesh, 0, 0, 3, 6, 0); // Position
-	mesh_map_buffer(&bar->mesh, 0, 1, 3, 6, 3); // Color
-	bar->mesh.draw_count = 6 * 3;
+	mesh_add_buffer_mapping(&bar->mesh, 0, 0, 3); // Position
+	mesh_add_buffer_mapping(&bar->mesh, 0, 1, 3); // Color
 
 	bar->material = material_load("Material/UI/health_bar.mat");
 }

@@ -61,12 +61,14 @@ const Vec2 Vec2_X = Vec2(1.f, 0.f);
 const Vec2 Vec2_Y = Vec2(0.f, 1.f);
 const Vec2 Vec2_Zero = Vec2(0.f, 0.f);
 const Vec2 Vec2_One = Vec2(1.f, 1.f);
+const Vec2 Vec2_NaN = Vec2(NAN);
 
 const Vec3 Vec3_X = Vec3(1.f, 0.f, 0.f);
 const Vec3 Vec3_Y = Vec3(0.f, 1.f, 0.f);
 const Vec3 Vec3_Z = Vec3(0.f, 0.f, 1.f);
 const Vec3 Vec3_Zero = Vec3(0.f, 0.f, 0.f);
 const Vec3 Vec3_One = Vec3(1.f, 1.f, 1.f);
+const Vec3 Vec3_NaN = Vec3(NAN);
 
 const Vec4 Vec4_X = Vec4(1.f, 0.f, 0.f, 0.f);
 const Vec4 Vec4_Y = Vec4(0.f, 1.f, 0.f, 0.f);
@@ -74,6 +76,7 @@ const Vec4 Vec4_Z = Vec4(0.f, 0.f, 1.f, 0.f);
 const Vec4 Vec4_W = Vec4(0.f, 0.f, 0.f, 1.f);
 const Vec4 Vec4_Zero = Vec4(0.f, 0.f, 0.f, 0.f);
 const Vec4 Vec4_One = Vec4(1.f, 1.f, 1.f, 1.f);
+const Vec4 Vec4_NaN = Vec4(NAN);
 
 // Conversion operators
 inline Vec2::Vec2(const Vec3& v) : x(v.x), y(v.y) {}

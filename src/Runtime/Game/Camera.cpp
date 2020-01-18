@@ -1,6 +1,7 @@
 #include "Camera.h"
 #include "Core/Input/Input.h"
 #include "Core/Context/Context.h"
+#include "Runtime/Player/Player.h"
 #include "Runtime/Render/Render.h"
 #include "Runtime/Game/Game.h"
 #include "Runtime/Game/Scene.h"

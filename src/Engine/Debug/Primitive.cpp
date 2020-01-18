@@ -129,10 +129,9 @@ void primitives_init(Primitive_Manager* manager)
 	Vec2 line_verts[] = { Vec2(0.f, 0.f), Vec2(1.f, 0.f) };
 	mesh_create(&manager->line_mesh);
 	mesh_add_buffers(&manager->line_mesh, 1);
-	mesh_map_buffer(&manager->line_mesh, 0, 0, 2, 2, 0);
+	mesh_add_buffer_mapping(&manager->line_mesh, 0, 0, 2);
 	mesh_buffer_data(&manager->line_mesh, 0, line_verts, sizeof(line_verts));
 	manager->line_mesh.draw_mode = GL_LINES;
-	manager->line_mesh.draw_count = 2;
 
 	// Point stuff
 	manager->point_material = material_load("Material/Primitive/prim_point.mat");
@@ -140,10 +139,9 @@ void primitives_init(Primitive_Manager* manager)
 	Vec2 point_verts[] = { Vec2(0.f, 0.f) };
 	mesh_create(&manager->point_mesh);
 	mesh_add_buffers(&manager->point_mesh, 1);
-	mesh_map_buffer(&manager->point_mesh, 0, 0, 2, 2, 0);
+	mesh_add_buffer_mapping(&manager->point_mesh, 0, 0, 2);
 	mesh_buffer_data(&manager->point_mesh, 0, point_verts, sizeof(point_verts));
 	manager->point_mesh.draw_mode = GL_POINTS;
-	manager->point_mesh.draw_count = 1;
 
 	manager->mesh_material = material_load("Material/Primitive/prim_mesh.mat");
 
@@ -152,10 +150,9 @@ void primitives_init(Primitive_Manager* manager)
 	Vec3* sphere_verts = make_sphere_primitive_mesh(&sphere_num_verts);
 	mesh_create(&manager->sphere_mesh);
 	mesh_add_buffers(&manager->sphere_mesh, 1);
-	mesh_map_buffer(&manager->sphere_mesh, 0, 0, 3, 3, 0);
+	mesh_add_buffer_mapping(&manager->sphere_mesh, 0, 0, 3);
 	mesh_buffer_data(&manager->sphere_mesh, 0, sphere_verts, sizeof(Vec3) * sphere_num_verts);
 	manager->sphere_mesh.draw_mode = GL_LINES;
-	manager->sphere_mesh.draw_count = sphere_num_verts;
 
 	delete sphere_verts;
 
@@ -164,10 +161,9 @@ void primitives_init(Primitive_Manager* manager)
 	Vec3* box_verts = make_box_primitive_mesh(&box_num_verts);
 	mesh_create(&manager->box_mesh);
 	mesh_add_buffers(&manager->box_mesh, 1);
-	mesh_map_buffer(&manager->box_mesh, 0, 0, 3, 3, 0);
+	mesh_add_buffer_mapping(&manager->box_mesh, 0, 0, 3);
 	mesh_buffer_data(&manager->box_mesh, 0, box_verts, sizeof(Vec3) * box_num_verts);
 	manager->box_mesh.draw_mode = GL_LINES;
-	manager->box_mesh.draw_count = box_num_verts;
 
 	delete box_verts;
 }

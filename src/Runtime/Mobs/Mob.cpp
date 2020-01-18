@@ -1,4 +1,5 @@
 #include "Mob.h"
+#include "Runtime/Unit/Unit.h"
 #include "Runtime/Game/Scene.h"
 #include "Runtime/Game/SceneQuery.h"
 #include "Runtime/Game/Game.h"

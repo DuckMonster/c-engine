@@ -1,8 +1,6 @@
 #pragma once
 #include "Core/Time/IntervalTimer.h"
 #include "Engine/Collision/CollisionTypes.h"
-#include "Runtime/Player/Player.h"
-#include "Runtime/Mobs/Mob.h"
 #include "Runtime/Game/HandleTypes.h"
 #include "Runtime/Game/Camera.h"
 #include "Runtime/Editor/Editor.h"
@@ -10,6 +8,9 @@
 struct Channel;
 struct Online_User;
 struct Drawable;
+
+struct Player;
+struct Mob;
 
 #define MAX_PLAYERS 10
 #define MAX_MOBS 40

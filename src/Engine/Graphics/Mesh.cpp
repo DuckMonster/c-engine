@@ -11,19 +11,43 @@ void mesh_create(Mesh* mesh)
 void mesh_add_buffers(Mesh* mesh, u32 count)
 {
 	assert(mesh->num_buffers + count <= MESH_BUFFER_MAX);
-	glGenBuffers(count, mesh->buffers + mesh->num_buffers);
 
-	mesh->num_buffers += count;
+	for(u32 i=0; i<count; ++i)
+	{
+		Mesh_Buffer& buffer = mesh->buffers[mesh->num_buffers++];
+		mem_zero(&buffer, sizeof(buffer));
+		glGenBuffers(1, &buffer.handle);
+	}
 }
 
-void mesh_map_buffer(Mesh* mesh, u32 buffer_index, u32 attribute_index, u32 element_count, u32 stride, u32 offset)
+void mesh_add_buffer_mapping(Mesh* mesh, u32 buffer_index, u32 attribute_index, u32 element_count)
 {
 	glBindVertexArray(mesh->vao);
 
-	glBindBuffer(GL_ARRAY_BUFFER, mesh->buffers[buffer_index]);
+	Mesh_Buffer& buffer = mesh->buffers[buffer_index];
 
+	glBindBuffer(GL_ARRAY_BUFFER, buffer.handle);
+
+	// Add the new mapping!
+	Mesh_Buffer_Mapping& new_mapping = buffer.mapping[buffer.num_mappings++];
+	new_mapping.element_count = element_count;
+	new_mapping.element_offset = buffer.total_element_count;
+	new_mapping.attribute_index = attribute_index;
+
+	buffer.total_element_count += element_count;
+
+	// Enable it
 	glEnableVertexAttribArray(attribute_index);
-	glVertexAttribPointer(attribute_index, element_count, GL_FLOAT, false, stride * sizeof(float), (void*)(offset * sizeof(float)));
+
+	// Since we've added more elements, we need to update all the strides of the previous mappings
+	for(u32 i=0; i<buffer.num_mappings; ++i)
+	{
+		Mesh_Buffer_Mapping& mapping = buffer.mapping[i];
+		glVertexAttribPointer(
+			mapping.attribute_index, mapping.element_count, GL_FLOAT, false,
+			buffer.total_element_count * sizeof(float),
+			(void*)(mapping.element_offset * sizeof(float)));
+	}
 
 	glBindVertexArray(0);
 }
@@ -37,22 +61,34 @@ void mesh_buffer_data(Mesh* mesh, u32 buffer_index, void* data, u32 size, Mesh_S
 		case Mesh_Storage_Dynamic: gl_storage = GL_DYNAMIC_DRAW; break;
 		case Mesh_Storage_Stream: gl_storage = GL_STREAM_DRAW; break;
 	}
-	glBindBuffer(GL_ARRAY_BUFFER, mesh->buffers[buffer_index]);
+	glBindBuffer(GL_ARRAY_BUFFER, mesh->buffers[buffer_index].handle);
 	glBufferData(GL_ARRAY_BUFFER, size, data, gl_storage);
+
+	// Re-set the draw count to the number of floats divided by the total vertex-size of the selected buffer
+	if (mesh->buffers[buffer_index].total_element_count > 0)
+	{
+		u32 num_elements = size / sizeof(float);
+		mesh->draw_count = num_elements / mesh->buffers[buffer_index].total_element_count;
+	}
 }
 
 void mesh_element_data(Mesh* mesh, u32 buffer_index, void* data, u32 size)
 {
 	glBindVertexArray(mesh->vao);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh->buffers[buffer_index]);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh->buffers[buffer_index].handle);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, size, data, GL_STATIC_DRAW);
 	glBindVertexArray(0);
+
+	// Re-set the draw count to the number of indicies
+	mesh->draw_count = size / sizeof(u32);
+	mesh->use_elements = true;
 }
 
 void mesh_free(Mesh* mesh)
 {
 	glDeleteVertexArrays(1, &mesh->vao);
-	glDeleteBuffers(mesh->num_buffers, mesh->buffers);
+	for(u32 i=0; i<mesh->num_buffers; ++i)
+		glDeleteBuffers(1, &mesh->buffers[i].handle);
 	mesh->num_buffers = 0;
 }
 
@@ -71,17 +107,6 @@ void mesh_draw(const Mesh* mesh)
 		glDrawArrays(mesh->draw_mode, 0, mesh->draw_count);
 
 	glBindVertexArray(0);
-}
-
-void mesh_load_triangle(Mesh* mesh)
-{
-	float verts[] = {
-		-0.5f, -0.5f, 0.f,
-		0.5f, -0.5f, 0.f,
-		0.f, 0.5f, 0.f
-	};
-
-	mesh_load_verts(mesh, verts, sizeof(verts));
 }
 
 void mesh_res_create(Resource* resource)
@@ -103,9 +128,9 @@ void mesh_res_create(Resource* resource)
 
 	mesh_create(mesh);
 	mesh_add_buffers(mesh, 2);
-	mesh_map_buffer(mesh, 0, 0, 3, 8, 0); // Positions
-	mesh_map_buffer(mesh, 0, 1, 3, 8, 3); // Normals
-	mesh_map_buffer(mesh, 0, 2, 2, 8, 6); // UVs
+	mesh_add_buffer_mapping(mesh, 0, 0, 3); // Positions
+	mesh_add_buffer_mapping(mesh, 0, 1, 3); // Normals
+	mesh_add_buffer_mapping(mesh, 0, 2, 2); // UVs
 
 	// Build the mapping of all the vertices
 	struct Vertex
@@ -149,8 +174,6 @@ void mesh_res_create(Resource* resource)
 	}
 
 	mesh_element_data(mesh, 1, element_data, sizeof(u32) * num_triangles * 3);
-	mesh->use_elements = true;
-	mesh->draw_count = num_triangles * 3;
 }
 
 void mesh_res_destroy(Resource* resource)
@@ -164,16 +187,4 @@ const Mesh* mesh_load(const char* path)
 	// Load resource
 	Resource* resource =  resource_load(path, mesh_res_create, mesh_res_destroy);
 	return (Mesh*)resource->ptr;
-}
-
-void mesh_load_verts(Mesh* mesh, void* v_ptr, u32 size)
-{
-	mesh_create(mesh);
-
-	mesh_add_buffers(mesh, 1);
-	mesh_map_buffer(mesh, 0, 0, 3, 0, 0);
-	mesh_buffer_data(mesh, 0, v_ptr, size);
-
-	mesh->num_buffers = 1;
-	mesh->draw_count = (size / sizeof(float)) / 3;
 }
