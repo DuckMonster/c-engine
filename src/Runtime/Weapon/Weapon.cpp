@@ -5,6 +5,7 @@
 #include "Runtime/Game/Scene.h"
 #include "Runtime/Unit/Unit.h"
 #include "Runtime/Render/Billboard.h"
+#include "Runtime/Fx/Fx.h"
 
 void weapon_init(Weapon* weapon, Unit* owner)
 {
@@ -66,7 +67,8 @@ void weapon_update(Weapon* weapon)
 void weapon_shoot(Weapon* weapon, const Vec2& target)
 {
 	Vec2 direction = normalize(target - weapon->position);
-	scene_make_projectile(weapon->owner, weapon->position + direction * 0.4f, direction);
+	Vec2 origin = weapon->position + direction * 0.4f;
+	scene_make_projectile(weapon->owner, origin, direction);
 
 #if CLIENT
 	float impulse_strength = random_float(0.4f, 1.f);
@@ -77,5 +79,26 @@ void weapon_shoot(Weapon* weapon, const Vec2& target)
 
 	weapon->offset_velocity = -direction * weapon_shoot_impulse * impulse_strength;
 	weapon->angle_offset_velocity = weapon_shoot_angle_impulse * impulse_strength;
+
+	/* Spawn some pretty particles! */
+	Fx_Particle_Spawn_Params params;
+	params.num_particles = 6;
+	params.position = Vec3(origin, 0.5f);
+	params.position_radius = 0.1f;
+	params.velocity = Vec3(direction, 0.f) * 4.f;
+	params.velocity_cone_angle = 20.f;
+	params.velocity_scale_variance = 0.9f;
+
+	params.drag_min = 1.5f;
+	params.drag_max = 5.5f;
+	params.gravity_min = -20.f;
+	params.gravity_max = -9.f;
+
+	params.color_min = Color_Dark_Gray;
+	params.color_max = Color_Light_Gray;
+
+	params.lifetime_min = 0.4f;
+	params.lifetime_max = 0.8f;
+	fx_make_particle(params);
 #endif
 }

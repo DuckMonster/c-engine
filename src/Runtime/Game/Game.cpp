@@ -172,6 +172,18 @@ void game_update()
 		editor_update(&game.editor);
 	}
 
+	// Time scaling
+	if (input_key_pressed(Key::KeyPadPlus))
+	{
+		time_scale *= 1.5f;
+		debug_log("Time Scale: %f", time_scale);
+	}
+	if (input_key_pressed(Key::KeyPadMinus))
+	{
+		time_scale /= 1.5f;
+		debug_log("Time Scale: %f", time_scale);
+	}
+
 #elif SERVER
 
 	if (thing_num(&game.players) > 0 &&

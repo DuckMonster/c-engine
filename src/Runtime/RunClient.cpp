@@ -116,7 +116,7 @@ void run()
 
 		if (timer_update(&stat_timer))
 		{
-			debug_log("ms: %.2f", time_delta() * 1000.f);
+			debug_log("ms: %.2f", time_delta_unscaled() * 1000.f);
 		}
 
 		client_update();

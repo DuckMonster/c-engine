@@ -5,6 +5,7 @@
 #include "Runtime/Game/Scene.h"
 #include "Runtime/Game/Game.h"
 #include "Runtime/Online/Online.h"
+#include "Runtime/Fx/Fx.h"
 
 enum Player_Events
 {
@@ -149,6 +150,18 @@ void player_update(Player* player)
 #if CLIENT
 		if (!game.is_editor)
 			player_update_local_input(player);
+
+		if (input_key_pressed(Key::F))
+		{
+			Fx_Particle_Spawn_Params params;
+			params.num_particles = 10;
+			params.position = Vec3(unit->position, 0.5f);
+			params.position_radius = 0.f;
+			params.velocity = (-Vec3_X + Vec3_Z) * 4.f;
+			params.velocity_cone_angle = 5.f;
+			params.velocity_scale_variance = 0.0f;
+			fx_make_particle(params);
+		}
 #endif
 	}
 	else

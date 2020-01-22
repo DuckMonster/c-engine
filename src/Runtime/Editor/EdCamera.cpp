@@ -47,7 +47,7 @@ void ed_camera_update(Ed_Camera* camera)
 			move_direction -= Vec3_Z;
 
 		float move_speed = input_key_down(Key::LeftShift) ? ed_cam_move_speed_fast : ed_cam_move_speed;
-		camera->position += move_direction *  move_speed * time_delta();
+		camera->position += move_direction *  move_speed * time_delta_unscaled();
 	}
 }
 

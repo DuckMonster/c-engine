@@ -56,6 +56,17 @@ Scene_Query_Result scene_query_line(const Line_Trace& line, const Scene_Query_Pa
 			result.unit = nullptr;
 		}
 
+		Plane ground_plane;
+		ground_plane.point = Vec3_Zero;
+		ground_plane.normal = Vec3_Z;
+
+		hit = test_line_trace_plane(line, ground_plane);
+		if (hit.has_hit && hit.time < result.hit.time)
+		{
+			result.hit = hit;
+			result.unit = nullptr;
+		}
+
 		hit = test_line_trace_aligned_box(line, scene.aligned_box);
 		if (hit.has_hit && hit.time < result.hit.time)
 		{

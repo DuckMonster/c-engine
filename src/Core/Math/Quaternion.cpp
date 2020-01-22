@@ -108,7 +108,7 @@ Quat angle_axis(float angle, const Vec3& axis)
 
 Quat quat_from_x(const Vec3& x)
 {
-	Vec3 axis_x = x;
+	Vec3 axis_x = normalize(x);
 	Vec3 axis_y = normalize(cross(Vec3_Z, x));
 	Vec3 axis_z = cross(axis_x, axis_y);
 

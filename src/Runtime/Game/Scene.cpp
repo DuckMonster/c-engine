@@ -10,6 +10,7 @@
 #include "Runtime/Render/Drawable.h"
 #include "Runtime/Render/Billboard.h"
 #include "Runtime/Effect/LineDrawer.h"
+#include "Runtime/Fx/Fx.h"
 
 Scene scene;
 
@@ -26,6 +27,7 @@ void scene_init()
 	thing_array_init(&scene.health_bars, MAX_HEALTH_BARS);
 
 	primitives_init(&scene.primitive_manager);
+	fx_init();
 #endif
 
 	scene.sphere.origin = Vec3(5.f, 0.f, 0.f);
@@ -58,6 +60,7 @@ void scene_update()
 	scene_draw_box(scene.aligned_box.position, scene.aligned_box.size, Quat_Identity, Color_Red);
 	scene_draw_box(scene.box.position, scene.box.size, scene.box.orientation, Color_Red);
 
+	fx_update();
 #endif
 }
 
@@ -224,6 +227,8 @@ void scene_render(const Render_State& state)
 			health_bar_render(it, state);
 
 		primitives_render(&scene.primitive_manager, state);
+
+		fx_render(state);
 	}
 }
 #endif

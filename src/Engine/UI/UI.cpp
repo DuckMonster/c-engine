@@ -6,9 +6,9 @@ static const Font* test_font;
 void ui_init()
 {
 	// Test out fonts!
-	test_font = font_load("Font/pinch_mono.ttf");
+	//test_font = font_load("Font/pinch_mono.ttf");
 }
 void ui_draw()
 {
-	font_debug_draw(test_font);
+	//font_debug_draw(test_font);
 }

@@ -9,6 +9,8 @@ namespace
 	float frame_delta = 0;
 }
 
+float time_scale = 1.f;
+
 float time_get_delta(LARGE_INTEGER from, LARGE_INTEGER to)
 {
 	LARGE_INTEGER elapsed;
@@ -34,11 +36,13 @@ void time_update_delta()
 
 	if (frame_delta > 0.1f)
 		frame_delta = 0.1f;
+
 }
 
-float time_delta() { return frame_delta; }
+float time_delta() { return frame_delta * time_scale; }
+float time_delta_unscaled() { return frame_delta; }
 
-float time_duration()
+float time_current()
 {
 	LARGE_INTEGER now;
 	QueryPerformanceCounter(&now);

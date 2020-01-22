@@ -29,7 +29,7 @@ void camera_update(Camera* camera)
 	Vec3 diff = camera->target_position - camera->position;
 	camera->position += diff * 12.f * time_delta();
 
-	//camera->size = 1.f + sin(time_duration() * 0.4f) * 0.5f;
+	//camera->size = 1.f + sin(time_current() * 0.4f) * 0.5f;
 }
 
 Vec3 camera_forward(Camera* camera)

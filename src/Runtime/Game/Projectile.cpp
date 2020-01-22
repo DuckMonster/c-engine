@@ -8,6 +8,7 @@
 #include "Runtime/Game/Scene.h"
 #include "Runtime/Game/SceneQuery.h"
 #include "Runtime/Unit/Unit.h"
+#include "Runtime/Fx/Fx.h"
 
 void projectile_init(Projectile* projectile, const Unit_Handle& owner, const Vec2& position, const Vec2& direction)
 {
@@ -73,6 +74,32 @@ void projectile_update(Projectile* projectile)
 		Unit* unit = query_result.unit;
 		if (unit && owner && unit_has_control(owner))
 			unit_hit(unit, projectile->owner, projectile->direction * 20.f);
+		else if (!unit)
+		{
+#if CLIENT
+			Vec3 normal = query_result.hit.normal;
+			Vec3 pos = query_result.hit.position + normal * 0.1f;
+			Vec3 velocity = reflect(Vec3(projectile->direction, 0.f) * projectile->speed, normal) * 0.2f;
+
+			// If we hit a prop, spawn some neat projectiles!
+			Fx_Particle_Spawn_Params params;
+			params.num_particles = 10;
+			params.position = query_result.hit.position + query_result.hit.normal * 0.2f;
+			params.position_radius = 0.1f;
+			params.velocity = velocity;
+			params.velocity_cone_angle = 40.f;
+			params.velocity_scale_variance = 0.9f;
+
+			params.drag_min = 3.5f;
+			params.drag_max = 4.5f;
+			params.gravity_min = 4.f;
+			params.gravity_max = 10.f;
+
+			params.color_min = Color_Dark_Gray;
+			params.color_max = Color_White;
+			fx_make_particle(params);
+#endif
+		}
 
 		scene_destroy_projectile(projectile);
 		return;

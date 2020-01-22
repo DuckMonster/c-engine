@@ -56,7 +56,7 @@ void connection_open(Connection* connection, const Ip_Address& addr)
 
 	connection->state = Connection_State::Open;
 	connection->addr = addr;
-	connection->ping_send_time = time_duration() + CONN_PING_INTERVAL;
+	connection->ping_send_time = time_current() + CONN_PING_INTERVAL;
 
 	connection_unlock(connection, Connection_Lock::State);
 }
