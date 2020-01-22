@@ -1,0 +1,50 @@
+{
+	"folders":
+	[
+		{
+			"path": "src",
+			"name": "Source"
+		},
+		{
+			"path": "include",
+			"name": "Include"
+		},
+		{
+			"path": "res",
+			"name": "Resources"
+		},
+		{
+			"folder_exclude_patterns": ["*"],
+			"path": ".",
+		}
+	],
+	"settings": 
+	{
+		"ms_build_configs":
+		[
+			{
+				"name": "Debug",
+				"outputs":
+				[
+					{ "path": "bin/debug/game.exe", "args": "Emil" }
+				]
+			},
+			{
+				"name": "DebugServer",
+				"outputs":
+				[
+					{ "path": "bin/debug/game_server.exe" }
+				]
+			},
+			{
+				"name": "Debug+DebugServer",
+				"outputs":
+				[
+					{ "path": "bin/debug/game.exe", "args": "Player0" },
+					//{ "path": "bin/debug/game.exe", "args": "Player1" },
+					{ "path": "bin/debug/game_server.exe" }
+				]
+			}
+		]
+	}
+}
