@@ -59,6 +59,7 @@ Mat4 mat_look_at(const Vec3& eye, const Vec3& target, const Vec3& up);
 Mat4 mat_look_forward(const Vec3& eye, const Vec3& forward, const Vec3& up);
 Mat4 inverse(const Mat4& mat);
 Mat4 transpose(const Mat4& mat);
+void decompose(const Mat4& mat, Vec3* translation, Quat* rotation, Vec3* scale);
 
 Mat4 mat_position(const Vec3& position);
 Mat4 mat_position_rotation(const Vec3& position, const Quat& rotation);

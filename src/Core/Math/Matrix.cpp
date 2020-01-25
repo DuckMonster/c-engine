@@ -156,6 +156,22 @@ Mat4 transpose(const Mat4& mat)
 	return result;
 }
 
+void decompose(const Mat4& mat, Vec3* translation, Quat* rotation, Vec3* scale)
+{
+	*translation = Vec3(mat[3]);
+	*scale = Vec3(
+		length(mat[0]),
+		length(mat[1]),
+		length(mat[2])
+	);
+
+	Mat4 rotation_matrix;
+	rotation_matrix[0] = mat[0] / scale->x;
+	rotation_matrix[1] = mat[1] / scale->y;
+	rotation_matrix[2] = mat[2] / scale->z;
+	*rotation = mat_to_quat(rotation_matrix);
+}
+
 Mat4 mat_position(const Vec3& position)
 {
 	Mat4 mat;

@@ -8,10 +8,10 @@ net: {
 }
 
 context: {
-	x: 200
-	y: 200
-	width: 1600
-	height: 1024
+	x: 0
+	y: 0
+	width: 1024
+	height: 768
 }
 
 render: {

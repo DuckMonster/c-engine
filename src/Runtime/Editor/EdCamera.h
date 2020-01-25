@@ -14,7 +14,6 @@ const float ed_cam_move_speed_fast = 6.f;
 struct Ed_Camera
 {
 	Vec3 position = Vec3(0.f, -5.f, 2.f);
-	Vec3 forward = Vec3(0.f, 1.f, -0.2f);
 
 	bool has_control = false;
 	Quat orientation = Quat_Identity;

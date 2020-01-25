@@ -13,6 +13,14 @@ struct Plane
 	Vec3 point;
 	Vec3 normal;
 };
+inline Plane plane_make(const Vec3& point, const Vec3& normal)
+{
+	Plane result;
+	result.point = point;
+	result.normal = normal;
+
+	return result;
+}
 
 struct Line_Trace
 {
