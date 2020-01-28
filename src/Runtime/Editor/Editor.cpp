@@ -5,6 +5,7 @@
 #include "Runtime/Render/Render.h"
 #include "Runtime/Game/Scene.h"
 #include "Runtime/Game/Game.h"
+#include "Runtime/Render/Drawable.h"
 
 #if CLIENT
 
@@ -18,14 +19,40 @@ void editor_update(Editor* editor)
 	ed_camera_update(&editor->camera);
 	render_set_vp(ed_camera_view_matrix(&editor->camera), ed_camera_projection_matrix(&editor->camera));
 
-	if (!editor->camera.has_control)
-		gizmo_update(&editor->gizmo);
+	if (input_key_pressed(Key::Num1))
+		editor_select_edit(editor, game.test_drawables[0]);
+	if (input_key_pressed(Key::Num2))
+		editor_select_edit(editor, game.test_drawables[1]);
+	if (input_key_pressed(Key::Num0))
+		editor_select_edit(editor, nullptr);
+
+	if (editor->edited_drawable)
+	{
+		if (!editor->camera.has_control)
+		{
+			gizmo_update(&editor->gizmo);
+
+			Mat4 gizmo_mat;
+			gizmo_mat = gizmo_get_transform(&editor->gizmo);
+
+			editor->edited_drawable->transform = gizmo_mat;
+		}
+	}
 }
 
 void editor_render(Editor* editor, const Render_State& state)
 {
-	if (state.current_pass == PASS_Game)
-		gizmo_draw(&editor->gizmo, state);
+	if (editor->edited_drawable)
+		if (state.current_pass == PASS_Game)
+			gizmo_draw(&editor->gizmo, state);
+}
+
+void editor_select_edit(Editor* editor, Drawable* drawable)
+{
+	editor->edited_drawable = drawable;
+
+	if (drawable)
+		gizmo_set_transform(&editor->gizmo, drawable->transform);
 }
 
 Ray editor_mouse_ray()

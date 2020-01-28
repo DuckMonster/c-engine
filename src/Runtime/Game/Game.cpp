@@ -145,6 +145,9 @@ void game_init()
 	Drawable* sphere = scene_make_drawable(mesh_load("Mesh/sphere.fbx"), material_load("Material/default.mat"));
 	sphere->transform = mat_position_scale(Vec3(5.f, 5.f, 5.f), Vec3(2.f, 2.f, 2.f));
 	editor_init(&game.editor);
+
+	game.test_drawables[0] = scene_make_drawable(mesh_load("Mesh/cube.fbx"), material_load("Material/default.mat"));
+	game.test_drawables[1] = scene_make_drawable(mesh_load("Mesh/cube.fbx"), material_load("Material/default.mat"));
 #endif
 
 #if SERVER

@@ -32,6 +32,8 @@ struct Game
 
 	bool is_editor = false;
 	Editor editor;
+
+	Drawable* test_drawables[2];
 #endif
 
 #if SERVER

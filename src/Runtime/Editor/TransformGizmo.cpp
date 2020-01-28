@@ -299,8 +299,6 @@ void gizmo_draw(Transform_Gizmo* gizmo, const Render_State& state)
 		if (hit.has_hit)
 			scene_draw_line(gizmo->position, hit.position);
 	}
-
-	scene_draw_box(gizmo->position, gizmo->scale, gizmo->rotation);
 }
 
 Mat4 gizmo_get_transform(Transform_Gizmo* gizmo)
@@ -310,6 +308,6 @@ Mat4 gizmo_get_transform(Transform_Gizmo* gizmo)
 
 void gizmo_set_transform(Transform_Gizmo* gizmo, const Mat4& transform)
 {
-
+	decompose(transform, &gizmo->position, &gizmo->rotation, &gizmo->scale);
 }
 #endif
