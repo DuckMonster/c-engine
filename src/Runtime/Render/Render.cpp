@@ -65,7 +65,7 @@ void render_draw()
 	Render_State state = render_global;
 
 	/* SHADOW BUFFER */
-	framebuffer_bind(&shadow_buffer);
+	framebuffer_push(&shadow_buffer);
 
 	glEnable(GL_DEPTH_TEST);
 	glClear(GL_DEPTH_BUFFER_BIT);
@@ -85,14 +85,14 @@ void render_draw()
 	state.current_pass = PASS_Shadow;
 	render_draw_scene(state);
 
-	framebuffer_reset();
+	framebuffer_pop();
 
 	/* Draw onto scale buffer */
 	state.view = render_global.view;
 	state.projection = render_global.projection;
 	state.view_projection = render_global.view_projection;
 
-	framebuffer_bind(&scale_buffer);
+	framebuffer_push(&scale_buffer);
 
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -105,7 +105,7 @@ void render_draw()
 	state.current_pass = PASS_Game;
 	render_draw_scene(state);
 
-	framebuffer_reset();
+	framebuffer_pop();
 
 	texture_bind(&shadow_buffer.textures[0], 1);
 

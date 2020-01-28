@@ -16,7 +16,7 @@ struct Ed_Camera
 	Vec3 position = Vec3(0.f, -5.f, 2.f);
 
 	bool has_control = false;
-	Quat orientation = Quat_Identity;
+	Quat orientation = quat_from_x(normalize(Vec3(0.f, 1.f, -0.4f)));
 };
 
 void ed_camera_update(Ed_Camera* camera);

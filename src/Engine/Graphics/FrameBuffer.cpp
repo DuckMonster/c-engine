@@ -1,6 +1,13 @@
 #include "FrameBuffer.h"
 #include "Core/Context/Context.h"
 
+#define FRAMEBUFFER_STACK_SIZE
+namespace
+{
+	Frame_Buffer* buffer_stack[4];
+	u32 buffer_stack_index = 0;
+}
+
 void framebuffer_create(Frame_Buffer* fb, u32 width, u32 height)
 {
 	glCreateFramebuffers(1, &fb->handle);
@@ -61,4 +68,32 @@ void framebuffer_reset()
 {
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glViewport(0, 0, context.width, context.height);
+}
+
+void framebuffer_push(Frame_Buffer* fb)
+{
+	buffer_stack[buffer_stack_index] = fb;
+	buffer_stack_index++;
+
+	framebuffer_bind(fb);
+}
+
+void framebuffer_pop()
+{
+	if (buffer_stack_index <= 0)
+		error("Can't pop framebuffer stack when index is 0");
+
+	buffer_stack_index--;
+	if (buffer_stack_index > 0)
+		framebuffer_bind(buffer_stack[buffer_stack_index - 1]);
+	else
+		framebuffer_reset();
+}
+
+Frame_Buffer* framebuffer_get_current()
+{
+	if (buffer_stack_index == 0)
+		return nullptr;
+
+	return buffer_stack[buffer_stack_index - 1];
 }

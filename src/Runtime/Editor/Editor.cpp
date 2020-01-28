@@ -24,7 +24,8 @@ void editor_update(Editor* editor)
 
 void editor_render(Editor* editor, const Render_State& state)
 {
-	gizmo_draw(&editor->gizmo, state);
+	if (state.current_pass == PASS_Game)
+		gizmo_draw(&editor->gizmo, state);
 }
 
 Ray editor_mouse_ray()

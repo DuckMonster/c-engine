@@ -1,5 +1,6 @@
 #pragma once
 #include "Engine/Collision/CollisionTypes.h"
+#include "Engine/Graphics/FrameBuffer.h"
 #include "Runtime/Render/Render.h"
 
 struct Material;
@@ -44,6 +45,8 @@ struct Transform_Gizmo
 
 	const Material* material;
 	const Mesh* meshes[Mode_Max];
+
+	Frame_Buffer draw_buffer;
 };
 
 #if CLIENT

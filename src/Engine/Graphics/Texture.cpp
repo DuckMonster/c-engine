@@ -105,4 +105,5 @@ void texture_draw_fullscreen(Texture* tex)
 	material_bind(mat);
 	texture_bind(tex, 0);
 	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+	glEnable(GL_DEPTH_TEST);
 }

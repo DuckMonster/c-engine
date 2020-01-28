@@ -101,11 +101,16 @@ void gizmo_set_mode(Transform_Gizmo* gizmo, Gizmo_Mode mode)
 
 void gizmo_init(Transform_Gizmo* gizmo)
 {
+	gizmo->position = Vec3_Z * 2.f;
 	gizmo->rotation = angle_axis(2.f, normalize(Vec3(10.f, -2.f, -8.f)));
 	gizmo->material = material_load("Material/Gizmo/gizmo.mat");
 	gizmo->meshes[Mode_Translate] = mesh_load("Mesh/Gizmo/translate.fbx");
 	gizmo->meshes[Mode_Rotate] = mesh_load("Mesh/Gizmo/rotate.fbx");
 	gizmo->meshes[Mode_Scale] = mesh_load("Mesh/Gizmo/scale.fbx");
+
+	framebuffer_create(&gizmo->draw_buffer, context.width, context.height);
+	framebuffer_add_color_texture(&gizmo->draw_buffer);
+	framebuffer_add_depth_texture(&gizmo->draw_buffer);
 }
 
 void gizmo_apply_translate(Transform_Gizmo* gizmo, const Vec3& from, const Vec3& to)
@@ -245,8 +250,22 @@ void gizmo_draw_axis_z(Transform_Gizmo* gizmo)
 
 void gizmo_draw(Transform_Gizmo* gizmo, const Render_State& state)
 {
+	Frame_Buffer* current_fb = framebuffer_get_current();
+
+	// We draw the gizmo on a separaret framebuffer so we can do our own
+	//	depth testing while ignoring the depth-testing of the main color-pass
+	framebuffer_push(&gizmo->draw_buffer);
+
+	glClearColor(0.f, 0.f, 0.f, 0.f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
 	material_bind(gizmo->material);
 	material_set(gizmo->material, "u_ViewProjection", state.view_projection);
+	material_set(gizmo->material, "u_ContextSize", Vec2(context.width, context.height));
+
+	// We use the depth-buffer of the main color-pass do make the gizmo
+	//	darker if "blocked" by something
+	texture_bind(&current_fb->textures[1], 0);
 
 	scene_draw_point(gizmo->position);
 
@@ -266,6 +285,12 @@ void gizmo_draw(Transform_Gizmo* gizmo, const Render_State& state)
 			gizmo_draw_axis_z(gizmo);
 	}
 
+	framebuffer_pop();
+
+	// Render our gizmo-frame-buffer onto the screen
+	texture_draw_fullscreen(&gizmo->draw_buffer.textures[0]);
+
+	// Draw a nice rotation line
 	if (gizmo->mode == Mode_Rotate && gizmo->active_axes != 0)
 	{
 		Ray mouse_ray = editor_mouse_ray();

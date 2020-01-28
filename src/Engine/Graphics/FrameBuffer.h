@@ -20,5 +20,6 @@ void framebuffer_add_depth_texture(Frame_Buffer* fb);
 bool framebuffer_is_complete(Frame_Buffer* fb);
 void framebuffer_free(Frame_Buffer* fb);
 
-void framebuffer_bind(Frame_Buffer* fb);
-void framebuffer_reset();
+void framebuffer_push(Frame_Buffer* fb);
+void framebuffer_pop();
+Frame_Buffer* framebuffer_get_current();
