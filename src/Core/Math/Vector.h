@@ -346,3 +346,7 @@ inline Vec3 reflect(const Vec3& vec, const Vec3& reflection_normal)
 inline Vec2 lerp(Vec2 a, Vec2 b, float t) { return a + (b - a) * t; }
 inline Vec3 lerp(Vec3 a, Vec3 b, float t) { return a + (b - a) * t; }
 inline Vec4 lerp(Vec4 a, Vec4 b, float t) { return a + (b - a) * t; }
+
+inline bool is_nan(const Vec2& v) { return is_nan(v.x) || is_nan(v.y); }
+inline bool is_nan(const Vec3& v) { return is_nan(v.x) || is_nan(v.y) || is_nan(v.z); }
+inline bool is_nan(const Vec4& v) { return is_nan(v.x) || is_nan(v.y) || is_nan(v.z) || is_nan(v.w); }

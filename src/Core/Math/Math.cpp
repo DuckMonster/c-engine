@@ -27,3 +27,8 @@ float mod_range(float value, float min, float max)
 
 	return value;
 }
+
+bool is_nan(float a)
+{
+	return isnan(a);
+}

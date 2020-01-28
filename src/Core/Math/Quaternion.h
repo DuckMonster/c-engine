@@ -17,9 +17,14 @@ Quat mat_to_quat(const Mat4& mat);
 Quat angle_axis(float angle, const Vec3& axis);
 
 Quat quat_from_x(const Vec3& x);
+Quat quat_from_xy(const Vec3& x, const Vec3& y);
+Quat quat_from_xz(const Vec3& x, const Vec3& z);
 
 Vec3 quat_x(const Quat& q);
 Vec3 quat_y(const Quat& q);
 Vec3 quat_z(const Quat& q);
+
+Quat quat_from_to(const Vec3& from, const Vec3& to);
+inline bool is_nan(const Quat& q) { return is_nan(q.x) || is_nan(q.y) || is_nan(q.z) || is_nan(q.w); }
 
 const Quat Quat_Identity = Quat(0.f, 0.f, 0.f, 1.f);

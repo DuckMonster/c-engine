@@ -358,7 +358,9 @@ void context_hide_cursor()
 void context_show_cursor()
 {
 	context.cursor_hide = false;
-	ShowCursor(true);
+
+	// Keep incrementing the show counter until its visible
+	while(ShowCursor(true) < 0); 
 }
 
 void context_lock_cursor()

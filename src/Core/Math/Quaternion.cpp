@@ -108,8 +108,32 @@ Quat angle_axis(float angle, const Vec3& axis)
 
 Quat quat_from_x(const Vec3& x)
 {
+	if (is_nearly_zero(x.x) && is_nearly_zero(x.y))
+		return quat_from_xy(x, Vec3_Y);
+	else
+		return quat_from_xz(x, Vec3_Z);
+}
+
+Quat quat_from_xy(const Vec3& x, const Vec3& y)
+{
 	Vec3 axis_x = normalize(x);
-	Vec3 axis_y = normalize(cross(Vec3_Z, x));
+	Vec3 axis_z = normalize(cross(x, y));
+	Vec3 axis_y = cross(axis_z, axis_x);
+
+	Mat4 mat(
+		axis_x.x, axis_x.y, axis_x.z, 0.f,
+		axis_y.x, axis_y.y, axis_y.z, 0.f,
+		axis_z.x, axis_z.y, axis_z.z, 0.f,
+		0.f, 0.f, 0.f, 1.f
+	);
+
+	return mat_to_quat(mat);
+}
+
+Quat quat_from_xz(const Vec3& x, const Vec3& z)
+{
+	Vec3 axis_x = normalize(x);
+	Vec3 axis_y = normalize(cross(z, x));
 	Vec3 axis_z = cross(axis_x, axis_y);
 
 	Mat4 mat(
@@ -135,4 +159,21 @@ Vec3 quat_y(const Quat& q)
 Vec3 quat_z(const Quat& q)
 {
 	return q * Vec3_Z;
+}
+
+Quat quat_from_to(const Vec3& from, const Vec3& to)
+{
+	if (is_nearly_equal(from, to))
+		return Quat_Identity;
+	if (is_nearly_zero(from) || is_nearly_zero(to))
+		return Quat_Identity;
+
+	Vec3 from_n = normalize(from);
+	Vec3 to_n = normalize(to);
+
+	Vec3 axis = cross(from_n, to_n);
+	float angle = acos(dot(from_n, to_n));
+
+	return angle_axis(angle, normalize(axis));
+	//return Quat(axis.x, axis.y, axis.z, angle);
 }

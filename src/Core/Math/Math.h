@@ -38,3 +38,5 @@ inline float degrees_diff(float from, float to) { return unwrap_degrees(to - fro
 inline float lerp(float a, float b, float t) { return a + (b - a) * t; }
 inline float lerp_radians(float a, float b, float t) { return unwrap_radians(a + radians_diff(a, b) * t); }
 inline float lerp_degrees(float a, float b, float t) { return unwrap_degrees(a + degrees_diff(a, b) * t); }
+
+bool is_nan(float a);

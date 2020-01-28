@@ -217,6 +217,16 @@ void game_update()
 	scene_update();
 }
 
+#if CLIENT
+void game_render(const Render_State& state)
+{
+	scene_render(state);
+
+	if (game.is_editor)
+		editor_render(&game.editor, state);
+}
+#endif
+
 Player* game_get_player(const Player_Handle& player_hndl)
 {
 	return thing_resolve(&game.players, player_hndl);

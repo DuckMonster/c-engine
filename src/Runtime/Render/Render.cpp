@@ -57,7 +57,7 @@ void render_init()
 
 void render_draw_scene(const Render_State& state)
 {
-	scene_render(state);
+	game_render(state);
 }
 
 void render_draw()

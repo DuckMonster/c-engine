@@ -20,8 +20,11 @@ void editor_update(Editor* editor)
 
 	if (!editor->camera.has_control)
 		gizmo_update(&editor->gizmo);
+}
 
-	gizmo_draw(&editor->gizmo);
+void editor_render(Editor* editor, const Render_State& state)
+{
+	gizmo_draw(&editor->gizmo, state);
 }
 
 Ray editor_mouse_ray()

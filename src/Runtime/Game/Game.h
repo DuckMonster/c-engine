@@ -42,6 +42,9 @@ extern Game game;
 
 void game_init();
 void game_update();
+#if CLIENT
+void game_render(const Render_State& state);
+#endif
 
 Player* game_get_player(const Player_Handle& player_hndl);
 Player_Handle game_player_handle(Player* player);
