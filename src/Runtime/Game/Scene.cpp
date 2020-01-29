@@ -4,6 +4,7 @@
 #include "Engine/Graphics/Mesh.h"
 #include "Engine/Graphics/Material.h"
 #include "Runtime/Unit/Unit.h"
+#include "Runtime/Prop/Prop.h"
 #include "Runtime/Weapon/Weapon.h"
 #include "Runtime/Game/Projectile.h"
 #include "Runtime/Render/HealthBar.h"
@@ -19,6 +20,7 @@ void scene_init()
 	thing_array_init(&scene.units, MAX_UNITS);
 	thing_array_init(&scene.weapons, MAX_WEAPONS);
 	thing_array_init(&scene.projectiles, MAX_PROJECTILES);
+	thing_array_init(&scene.props, MAX_PROPS);
 
 #if CLIENT
 	thing_array_init(&scene.drawables, MAX_DRAWABLES);
@@ -135,6 +137,20 @@ void scene_destroy_projectile(Projectile* projectile)
 {
 	projectile_free(projectile);
 	thing_remove(&scene.projectiles, projectile);
+}
+
+Prop* scene_make_prop()
+{
+	Prop* prop = thing_add(&scene.props);
+	prop_init(prop);
+
+	return prop;
+}
+
+void scene_destroy_prop(Prop* prop)
+{
+	prop_free(prop);
+	thing_remove(&scene.props, prop);
 }
 
 #if CLIENT

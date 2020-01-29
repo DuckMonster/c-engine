@@ -1,4 +1,5 @@
 #pragma once
+#include "Core/Math/Transform.h"
 #include "Engine/Collision/CollisionTypes.h"
 #include "Engine/Graphics/FrameBuffer.h"
 #include "Runtime/Render/Render.h"
@@ -32,9 +33,7 @@ enum Gizmo_Space
 
 struct Transform_Gizmo
 {
-	Vec3 position = Vec3_Zero;
-	Quat rotation = Quat_Identity; 
-	Vec3 scale = Vec3_One;
+	Transform transform;
 
 	Gizmo_Mode mode = Mode_Translate;
 	int space = Space_Local;
@@ -53,9 +52,6 @@ struct Transform_Gizmo
 void gizmo_init(Transform_Gizmo* gizmo);
 void gizmo_update(Transform_Gizmo* gizmo);
 void gizmo_draw(Transform_Gizmo* gizmo, const Render_State& state);
-
-Mat4 gizmo_get_transform(Transform_Gizmo* gizmo);
-void gizmo_set_transform(Transform_Gizmo* gizmo, const Mat4& transform);
 
 Vec3 gizmo_x(Transform_Gizmo* gizmo);
 Vec3 gizmo_y(Transform_Gizmo* gizmo);

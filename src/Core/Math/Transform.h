@@ -9,3 +9,4 @@ struct Transform
 };
 
 Mat4 transform_mat(const Transform& transform);
+Transform transform_from_mat(const Mat4& mat);

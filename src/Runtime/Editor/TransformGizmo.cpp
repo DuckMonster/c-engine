@@ -11,7 +11,7 @@
 Quat gizmo_space_quat(Transform_Gizmo* gizmo)
 {
 	if (gizmo->space == Space_Local)
-		return gizmo->rotation;
+		return gizmo->transform.rotation;
 	else
 		return gizmo->world_temp_rotation;
 }
@@ -30,7 +30,7 @@ Vec3 gizmo_z(Transform_Gizmo* gizmo)
 
 Vec3 get_best_drag_plane_normal(Transform_Gizmo* gizmo, const Vec3& a, const Vec3& b)
 {
-	Vec3 forw = gizmo->position - game.editor.camera.position;
+	Vec3 forw = gizmo->transform.position - game.editor.camera.position;
 	float a_dot = abs(dot(forw, a));
 	float b_dot = abs(dot(forw, b));
 
@@ -44,30 +44,30 @@ Plane gizmo_calculate_drag_plane(Transform_Gizmo* gizmo)
 	if (gizmo->mode == Mode_Translate)
 	{
 		if (axes == Axis_X)
-			return plane_make(gizmo->position, get_best_drag_plane_normal(gizmo, gizmo_y(gizmo), gizmo_z(gizmo)));
+			return plane_make(gizmo->transform.position, get_best_drag_plane_normal(gizmo, gizmo_y(gizmo), gizmo_z(gizmo)));
 		if (axes == Axis_Y)
-			return plane_make(gizmo->position, get_best_drag_plane_normal(gizmo, gizmo_x(gizmo), gizmo_z(gizmo)));
+			return plane_make(gizmo->transform.position, get_best_drag_plane_normal(gizmo, gizmo_x(gizmo), gizmo_z(gizmo)));
 		if (axes == Axis_Z)
-			return plane_make(gizmo->position, get_best_drag_plane_normal(gizmo, gizmo_x(gizmo), gizmo_y(gizmo)));
+			return plane_make(gizmo->transform.position, get_best_drag_plane_normal(gizmo, gizmo_x(gizmo), gizmo_y(gizmo)));
 
 		if (axes == (Axis_X | Axis_Y))
-			return plane_make(gizmo->position, gizmo_z(gizmo));
+			return plane_make(gizmo->transform.position, gizmo_z(gizmo));
 		if (axes == (Axis_X | Axis_Z))
-			return plane_make(gizmo->position, gizmo_y(gizmo));
+			return plane_make(gizmo->transform.position, gizmo_y(gizmo));
 		if (axes == (Axis_Y | Axis_Z))
-			return plane_make(gizmo->position, gizmo_x(gizmo));
+			return plane_make(gizmo->transform.position, gizmo_x(gizmo));
 	}
 	else if (gizmo->mode == Mode_Rotate)
 	{
 		if (axes & Axis_X)
-			return plane_make(gizmo->position, gizmo_x(gizmo));
+			return plane_make(gizmo->transform.position, gizmo_x(gizmo));
 		if (axes & Axis_Y)
-			return plane_make(gizmo->position, gizmo_y(gizmo));
+			return plane_make(gizmo->transform.position, gizmo_y(gizmo));
 		if (axes & Axis_Z)
-			return plane_make(gizmo->position, gizmo_z(gizmo));
+			return plane_make(gizmo->transform.position, gizmo_z(gizmo));
 	}
 
-	return plane_make(gizmo->position, -quat_x(game.editor.camera.orientation));
+	return plane_make(gizmo->transform.position, -quat_x(game.editor.camera.orientation));
 }
 
 void gizmo_disable_axis(Transform_Gizmo* gizmo, Gizmo_Axis axis)
@@ -101,8 +101,6 @@ void gizmo_set_mode(Transform_Gizmo* gizmo, Gizmo_Mode mode)
 
 void gizmo_init(Transform_Gizmo* gizmo)
 {
-	gizmo->position = Vec3_Z * 2.f;
-	gizmo->rotation = angle_axis(2.f, normalize(Vec3(10.f, -2.f, -8.f)));
 	gizmo->material = material_load("Material/Gizmo/gizmo.mat");
 	gizmo->meshes[Mode_Translate] = mesh_load("Mesh/Gizmo/translate.fbx");
 	gizmo->meshes[Mode_Rotate] = mesh_load("Mesh/Gizmo/rotate.fbx");
@@ -124,13 +122,13 @@ void gizmo_apply_translate(Transform_Gizmo* gizmo, const Vec3& from, const Vec3&
 	if (gizmo->active_axes & Axis_Z)
 		translate_delta += constrain_to_direction(delta, gizmo_z(gizmo));
 
-	gizmo->position += translate_delta;
+	gizmo->transform.position += translate_delta;
 }
 
 void gizmo_apply_rotate(Transform_Gizmo* gizmo, const Vec3& from, const Vec3& to)
 {
-	Vec3 from_offset = from - gizmo->position;
-	Vec3 to_offset = to - gizmo->position;
+	Vec3 from_offset = from - gizmo->transform.position;
+	Vec3 to_offset = to - gizmo->transform.position;
 
 	Quat delta_quat = quat_from_to(from_offset, to_offset);
 	if (is_nan(delta_quat))
@@ -141,7 +139,7 @@ void gizmo_apply_rotate(Transform_Gizmo* gizmo, const Vec3& from, const Vec3& to
 
 	debug_log("%f, %f, %f, %f", delta_quat.x, delta_quat.y, delta_quat.z, delta_quat.w);
 
-	gizmo->rotation = delta_quat * gizmo->rotation;
+	gizmo->transform.rotation = delta_quat * gizmo->transform.rotation;
 	gizmo->world_temp_rotation = delta_quat * gizmo->world_temp_rotation;
 }
 
@@ -156,7 +154,7 @@ void gizmo_apply_scale(Transform_Gizmo* gizmo, const Vec3& from, const Vec3& to)
 	if (gizmo->active_axes & Axis_Z)
 		scale_delta.z = dot(delta, gizmo_z(gizmo));
 
-	gizmo->scale += scale_delta;
+	gizmo->transform.scale += scale_delta;
 }
 
 void gizmo_update(Transform_Gizmo* gizmo)
@@ -226,12 +224,12 @@ void gizmo_draw_axis(Transform_Gizmo* gizmo, const Quat& orientation, const Vec4
 {
 	if (gizmo->meshes[gizmo->mode] != nullptr)
 	{
-		material_set(gizmo->material, "u_Model", mat_position_rotation(gizmo->position, orientation));
+		material_set(gizmo->material, "u_Model", mat_position_rotation(gizmo->transform.position, orientation));
 		material_set(gizmo->material, "u_Color", color);
 		mesh_draw(gizmo->meshes[gizmo->mode]);
 
 		if (active)
-			scene_draw_line(gizmo->position + quat_x(orientation) * 100.f, gizmo->position - quat_x(orientation) * 100.f, color);
+			scene_draw_line(gizmo->transform.position + quat_x(orientation) * 100.f, gizmo->transform.position - quat_x(orientation) * 100.f, color);
 	}
 }
 
@@ -267,7 +265,7 @@ void gizmo_draw(Transform_Gizmo* gizmo, const Render_State& state)
 	//	darker if "blocked" by something
 	texture_bind(&current_fb->textures[1], 0);
 
-	scene_draw_point(gizmo->position);
+	scene_draw_point(gizmo->transform.position);
 
 	if (gizmo->active_axes == 0)
 	{
@@ -297,17 +295,7 @@ void gizmo_draw(Transform_Gizmo* gizmo, const Render_State& state)
 		Hit_Result hit = test_ray_plane(mouse_ray, gizmo->drag_plane);
 
 		if (hit.has_hit)
-			scene_draw_line(gizmo->position, hit.position);
+			scene_draw_line(gizmo->transform.position, hit.position);
 	}
-}
-
-Mat4 gizmo_get_transform(Transform_Gizmo* gizmo)
-{
-	return mat_position_rotation_scale(gizmo->position, gizmo->rotation, gizmo->scale);
-}
-
-void gizmo_set_transform(Transform_Gizmo* gizmo, const Mat4& transform)
-{
-	decompose(transform, &gizmo->position, &gizmo->rotation, &gizmo->scale);
 }
 #endif

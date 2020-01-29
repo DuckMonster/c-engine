@@ -9,6 +9,7 @@
 #define MAX_WEAPONS 256
 #define MAX_PROJECTILES 256
 #define MAX_DRAWABLES 256
+#define MAX_PROPS 256
 #define MAX_BILLBOARDS 256
 #define MAX_LINE_DRAWERS 256
 #define MAX_HEALTH_BARS 256
@@ -16,6 +17,7 @@
 struct Unit;
 struct Weapon;
 struct Projectile;
+struct Prop;
 struct Drawable;
 struct Billboard;
 struct Line_Drawer;
@@ -30,6 +32,7 @@ struct Scene
 	Thing_Array<Unit> units;
 	Thing_Array<Weapon> weapons;
 	Thing_Array<Projectile> projectiles;
+	Thing_Array<Prop> props;
 #if CLIENT
 	Thing_Array<Drawable> drawables;
 	Thing_Array<Billboard> billboards;
@@ -62,6 +65,9 @@ void scene_destroy_weapon(Weapon* weapon);
 
 Projectile* scene_make_projectile(const Unit_Handle& owner, const Vec2& origin, const Vec2& direction);
 void scene_destroy_projectile(Projectile* projectile);
+
+Prop* scene_make_prop();
+void scene_destroy_prop(Prop* prop);
 
 #if CLIENT
 Drawable* scene_make_drawable(const Mesh* mesh = nullptr, const Material* material = nullptr, const Texture* texture = nullptr);
