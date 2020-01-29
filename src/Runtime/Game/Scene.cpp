@@ -139,10 +139,10 @@ void scene_destroy_projectile(Projectile* projectile)
 	thing_remove(&scene.projectiles, projectile);
 }
 
-Prop* scene_make_prop()
+Prop* scene_make_prop(const char* path)
 {
 	Prop* prop = thing_add(&scene.props);
-	prop_init(prop);
+	prop_init(prop, path);
 
 	return prop;
 }

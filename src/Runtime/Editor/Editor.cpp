@@ -29,7 +29,7 @@ void editor_update(Editor* editor)
 
 	if (input_key_pressed(Key::N))
 	{
-		Prop* new_prop = scene_make_prop();
+		Prop* new_prop = scene_make_prop("Prop/rock.dat");
 		editor_select_edit(editor, new_prop);
 	}
 	if (input_key_pressed(Key::Num0))

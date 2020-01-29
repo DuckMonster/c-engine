@@ -66,7 +66,7 @@ void scene_destroy_weapon(Weapon* weapon);
 Projectile* scene_make_projectile(const Unit_Handle& owner, const Vec2& origin, const Vec2& direction);
 void scene_destroy_projectile(Projectile* projectile);
 
-Prop* scene_make_prop();
+Prop* scene_make_prop(const char* path);
 void scene_destroy_prop(Prop* prop);
 
 #if CLIENT

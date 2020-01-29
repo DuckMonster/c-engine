@@ -11,6 +11,6 @@ struct Prop
 #endif
 };
 
-void prop_init(Prop* prop);
+void prop_init(Prop* prop, const char* path);
 void prop_free(Prop* prop);
 void prop_set_transform(Prop* prop, const Transform& transform);

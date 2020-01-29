@@ -3,17 +3,22 @@
 #include "Engine/Graphics/Material.h"
 #include "Runtime/Render/Drawable.h"
 #include "Runtime/Game/Scene.h"
+#include "Runtime/Prop/PropResource.h"
 
-void prop_init(Prop* prop)
+void prop_init(Prop* prop, const char* path)
 {
+	Prop_Resource* resource = prop_resource_load(path);
+
 #if CLIENT
-	prop->drawable = scene_make_drawable(mesh_load("Mesh/cube.fbx"), material_load("Material/default.mat"));
+	prop->drawable = scene_make_drawable(resource->mesh, resource->material);
 #endif
 }
 
 void prop_free(Prop* prop)
 {
+#if CLIENT
 	scene_destroy_drawable(prop->drawable);
+#endif
 }
 
 void prop_set_transform(Prop* prop, const Transform& transform)

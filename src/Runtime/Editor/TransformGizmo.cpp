@@ -66,15 +66,6 @@ Plane gizmo_calculate_drag_plane(Transform_Gizmo* gizmo)
 		if (axes & Axis_Z)
 			return plane_make(gizmo->transform.position, gizmo_z(gizmo));
 	}
-	else if (gizmo->mode == Mode_Scale)
-	{
-		if (axes == Axis_X)
-			return plane_make(gizmo->transform.position, gizmo_x(gizmo));
-		if (axes == Axis_Y)
-			return plane_make(gizmo->transform.position, gizmo_y(gizmo));
-		if (axes == Axis_Z)
-			return plane_make(gizmo->transform.position, gizmo_z(gizmo));
-	}
 
 	return plane_make(gizmo->transform.position, -quat_x(game.editor.camera.orientation));
 }

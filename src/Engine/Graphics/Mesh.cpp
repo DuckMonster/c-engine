@@ -144,8 +144,10 @@ void mesh_res_create(Resource* resource)
 	for(u32 i=0; i<fbx_mesh.num_verts; ++i)
 	{
 		vertex_array[i].position = fbx_mesh.positions[fbx_mesh.position_index[i]];
-		vertex_array[i].normal = fbx_mesh.normals[fbx_mesh.normal_index[i]];
-		vertex_array[i].uv = fbx_mesh.uvs[fbx_mesh.uv_index[i]];
+		if (fbx_mesh.normals)
+			vertex_array[i].normal = fbx_mesh.normals[fbx_mesh.normal_index[i]];
+		if (fbx_mesh.uvs)
+			vertex_array[i].uv = fbx_mesh.uvs[fbx_mesh.uv_index[i]];
 	}
 
 	mesh_buffer_data(mesh, 0, vertex_array, sizeof(Vertex) * fbx_mesh.num_verts);
