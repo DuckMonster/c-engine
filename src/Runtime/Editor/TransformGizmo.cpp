@@ -66,6 +66,15 @@ Plane gizmo_calculate_drag_plane(Transform_Gizmo* gizmo)
 		if (axes & Axis_Z)
 			return plane_make(gizmo->transform.position, gizmo_z(gizmo));
 	}
+	else if (gizmo->mode == Mode_Scale)
+	{
+		if (axes == Axis_X)
+			return plane_make(gizmo->transform.position, gizmo_x(gizmo));
+		if (axes == Axis_Y)
+			return plane_make(gizmo->transform.position, gizmo_y(gizmo));
+		if (axes == Axis_Z)
+			return plane_make(gizmo->transform.position, gizmo_z(gizmo));
+	}
 
 	return plane_make(gizmo->transform.position, -quat_x(game.editor.camera.orientation));
 }
@@ -145,16 +154,20 @@ void gizmo_apply_rotate(Transform_Gizmo* gizmo, const Vec3& from, const Vec3& to
 
 void gizmo_apply_scale(Transform_Gizmo* gizmo, const Vec3& from, const Vec3& to)
 {
-	Vec3 delta = to - from;
-	Vec3 scale_delta = Vec3_Zero;
-	if (gizmo->active_axes & Axis_X)
-		scale_delta.x = dot(delta, gizmo_x(gizmo));
-	if (gizmo->active_axes & Axis_Y)
-		scale_delta.y = dot(delta, gizmo_y(gizmo));
-	if (gizmo->active_axes & Axis_Z)
-		scale_delta.z = dot(delta, gizmo_z(gizmo));
+	float dist_from = distance(from, gizmo->transform.position);
+	float dist_to = distance(to, gizmo->transform.position);
 
-	gizmo->transform.scale += scale_delta;
+	float scale_delta = dist_to / dist_from;
+
+	Vec3 new_scale = gizmo->transform.scale;
+	if (gizmo->active_axes & Axis_X)
+		new_scale.x *= scale_delta;
+	if (gizmo->active_axes & Axis_Y)
+		new_scale.y *= scale_delta;
+	if (gizmo->active_axes & Axis_Z)
+		new_scale.z *= scale_delta;
+
+	gizmo->transform.scale = new_scale;
 }
 
 void gizmo_update(Transform_Gizmo* gizmo)
