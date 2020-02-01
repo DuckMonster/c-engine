@@ -11,6 +11,7 @@ Resource_Manager resource_manager;
 void resource_init()
 {
 	config_get("resource_root", &resource_root_path);
+	change_directory(resource_root_path);
 }
 
 // Recursive function to load or create nodes
@@ -23,7 +24,7 @@ static Resource_Node* resource_load_or_create_node(Resource_Node*& node, u32 has
 
 		node = new Resource_Node();
 		node->hash = hash;
-		node->resource.path = path_join(resource_root_path, path);
+		node->resource.path = strcpy_malloc(path);
 		node->resource.path_relative = strcpy_malloc(path);
 		return node;
 	}
@@ -92,4 +93,24 @@ Resource* resource_get(const char* path)
 		return nullptr;
 
 	return &node->resource;
+}
+
+char* resource_relative_to_absolute_path(const char* relative_path)
+{
+	return path_join(resource_root_path, relative_path);
+}
+
+const char* resource_absolute_to_relative_path(const char* absolute_path)
+{
+	const char* ptr = strstr(absolute_path, "res/");
+
+	// Try backslashes...
+	if (ptr == nullptr)
+		ptr = strstr(absolute_path, "res\\");
+
+	// It might be an already relative path, either way just return
+	if (ptr == nullptr)
+		return absolute_path;
+
+	return ptr + 4;
 }

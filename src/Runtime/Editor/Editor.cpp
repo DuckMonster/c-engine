@@ -8,6 +8,7 @@
 #include "Runtime/Game/Game.h"
 #include "Runtime/Prop/Prop.h"
 #include "Runtime/Render/Drawable.h"
+#include "Runtime/Prefab/Prefab.h"
 
 #if CLIENT
 Ray test_ray;
@@ -39,15 +40,36 @@ void editor_update(Editor* editor)
 		editor_select_edit(editor, result.prop);
 	}
 
+	// Deleting props
+	if (input_key_pressed(Key::Delete) && editor->edit_prop)
+	{
+		scene_destroy_prop(editor->edit_prop);
+		editor_select_edit(editor, nullptr);
+	}
+
+	// Creating new props
 	if (input_key_pressed(Key::N))
 	{
 		Prop* new_prop = scene_make_prop("Prop/rock.dat");
 		editor_select_edit(editor, new_prop);
 	}
 
+	// Saving
+	if (input_key_down(Key::LeftControl))
+	{
+		if (input_key_pressed(Key::S))
+		{
+			prefab_save(&editor->prefab, "test_prefab.prefab");
+		}
+		if (input_key_pressed(Key::O))
+		{
+			prefab_load(&editor->prefab, "test_prefab.prefab");
+		}
+	}
+
 	if (editor->edit_prop)
 	{
-		if (!editor->camera.has_control)
+		if (!editor->camera.has_control && !input_key_down(Key::LeftControl))
 		{
 			gizmo_update(&editor->gizmo);
 			prop_set_transform(editor->edit_prop, editor->gizmo.transform);
@@ -75,7 +97,7 @@ void editor_update(Editor* editor)
 
 void editor_render(Editor* editor, const Render_State& state)
 {
-	if (editor->edit_prop)
+	if (editor->edit_prop && !input_key_down(Key::LeftControl))
 		if (state.current_pass == PASS_Game)
 			gizmo_draw(&editor->gizmo, state);
 }

@@ -137,8 +137,6 @@ void gizmo_apply_rotate(Transform_Gizmo* gizmo, const Vec3& from, const Vec3& to
 		delta_quat = Quat_Identity;
 	}
 
-	debug_log("%f, %f, %f, %f", delta_quat.x, delta_quat.y, delta_quat.z, delta_quat.w);
-
 	gizmo->transform.rotation = delta_quat * gizmo->transform.rotation;
 	gizmo->world_temp_rotation = delta_quat * gizmo->world_temp_rotation;
 }

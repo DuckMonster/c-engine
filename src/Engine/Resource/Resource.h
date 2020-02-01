@@ -42,3 +42,5 @@ extern Resource_Manager resource_manager;
 void resource_init();
 Resource* resource_load(const char* path, Res_Create_Func create_func, Res_Destroy_Func destroy_func);
 Resource* resource_get(const char* path);
+char* resource_relative_to_absolute_path(const char* relative_path);
+const char* resource_absolute_to_relative_path(const char* absolute_path);

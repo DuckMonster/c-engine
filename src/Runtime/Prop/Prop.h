@@ -6,6 +6,7 @@ struct Drawable;
 
 struct Prop
 {
+	const char* resource_path = nullptr;
 	Transform transform;
 	Convex_Shape shape;
 

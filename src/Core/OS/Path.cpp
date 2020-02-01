@@ -1,4 +1,5 @@
 #include "Path.h"
+#include <direct.h>
 #include <cstring>
 #include <stdlib.h>
 
@@ -170,4 +171,18 @@ char* path_join(const char* path_a, const char* path_b)
 
 	char* result = path_clean(result_unclean);
 	return result;
+}
+
+const char* get_current_directory()
+{
+	static char buffer[120];
+	_getcwd(buffer, sizeof(buffer));
+
+	return buffer;
+}
+
+void change_directory(const char* path)
+{
+	_chdir(path);
+	debug_log("Changed directory to '%s'", get_current_directory());
 }

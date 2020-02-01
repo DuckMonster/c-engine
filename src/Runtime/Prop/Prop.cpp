@@ -7,6 +7,8 @@
 
 void prop_init(Prop* prop, const char* path)
 {
+	prop->resource_path = path;
+
 	Prop_Resource* resource = prop_resource_load(path);
 	shape_copy(&prop->shape, resource->shape);
 

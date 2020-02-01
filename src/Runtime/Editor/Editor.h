@@ -1,6 +1,7 @@
 #pragma once
 #include "EdCamera.h"
 #include "TransformGizmo.h"
+#include "Runtime/Prefab/Prefab.h"
 
 struct Prop;
 
@@ -10,6 +11,7 @@ struct Editor
 
 	Transform_Gizmo gizmo;
 	Prop* edit_prop = nullptr;
+	Prefab prefab;
 };
 
 #if CLIENT
