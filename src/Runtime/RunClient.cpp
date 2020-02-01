@@ -131,7 +131,7 @@ void run()
 		game_update();
 
 		render_draw();
-		ui_draw();
+		//ui_draw();
 
 		context_end_frame();
 	}

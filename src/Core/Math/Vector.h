@@ -350,3 +350,52 @@ inline Vec4 lerp(Vec4 a, Vec4 b, float t) { return a + (b - a) * t; }
 inline bool is_nan(const Vec2& v) { return is_nan(v.x) || is_nan(v.y); }
 inline bool is_nan(const Vec3& v) { return is_nan(v.x) || is_nan(v.y) || is_nan(v.z); }
 inline bool is_nan(const Vec4& v) { return is_nan(v.x) || is_nan(v.y) || is_nan(v.z) || is_nan(v.w); }
+
+inline Vec2 component_min(const Vec2& a, const Vec2& b)
+{
+	return Vec2(
+		a.x < b.x ? a.x : b.x,
+		a.y < b.y ? a.y : b.y
+	);
+}
+inline Vec3 component_min(const Vec3& a, const Vec3& b)
+{
+	return Vec3(
+		a.x < b.x ? a.x : b.x,
+		a.y < b.y ? a.y : b.y,
+		a.z < b.z ? a.z : b.z
+	);
+}
+inline Vec4 component_min(const Vec4& a, const Vec4& b)
+{
+	return Vec4(
+		a.x < b.x ? a.x : b.x,
+		a.y < b.y ? a.y : b.y,
+		a.z < b.z ? a.z : b.z,
+		a.w < b.w ? a.w : b.w
+	);
+}
+inline Vec2 component_max(const Vec2& a, const Vec2& b)
+{
+	return Vec2(
+		a.x > b.x ? a.x : b.x,
+		a.y > b.y ? a.y : b.y
+	);
+}
+inline Vec3 component_max(const Vec3& a, const Vec3& b)
+{
+	return Vec3(
+		a.x > b.x ? a.x : b.x,
+		a.y > b.y ? a.y : b.y,
+		a.z > b.z ? a.z : b.z
+	);
+}
+inline Vec4 component_max(const Vec4& a, const Vec4& b)
+{
+	return Vec4(
+		a.x > b.x ? a.x : b.x,
+		a.y > b.y ? a.y : b.y,
+		a.z > b.z ? a.z : b.z,
+		a.w > b.w ? a.w : b.w
+	);
+}

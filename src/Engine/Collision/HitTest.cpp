@@ -155,78 +155,114 @@ Hit_Result test_ray_box(const Ray& ray, const Box& box)
 	return hit;
 }
 
-Hit_Result test_line_trace_sphere(const Line_Trace& line, const Sphere& sphere)
+Hit_Result test_ray_shape(const Ray& ray, const Convex_Shape* shape)
 {
-	float line_length = length(line.to - line.from);
+	// Trace against each face
+	for(u32 face_index = 0; face_index < shape->num_faces; ++face_index)
+	{
+		Convex_Shape_Face& face = shape->faces[face_index];
 
-	// Do a ray-sphere intersection test, and see if the intersection happened 
-	// close enough to be within the line bounds
-	Ray line_ray = ray_from_to(line.from, line.to);
+		// We can't hit a face on the back-side
+		if (dot(face.normal, ray.direction) > 0.f)
+			continue;
 
-	Hit_Result ray_hit = test_ray_sphere(line_ray, sphere);
+		// First trace to the plane defining the face
+		//	(we use the first vertex of the face as the plane point)
+		Plane face_plane = plane_make(shape->vertices[shape->indicies[face.index_offset]], face.normal);
+		Hit_Result plane_hit = test_ray_plane(ray, face_plane);
+		if (!plane_hit.has_hit)
+			continue;
 
-	// Intersection happened outside of line bounds, disregard
-	if (ray_hit.time > line_length)
+		// Make sure the plane is within all the edges
+		bool inside_face = true;
+		for(u32 v=0; v<face.vert_count; ++v)
+		{
+			// For each vertex, check that the ray hit is counter-clockwise to
+			//	the edge going to the next vertex
+			// If its clockwise the hit is outside of this edge
+			u32 num = face.index_offset + v;
+			u32 num_next = face.index_offset + ((v + 1) % face.vert_count);
+
+			Vec3 a = shape->vertices[shape->indicies[num]];
+			Vec3 b = shape->vertices[shape->indicies[num_next]];
+
+			// If the cross points towards the normal, its counter-clockwise (left side of edge = inside)
+			Vec3 edge = b - a;
+			Vec3 dif = plane_hit.position - a;
+			Vec3 edge_dif = cross(edge, dif);
+
+			// .. otherwise its clockwise (right side of edge = outside)
+			if (dot(edge_dif, face.normal) < 0.f)
+			{
+				inside_face = false;
+				break;
+			}
+		}
+
+		if (!inside_face)
+			continue;
+
+		return plane_hit;
+	}
+
+	return Hit_Result();
+}
+
+Hit_Result convert_ray_hit_to_line_trace_hit(const Hit_Result& ray_hit, const Line_Trace& line)
+{
+	if (!ray_hit.has_hit)
 		return Hit_Result();
 
-	// Convert from absolute distance to percentage
-	ray_hit.time /= line_length;
-	return ray_hit;
+	// Check if the the ray hit happened too far away for the line trace
+	float line_length_sqrd = distance_sqrd(line.to, line.from);
+
+	if (square(ray_hit.time) > line_length_sqrd)
+		return Hit_Result();
+
+	// Close enough! Convert time from distance along ray
+	//	to percentage of line trace
+	Hit_Result line_hit = ray_hit;
+	line_hit.time /= sqrt(line_length_sqrd);
+
+	return line_hit;
+}
+
+Hit_Result test_line_trace_sphere(const Line_Trace& line, const Sphere& sphere)
+{
+	Ray line_ray = ray_from_to(line.from, line.to);
+	Hit_Result ray_hit = test_ray_sphere(line_ray, sphere);
+
+	return convert_ray_hit_to_line_trace_hit(ray_hit, line);
 }
 
 Hit_Result test_line_trace_plane(const Line_Trace& line, const Plane& plane)
 {
-	float line_length = length(line.to - line.from);
-
-	// Do a ray-sphere intersection test, and see if the intersection happened 
-	// close enough to be within the line bounds
 	Ray line_ray = ray_from_to(line.from, line.to);
-
 	Hit_Result ray_hit = test_ray_plane(line_ray, plane);
 
-	// Intersection happened outside of line bounds, disregard
-	if (ray_hit.time > line_length)
-		return Hit_Result();
-
-	// Convert from absolute distance to percentage
-	ray_hit.time /= line_length;
-	return ray_hit;
+	return convert_ray_hit_to_line_trace_hit(ray_hit, line);
 }
 
 Hit_Result test_line_trace_aligned_box(const Line_Trace& line, const Aligned_Box& box)
 {
-	float line_length = length(line.to - line.from);
-
-	// Do a ray-sphere intersection test, and see if the intersection happened 
-	// close enough to be within the line bounds
 	Ray line_ray = ray_from_to(line.from, line.to);
-
 	Hit_Result ray_hit = test_ray_aligned_box(line_ray, box);
 
-	// Intersection happened outside of line bounds, disregard
-	if (ray_hit.time > line_length)
-		return Hit_Result();
-
-	// Convert from absolute distance to percentage
-	ray_hit.time /= line_length;
-	return ray_hit;
+	return convert_ray_hit_to_line_trace_hit(ray_hit, line);
 }
 
 Hit_Result test_line_trace_box(const Line_Trace& line, const Box& box)
 {
-	float line_length = length(line.to - line.from);
-
-	// Do a ray-sphere intersection test, and see if the intersection happened 
-	// close enough to be within the line bounds
 	Ray line_ray = ray_from_to(line.from, line.to);
-
 	Hit_Result ray_hit = test_ray_box(line_ray, box);
 
-	// Intersection happened outside of line bounds, disregard
-	if (ray_hit.time > line_length)
-		return Hit_Result();
+	return convert_ray_hit_to_line_trace_hit(ray_hit, line);
+}
 
-	// Convert from absolute distance to percentage
-	ray_hit.time /= line_length;
-	return ray_hit;
+Hit_Result test_line_trace_shape(const Line_Trace& line, const Convex_Shape* shape)
+{
+	Ray line_ray = ray_from_to(line.from, line.to);
+	Hit_Result ray_hit = test_ray_shape(line_ray, shape);
+
+	return convert_ray_hit_to_line_trace_hit(ray_hit, line);
 }

@@ -4,14 +4,15 @@
 
 void ed_camera_update(Ed_Camera* camera)
 {
-	if (!camera->has_control && input_mouse_button_pressed(Mouse_Btn::Right))
+	bool should_have_control = input_mouse_button_down(Mouse_Btn::Right) || input_key_down(Key::LeftAlt);
+	if (!camera->has_control && should_have_control)
 	{
 		camera->has_control = true;
 		context_lock_cursor();
 		context_hide_cursor();
 	}
 
-	if (camera->has_control && !input_mouse_button_down(Mouse_Btn::Right))
+	if (camera->has_control && !should_have_control)
 	{
 		camera->has_control = false;
 		context_unlock_cursor();

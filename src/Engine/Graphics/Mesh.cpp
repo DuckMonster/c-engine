@@ -1,6 +1,5 @@
 #include "Mesh.h"
-#include "Core/Import/Fbx.h"
-#include "Engine/Resource/Resource.h"
+#include "Engine/Graphics/MeshResource.h"
 
 void mesh_create(Mesh* mesh)
 {
@@ -109,84 +108,9 @@ void mesh_draw(const Mesh* mesh)
 	glBindVertexArray(0);
 }
 
-void mesh_res_create(Resource* resource)
-{
-	Mesh* mesh = (Mesh*)resource->ptr;
-	if (mesh == nullptr)
-	{
-		mesh = new Mesh();
-		resource->ptr = mesh;
-	}
-
-	Fbx_Scene* scene = fbx_import(resource->path);
-	if (scene == nullptr)
-		return;
-
-	defer { fbx_free(scene); };
-
-	Fbx_Mesh& fbx_mesh = scene->meshes[0];
-
-	mesh_create(mesh);
-	mesh_add_buffers(mesh, 2);
-	mesh_add_buffer_mapping(mesh, 0, 0, 3); // Positions
-	mesh_add_buffer_mapping(mesh, 0, 1, 3); // Normals
-	mesh_add_buffer_mapping(mesh, 0, 2, 2); // UVs
-
-	// Build the mapping of all the vertices
-	struct Vertex
-	{
-		Vec3 position;
-		Vec3 normal;
-		Vec2 uv;
-	};
-
-	Vertex* vertex_array = new Vertex[fbx_mesh.num_verts];
-	for(u32 i=0; i<fbx_mesh.num_verts; ++i)
-	{
-		vertex_array[i].position = fbx_mesh.positions[fbx_mesh.position_index[i]];
-		if (fbx_mesh.normals)
-			vertex_array[i].normal = fbx_mesh.normals[fbx_mesh.normal_index[i]];
-		if (fbx_mesh.uvs)
-			vertex_array[i].uv = fbx_mesh.uvs[fbx_mesh.uv_index[i]];
-	}
-
-	mesh_buffer_data(mesh, 0, vertex_array, sizeof(Vertex) * fbx_mesh.num_verts);
-
-	// Build the elements buffer to split all faces into triangles
-	u32 num_triangles = 0;
-	for(u32 i=0; i<fbx_mesh.num_faces; ++i)
-	{
-		// First 3 vertices make one triangle.
-		// Each additional vertex makes one more triangle.
-		num_triangles += 1 + (fbx_mesh.faces[i].vert_count - 3);
-	}
-
-	u32* element_data = new u32[num_triangles * 3];
-	u32 element_offset = 0;
-	for(u32 i=0; i<fbx_mesh.num_faces; ++i)
-	{
-		Fbx_Face& face = fbx_mesh.faces[i];
-		for(u32 v=2; v<face.vert_count; ++v)
-		{
-			// Triangle fan: v[0] - v[n-1] - v[n]
-			element_data[element_offset++] = face.index_offset;
-			element_data[element_offset++] = face.index_offset + v - 1;
-			element_data[element_offset++] = face.index_offset + v;
-		}
-	}
-
-	mesh_element_data(mesh, 1, element_data, sizeof(u32) * num_triangles * 3);
-}
-
-void mesh_res_destroy(Resource* resource)
-{
-	Mesh* mesh = (Mesh*)resource->ptr;
-	mesh_free(mesh);
-}
-
 const Mesh* mesh_load(const char* path)
 {
-	// Load resource
-	Resource* resource =  resource_load(path, mesh_res_create, mesh_res_destroy);
-	return (Mesh*)resource->ptr;
+	// Load mesh resource
+	Mesh_Resource* resource = mesh_resource_load(path);
+	return &resource->mesh;
 }

@@ -1,10 +1,13 @@
 #pragma once
 #include "Core/Math/Transform.h"
+#include "Engine/Collision/CollisionTypes.h"
+struct Convex_Shape;
 struct Drawable;
 
 struct Prop
 {
 	Transform transform;
+	Convex_Shape shape;
 
 #if CLIENT
 	Drawable* drawable = nullptr;

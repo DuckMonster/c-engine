@@ -2,7 +2,7 @@
 #include "Core/Import/Dat.h"
 #include "Engine/Resource/Resource.h"
 #include "Engine/Resource/HotReload.h"
-#include "Engine/Graphics/Mesh.h"
+#include "Engine/Graphics/MeshResource.h"
 #include "Engine/Graphics/Material.h"
 
 void prop_res_create(Resource* resource)
@@ -37,7 +37,10 @@ void prop_res_create(Resource* resource)
 		return;
 	}
 
-	prop->mesh = mesh_load(mesh_path);
+	Mesh_Resource* mesh_resource = mesh_resource_load(mesh_path);
+
+	prop->mesh = &mesh_resource->mesh;
+	prop->shape = &mesh_resource->shape;
 	prop->material = material_load(material_path);
 
 	resource_add_dependency(resource, mesh_path);

@@ -4,11 +4,13 @@
 #include "Engine/Collision/HitTest.h"
 #include "Runtime/Render/Render.h"
 #include "Runtime/Game/Scene.h"
+#include "Runtime/Game/SceneQuery.h"
 #include "Runtime/Game/Game.h"
 #include "Runtime/Prop/Prop.h"
 #include "Runtime/Render/Drawable.h"
 
 #if CLIENT
+Ray test_ray;
 
 void editor_init(Editor* editor)
 {
@@ -20,20 +22,28 @@ void editor_update(Editor* editor)
 	ed_camera_update(&editor->camera);
 	render_set_vp(ed_camera_view_matrix(&editor->camera), ed_camera_projection_matrix(&editor->camera));
 
-	/*
-	if (input_key_pressed(Key::Num1))
-		editor_select_edit(editor, game.test_drawables[0]);
-	if (input_key_pressed(Key::Num2))
-		editor_select_edit(editor, game.test_drawables[1]);
-	*/
+	if (input_mouse_button_pressed(Mouse_Btn::Left))
+	{
+		// Prop selection
+		// Selection line 
+		Ray mouse_ray = editor_mouse_ray();
+
+		Line_Trace trace;
+		trace.from = mouse_ray.origin;
+		trace.to = mouse_ray.direction * 50.f;
+
+		Scene_Query_Params params;
+		params.mask = QUERY_Props;
+
+		Scene_Query_Result result = scene_query_line(trace, params);
+		editor_select_edit(editor, result.prop);
+	}
 
 	if (input_key_pressed(Key::N))
 	{
 		Prop* new_prop = scene_make_prop("Prop/rock.dat");
 		editor_select_edit(editor, new_prop);
 	}
-	if (input_key_pressed(Key::Num0))
-		editor_select_edit(editor, nullptr);
 
 	if (editor->edit_prop)
 	{
@@ -43,6 +53,24 @@ void editor_update(Editor* editor)
 			prop_set_transform(editor->edit_prop, editor->gizmo.transform);
 		}
 	}
+
+	// Testing scene collision
+	if (input_key_down(Key::F))
+	{
+		Vec3 cam_forward = quat_x(editor->camera.orientation);
+		Vec3 cam_left = quat_y(editor->camera.orientation);
+
+		test_ray.origin = editor->camera.position - cam_left * 0.5f;
+		test_ray.direction = cam_forward;
+	}
+
+	Line_Trace trace;
+	trace.from = test_ray.origin;
+	trace.to = ray_get_point(test_ray, 10.f);
+	Scene_Query_Params params;
+	params.debug_render = true;
+
+	scene_query_line(trace, params);
 }
 
 void editor_render(Editor* editor, const Render_State& state)

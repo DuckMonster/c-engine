@@ -22,8 +22,10 @@ Hit_Result test_ray_plane(const Ray& ray, const Plane& plane);
 Hit_Result test_ray_sphere(const Ray& ray, const Sphere& sphere);
 Hit_Result test_ray_aligned_box(const Ray& ray, const Aligned_Box& box);
 Hit_Result test_ray_box(const Ray& ray, const Box& box);
+Hit_Result test_ray_shape(const Ray& ray, const Convex_Shape* shape);
 
 Hit_Result test_line_trace_plane(const Line_Trace& line, const Plane& plane);
 Hit_Result test_line_trace_sphere(const Line_Trace& line, const Sphere& sphere);
 Hit_Result test_line_trace_aligned_box(const Line_Trace& line, const Aligned_Box& box);
 Hit_Result test_line_trace_box(const Line_Trace& line, const Box& box);
+Hit_Result test_line_trace_shape(const Line_Trace& line, const Convex_Shape* shape);

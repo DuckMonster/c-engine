@@ -4,6 +4,7 @@
 #include "Engine/Collision/MeshCollider.h"
 #include "Engine/Config/Config.h"
 #include "Engine/Graphics/Material.h"
+#include "Engine/Graphics/MeshResource.h"
 #include "Runtime/Render/Render.h"
 #include "Runtime/Render/Drawable.h"
 #include "Runtime/Game/Scene.h"

@@ -8,6 +8,7 @@
 void prop_init(Prop* prop, const char* path)
 {
 	Prop_Resource* resource = prop_resource_load(path);
+	shape_copy(&prop->shape, resource->shape);
 
 #if CLIENT
 	prop->drawable = scene_make_drawable(resource->mesh, resource->material);
@@ -24,6 +25,7 @@ void prop_free(Prop* prop)
 void prop_set_transform(Prop* prop, const Transform& transform)
 {
 	prop->transform = transform;
+	shape_apply_transform(&prop->shape, transform_mat(transform));
 
 #if CLIENT
 	prop->drawable->transform = transform_mat(transform);

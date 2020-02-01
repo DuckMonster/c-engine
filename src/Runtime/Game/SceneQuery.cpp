@@ -1,6 +1,7 @@
 #include "SceneQuery.h"
 #include "Scene.h"
 #include "Runtime/Unit/Unit.h"
+#include "Runtime/Prop/Prop.h"
 
 #if CLIENT
 static void scene_draw_line_query_result(const Line_Trace& line, const Hit_Result& hit, float duration)
@@ -16,6 +17,17 @@ static void scene_draw_line_query_result(const Line_Trace& line, const Hit_Resul
 		scene_draw_line(line.from, line.to, Color_Green, duration);
 	}
 }
+
+Scene_Query_Result select_result(const Scene_Query_Result& a, const Scene_Query_Result& b)
+{
+	if (!a.hit.has_hit)
+		return b;
+
+	if (!b.hit.has_hit)
+		return a;
+
+	return a.hit.time < b.hit.time ? a : b;
+}
 #endif
 
 Scene_Query_Result scene_query_line(const Line_Trace& line, const Scene_Query_Params& params)
@@ -27,6 +39,8 @@ Scene_Query_Result scene_query_line(const Line_Trace& line, const Scene_Query_Pa
 	/* UNITS */
 	if (params.mask & QUERY_Unit)
 	{
+		Scene_Query_Result unit_result;
+
 		THINGS_FOREACH(&scene.units)
 		{
 			Unit* unit = it;
@@ -37,49 +51,36 @@ Scene_Query_Result scene_query_line(const Line_Trace& line, const Scene_Query_Pa
 			unit_sphere.origin = Vec3(unit->position, 0.5f);
 			unit_sphere.radius = 0.5f;
 
-			Hit_Result hit = test_line_trace_sphere(line, unit_sphere);
-			if (hit.has_hit && hit.time < result.hit.time)
-			{
-				result.hit = hit;
-				result.unit = unit;
-			}
+			unit_result.unit = unit;
+			unit_result.hit = test_line_trace_sphere(line, unit_sphere);
+
+			result = select_result(result, unit_result);
 		}
 	}
 
 	/* PROPS */
 	if (params.mask & QUERY_Props)
 	{
-		Hit_Result hit = test_line_trace_sphere(line, scene.sphere);
-		if (hit.has_hit && hit.time < result.hit.time)
-		{
-			result.hit = hit;
-			result.unit = nullptr;
-		}
+		Scene_Query_Result prop_result;
 
-		Plane ground_plane;
-		ground_plane.point = Vec3_Zero;
-		ground_plane.normal = Vec3_Z;
-
-		hit = test_line_trace_plane(line, ground_plane);
-		if (hit.has_hit && hit.time < result.hit.time)
+		THINGS_FOREACH(&scene.props)
 		{
-			result.hit = hit;
-			result.unit = nullptr;
-		}
+			prop_result.prop = it;
+			prop_result.hit = test_line_trace_shape(line, &it->shape);
 
-		hit = test_line_trace_aligned_box(line, scene.aligned_box);
-		if (hit.has_hit && hit.time < result.hit.time)
-		{
-			result.hit = hit;
-			result.unit = nullptr;
+			result = select_result(result, prop_result);
 		}
+	}
 
-		hit = test_line_trace_box(line, scene.box);
-		if (hit.has_hit && hit.time < result.hit.time)
-		{
-			result.hit = hit;
-			result.unit = nullptr;
-		}
+	/* ENVIRONMENT */
+	if (params.mask & QUERY_Environment)
+	{
+		Scene_Query_Result env_result;
+
+		Plane floor_plane = plane_make(Vec3_Zero, Vec3_Z);
+		env_result.hit = test_line_trace_plane(line, floor_plane);
+
+		result = select_result(result, env_result);
 	}
 
 #if CLIENT
