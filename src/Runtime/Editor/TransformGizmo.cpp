@@ -202,7 +202,6 @@ void gizmo_update(Transform_Gizmo* gizmo)
 		if (prev_hit.has_hit && new_hit.has_hit)
 		{
 			Vec3 delta = new_hit.position - prev_hit.position;
-			gizmo->prev_mouse_ray = mouse_ray;
 
 			switch(gizmo->mode)
 			{
@@ -219,6 +218,8 @@ void gizmo_update(Transform_Gizmo* gizmo)
 					break;
 			}
 		}
+
+		gizmo->prev_mouse_ray = mouse_ray;
 	}
 }
 

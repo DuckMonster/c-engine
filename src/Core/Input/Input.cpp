@@ -57,3 +57,11 @@ bool input_mouse_button_released(Mouse_Btn btn)
 		!input.mouse.buttons[(u32)btn].pressed &&
 		input.mouse.buttons[(u32)btn].frame_num == input.frame_num;
 }
+
+void input_purge()
+{
+	for(u32 i=0; i<(u32)Mouse_Btn::MAX; ++i)
+		input.mouse.buttons[i].pressed = false;
+	for(u32 i=0; i<(u32)Key::MAX; ++i)
+		input.keyboard[i].pressed = false;
+}

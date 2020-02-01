@@ -17,6 +17,7 @@ static void scene_draw_line_query_result(const Line_Trace& line, const Hit_Resul
 		scene_draw_line(line.from, line.to, Color_Green, duration);
 	}
 }
+#endif
 
 Scene_Query_Result select_result(const Scene_Query_Result& a, const Scene_Query_Result& b)
 {
@@ -28,7 +29,6 @@ Scene_Query_Result select_result(const Scene_Query_Result& a, const Scene_Query_
 
 	return a.hit.time < b.hit.time ? a : b;
 }
-#endif
 
 Scene_Query_Result scene_query_line(const Line_Trace& line, const Scene_Query_Params& params)
 {

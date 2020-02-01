@@ -1,7 +1,6 @@
 #include "Game.h"
 #include "Core/Input/Input.h"
 #include "Core/Context/Context.h"
-#include "Engine/Collision/MeshCollider.h"
 #include "Engine/Config/Config.h"
 #include "Engine/Graphics/Material.h"
 #include "Engine/Graphics/MeshResource.h"
@@ -152,8 +151,6 @@ void game_init()
 	game.ai_spawn_timer.interval = 10.f;
 	game.ai_spawn_timer.variance = 5.f;
 #endif
-
-	game.shape = mesh_collider_load("Mesh/test_collider.fbx");
 }
 
 void game_update()

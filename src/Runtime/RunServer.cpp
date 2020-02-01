@@ -18,10 +18,18 @@ void run()
 	game_init();
 
 	float hot_reload_timer = 0.f;
+	Interval_Timer stat_timer;
+	stat_timer.interval = 5.f;
 
 	while(true)
 	{
 		time_update_delta();
+
+		if (timer_update(&stat_timer))
+		{
+			debug_log("ms: %.2f", time_delta_unscaled() * 1000.f);
+		}
+
 		server_update();
 		game_update();
 

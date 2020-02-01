@@ -117,7 +117,7 @@ void player_update_local_input(Player* player)
 		channel_write_u8(player->channel, EVENT_Set_Input);
 		channel_write_vec2(player->channel, direction);
 		channel_write_vec2(player->channel, unit->position);
-		channel_broadcast(player->channel, false);
+		//channel_broadcast(player->channel, false);
 	}
 
 	player->move_input = direction;

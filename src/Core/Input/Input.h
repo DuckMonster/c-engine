@@ -49,3 +49,6 @@ int input_mouse_delta_y();
 bool input_mouse_button_down(Mouse_Btn btn);
 bool input_mouse_button_pressed(Mouse_Btn btn);
 bool input_mouse_button_released(Mouse_Btn btn);
+
+// Purge all input, resetting the state completely
+void input_purge();

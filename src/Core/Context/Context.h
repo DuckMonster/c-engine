@@ -30,3 +30,5 @@ void context_unlock_cursor();
 void context_set_topmost(bool topmost);
 
 void context_focus();
+
+void* context_get_handle();

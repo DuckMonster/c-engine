@@ -381,3 +381,8 @@ void context_set_topmost(bool topmost)
 		SWP_NOMOVE | SWP_NOSIZE
 	);
 }
+
+void* context_get_handle()
+{
+	return &window.handle;
+}

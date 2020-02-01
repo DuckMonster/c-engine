@@ -1,7 +1,9 @@
 #include "Editor.h"
 #include "Core/Input/Input.h"
+#include "Core/Context/Prompt.h"
 #include "Engine/Collision/CollisionTypes.h"
 #include "Engine/Collision/HitTest.h"
+#include "Engine/Resource/Resource.h"
 #include "Runtime/Render/Render.h"
 #include "Runtime/Game/Scene.h"
 #include "Runtime/Game/SceneQuery.h"
@@ -50,8 +52,19 @@ void editor_update(Editor* editor)
 	// Creating new props
 	if (input_key_pressed(Key::N))
 	{
-		Prop* new_prop = scene_make_prop("Prop/rock.dat");
-		editor_select_edit(editor, new_prop);
+		// Get path to open
+		Open_File_Params params;
+		params.filter = "Prop\0*.prop\0";
+
+		const char* path = prompt_open_file(params);
+
+		if (path != nullptr)
+		{
+			const char* relative_path = resource_absolute_to_relative_path(path);
+			Prop* new_prop = scene_make_prop(relative_path);
+
+			editor_select_edit(editor, new_prop);
+		}
 	}
 
 	// Saving
@@ -59,11 +72,24 @@ void editor_update(Editor* editor)
 	{
 		if (input_key_pressed(Key::S))
 		{
-			prefab_save(&editor->prefab, "test_prefab.prefab");
+			// Get path to save to
+			Save_File_Params params;
+			params.extension = ".prefab";
+
+			const char* path = prompt_save_file(params);
+			if (path != nullptr)
+				prefab_save(&editor->prefab, path);
 		}
 		if (input_key_pressed(Key::O))
 		{
-			prefab_load(&editor->prefab, "test_prefab.prefab");
+			// Get path to open
+			Open_File_Params params;
+			params.filter = ".prefab";
+
+			const char* path = prompt_open_file(params);
+
+			if (path != nullptr)
+				prefab_load(&editor->prefab, path);
 		}
 	}
 
