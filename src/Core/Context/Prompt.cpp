@@ -73,6 +73,7 @@ const char* prompt_open_file(const Open_File_Params& params)
 	data.lpstrFile = path_buffer;
 	data.nMaxFile = sizeof(path_buffer);
 	data.lpstrFilter = params.filter;
+	data.lpstrInitialDir = params.initial_directory;
 	data.Flags |= OFN_NOCHANGEDIR;
 
 	HWND context_hndl = *(HWND*)context_get_handle();
@@ -106,6 +107,7 @@ const char* prompt_save_file(const Save_File_Params& params)
 	data.nMaxFile = sizeof(path_buffer);
 	data.lpstrFilter = params.extension;
 	data.lpstrDefExt = params.extension;
+	data.lpstrInitialDir = params.initial_directory;
 	data.Flags |= OFN_NOCHANGEDIR;
 
 	HWND context_hndl = *(HWND*)context_get_handle();

@@ -25,17 +25,17 @@ static void sprite_sheet_res_create(Resource* resource)
 	const char* src_path;
 	if (!dat_read(doc.root, "source", &src_path))
 	{
-		msg_box("Spritesheet load failed", "Failed to load spritesheet '%s', no source texture specified", resource->path);
+		msg_box("Failed to load spritesheet '%s', no source texture specified", resource->path);
 		return;
 	}
 	if (!dat_read(doc.root, "tile.width", &sheet->tile_width))
 	{
-		msg_box("Spritesheet load failed", "Failed to load spritesheet '%s', tile.width not specified", resource->path);
+		msg_box("Failed to load spritesheet '%s', tile.width not specified", resource->path);
 		return;
 	}
 	if (!dat_read(doc.root, "tile.height", &sheet->tile_height))
 	{
-		msg_box("Spritesheet load failed", "Failed to load spritesheet '%s', tile.height not specified", resource->path);
+		msg_box("Failed to load spritesheet '%s', tile.height not specified", resource->path);
 		return;
 	}
 

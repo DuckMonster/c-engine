@@ -55,6 +55,7 @@ void editor_update(Editor* editor)
 		// Get path to open
 		Open_File_Params params;
 		params.filter = "Prop\0*.prop\0";
+		params.initial_directory = "Prop";
 
 		const char* path = prompt_open_file(params);
 
@@ -74,7 +75,8 @@ void editor_update(Editor* editor)
 		{
 			// Get path to save to
 			Save_File_Params params;
-			params.extension = ".prefab";
+			params.extension = "*.prefab";
+			params.initial_directory = "Prefab";
 
 			const char* path = prompt_save_file(params);
 			if (path != nullptr)
@@ -84,7 +86,8 @@ void editor_update(Editor* editor)
 		{
 			// Get path to open
 			Open_File_Params params;
-			params.filter = ".prefab";
+			params.filter = "*.prefab";
+			params.initial_directory = "Prefab";
 
 			const char* path = prompt_open_file(params);
 

@@ -17,7 +17,7 @@ void prop_res_create(Resource* resource)
 	Dat_Document doc;
 	if (!dat_load_file(&doc, resource->path))
 	{
-		msg_box("Prop load failed", "Failed to load prop file '%s'", resource->path);
+		msg_box("Failed to load prop file '%s'", resource->path);
 		return;
 	}
 
@@ -28,12 +28,12 @@ void prop_res_create(Resource* resource)
 
 	if (!dat_read(doc.root, "mesh", &mesh_path))
 	{
-		msg_box("Prop load failed", "No mesh specified");
+		msg_box("No mesh specified");
 		return;
 	}
 	if (!dat_read(doc.root, "material", &material_path))
 	{
-		msg_box("Prop load failed", "No material specified");
+		msg_box("No material specified");
 		return;
 	}
 

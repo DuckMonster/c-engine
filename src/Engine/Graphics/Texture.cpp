@@ -33,7 +33,7 @@ void texture_res_create(Resource* resource)
 	Tga_File tga;
 	if (!tga_load(&tga, resource->path))
 	{
-		msg_box("Texture load failed", "Failed to load TGA file '%s'", resource->path);
+		msg_box("Failed to load TGA file '%s'", resource->path);
 		return;
 	}
 

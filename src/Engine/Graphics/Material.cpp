@@ -91,12 +91,12 @@ void material_res_create(Resource* resource)
 
 	if (!dat_read(doc.root, "vertex", &vert_path))
 	{
-		msg_box("Material load failed", "Failed to load material '%s', vertex shader path not specified", resource->path);
+		msg_box("Failed to load material '%s', vertex shader path not specified", resource->path);
 		return;
 	}
 	if (!dat_read(doc.root, "fragment", &frag_path))
 	{
-		msg_box("Material load failed", "Failed to load material '%s', fragment shader path not specified", resource->path);
+		msg_box("Failed to load material '%s', fragment shader path not specified", resource->path);
 		return;
 	}
 
@@ -135,7 +135,7 @@ void material_res_create(Resource* resource)
 
 		if (buffer_len == 0)
 		{
-			msg_box("Material load failed", "Linking of program failed, but there was no info log...");
+			msg_box("Linking of program failed, but there was no info log...");
 		}
 		else
 		{
@@ -144,7 +144,7 @@ void material_res_create(Resource* resource)
 
 			// Get info log
 			glGetProgramInfoLog(material->program, buffer_len, nullptr, buffer);
-			msg_box("Material error", buffer);
+			msg_box("Material error:\n%s", buffer);
 		}
 	}
 }
