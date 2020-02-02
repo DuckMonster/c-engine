@@ -16,4 +16,5 @@ context: {
 
 render: {
 	pixels_per_unit: 24
+	color_map: "Texture/color_map.tga"
 }

@@ -3,6 +3,7 @@
 #include "Core/Import/Dat.h"
 #include "Engine/Resource/Resource.h"
 #include "Engine/Resource/HotReload.h"
+#include "Engine/Graphics/Texture.h"
 #include <cstdlib>
 
 /* SHADER */
@@ -147,12 +148,24 @@ void material_res_create(Resource* resource)
 			msg_box("Material error:\n%s", buffer);
 		}
 	}
+
+	// Read if the material uses a texture
+	const char* texture_path;
+	if (dat_read(doc.root, "texture", &texture_path))
+	{
+		const Texture* texture = texture_load(texture_path);
+		resource_add_dependency(resource, texture_path);
+
+		material->texture = texture;
+	}
 }
 
 void material_res_destroy(Resource* resource)
 {
 	Material* material = (Material*)resource->ptr;
 	glDeleteProgram(material->program);
+
+	material->texture = nullptr;
 }
 
 const Material* material_load(const char* path)
@@ -165,6 +178,9 @@ const Material* material_load(const char* path)
 void material_bind(const Material* mat)
 {
 	glUseProgram(mat->program);
+
+	if (mat->texture)
+		texture_bind(mat->texture, 0);
 }
 
 /* MATERIAL UNIFORM SETTERS */

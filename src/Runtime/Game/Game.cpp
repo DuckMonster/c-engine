@@ -6,6 +6,7 @@
 #include "Engine/Graphics/MeshResource.h"
 #include "Runtime/Render/Render.h"
 #include "Runtime/Render/Drawable.h"
+#include "Runtime/Render/ColorMap.h"
 #include "Runtime/Game/Scene.h"
 #include "Runtime/Online/Online.h"
 #include "Runtime/Unit/Unit.h"
@@ -131,6 +132,10 @@ void game_event_proc(Channel* chnl, Online_User* src)
 
 void game_init()
 {
+#if CLIENT
+	color_map_init();
+#endif
+
 	thing_array_init(&game.players, MAX_PLAYERS);
 	thing_array_init(&game.mobs, MAX_MOBS);
 	scene_init();
@@ -141,9 +146,7 @@ void game_init()
 	game.tile_size = 24;
 	config_get("game.tile_size", &game.tile_size);
 
-	game.floor = scene_make_drawable(mesh_load("Mesh/plane.fbx"), material_load("Material/floor.mat"));
-	Drawable* sphere = scene_make_drawable(mesh_load("Mesh/sphere.fbx"), material_load("Material/default.mat"));
-	sphere->transform = mat_position_scale(Vec3(5.f, 5.f, 5.f), Vec3(2.f, 2.f, 2.f));
+	game.floor = scene_make_drawable(mesh_load("Mesh/Environment/floor.fbx"), material_load("Material/Environment/floor.mat"));
 	editor_init();
 #endif
 

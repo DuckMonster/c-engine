@@ -136,6 +136,12 @@ void editor_update()
 
 void editor_render(const Render_State& state)
 {
+	// Draw origin lines
+	Vec3 offset = Vec3_Z * 0.01f;
+	scene_draw_line(Vec3_X * -50.f + offset, Vec3_X * 50.f + offset, Color_Red);
+	scene_draw_line(Vec3_Y * -50.f + offset, Vec3_Y * 50.f + offset, Color_Green);
+	scene_draw_line(Vec3_Z * -50.f + offset, Vec3_Z * 50.f + offset, Color_Blue);
+
 	if (editor.edit_prop && !input_key_down(Key::LeftControl))
 		if (state.current_pass == PASS_Game)
 			gizmo_draw(&editor.gizmo, state);

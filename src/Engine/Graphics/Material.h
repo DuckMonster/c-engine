@@ -1,5 +1,6 @@
 #pragma once
 #include "Core/GL/GL.h"
+struct Texture;
 
 struct Shader
 {
@@ -11,6 +12,8 @@ struct Material
 	GLuint program;
 	GLuint vertex;
 	GLuint fragment;
+
+	const Texture* texture = nullptr;
 };
 
 const Material* material_load(const char* path);

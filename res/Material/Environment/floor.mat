@@ -1,0 +1,3 @@
+vertex: "Shader/floor.vert"
+fragment: "Shader/floor.frag"
+texture: "Texture/color_map.tga"

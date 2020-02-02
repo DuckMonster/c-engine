@@ -2,7 +2,9 @@
 #define SHADOW_BIAS 0.001
 
 in vec3 f_World;
+in vec2 f_UV;
 
+uniform sampler2D u_ColorMap;
 uniform sampler2D u_ShadowBuffer;
 uniform mat4 u_LightViewProjection;
 
@@ -27,6 +29,6 @@ void main()
 	int pos = int(floor(f_World.x) + floor(f_World.y));
 	float grad = pos % 2 == 0 ? 0.15 : 0.1;
 
-	o_Color = vec4(vec3(grad), 1.0);
+	o_Color = texture(u_ColorMap, f_UV);
 	o_Color.xyz *= sample_shadow(f_World);
 } 

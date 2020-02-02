@@ -62,7 +62,7 @@ const Texture* texture_load(const char* path)
 	return (Texture*)resource->ptr;
 }
 
-void texture_data(const Texture* texture, u32 elements, u32 width, u32 height, const void* data)
+void texture_data(Texture* texture, u32 elements, u32 width, u32 height, const void* data)
 {
 	GLenum format;
 	switch(elements)
@@ -79,12 +79,74 @@ void texture_data(const Texture* texture, u32 elements, u32 width, u32 height, c
 	glBindTexture(GL_TEXTURE_2D, texture->handle);
 	glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
 	glBindTexture(GL_TEXTURE_2D, 0);
+
+	texture->width = width;
+	texture->height = height;
+	texture->pixel_size = elements;
+
+	// If there's data here, also copy it onto our own data buffer
+	if (data)
+	{
+		texture->data = malloc(width * height * elements);
+		memcpy(texture->data, data, width * height * elements);
+	}
 }
 
 void texture_bind(const Texture* texture, u8 index)
 {
 	glActiveTexture(GL_TEXTURE0 + index);
 	glBindTexture(GL_TEXTURE_2D, texture != nullptr ? texture->handle : 0);
+}
+
+Color_32 texture_get_pixel(const Texture* texture, u32 x, u32 y)
+{
+	// Invalid size
+	if (texture->width == 0 || texture->height == 0)
+		return Color_Black_32;
+
+	// Invalid coordinates
+	if (x >= texture->width || y >= texture->height)
+		return Color_Black_32;
+
+	Color_32 result = color_hex(0);
+
+	if (texture->data != nullptr)
+	{
+		// We have saved the data on the CPU, so just get it from there
+		u32 index = y * texture->width + x;
+
+		memcpy(&result, (u8*)texture->data + index * texture->pixel_size, texture->pixel_size);
+		return result;
+	}
+	else
+	{
+		// We don't have it saved, so we have to ask the GPU
+		// Get the GL-format for the texture
+		GLenum format;
+		switch(texture->pixel_size)
+		{
+			case 1: format = GL_RED; break;
+			case 2: format = GL_RG; break;
+			case 3: format = GL_RGB; break;
+			case 4: format = GL_RGBA; break;
+			default: return result; // Invalid element count
+		}
+
+		glReadPixels(x, y, 1, 1, format, GL_UNSIGNED_BYTE, &result);
+		return result;
+	}
+}
+
+Color_32 texture_get_pixel(const Texture* texture, const Vec2& uv)
+{
+	// Invalid size
+	if (texture->width == 0 || texture->height == 0)
+		return Color_Black_32;
+
+	u32 x = (u32)(uv.x * texture->width);
+	u32 y = (u32)(uv.y * texture->height);
+
+	return texture_get_pixel(texture, x, y);
 }
 
 void texture_draw_fullscreen(Texture* tex)
