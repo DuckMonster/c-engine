@@ -1,2 +1,2 @@
-mesh: "Mesh/cube.fbx"
+mesh: "Mesh/cube_weird.fbx"
 material: "Material/default.mat"

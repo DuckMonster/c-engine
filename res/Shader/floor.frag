@@ -4,13 +4,13 @@
 in vec3 f_World;
 
 uniform sampler2D u_ShadowBuffer;
-uniform mat4 u_Light;
+uniform mat4 u_LightViewProjection;
 
 out vec4 o_Color;
 
 float sample_shadow(vec3 world)
 {
-	vec4 light_space = u_Light * vec4(world, 1.0);
+	vec4 light_space = u_LightViewProjection * vec4(world, 1.0);
 	light_space /= light_space.w;
 
 	light_space = light_space * 0.5 + 0.5;

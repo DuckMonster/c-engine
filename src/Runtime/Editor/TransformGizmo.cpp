@@ -30,7 +30,7 @@ Vec3 gizmo_z(Transform_Gizmo* gizmo)
 
 Vec3 get_best_drag_plane_normal(Transform_Gizmo* gizmo, const Vec3& a, const Vec3& b)
 {
-	Vec3 forw = gizmo->transform.position - game.editor.camera.position;
+	Vec3 forw = gizmo->transform.position - editor.camera.position;
 	float a_dot = abs(dot(forw, a));
 	float b_dot = abs(dot(forw, b));
 
@@ -67,7 +67,7 @@ Plane gizmo_calculate_drag_plane(Transform_Gizmo* gizmo)
 			return plane_make(gizmo->transform.position, gizmo_z(gizmo));
 	}
 
-	return plane_make(gizmo->transform.position, -quat_x(game.editor.camera.orientation));
+	return plane_make(gizmo->transform.position, -quat_x(editor.camera.orientation));
 }
 
 void gizmo_disable_axis(Transform_Gizmo* gizmo, Gizmo_Axis axis)
@@ -137,6 +137,8 @@ void gizmo_apply_rotate(Transform_Gizmo* gizmo, const Vec3& from, const Vec3& to
 		delta_quat = Quat_Identity;
 	}
 
+	debug_log("%f, %f, %f, %f", delta_quat.x, delta_quat.y, delta_quat.z, delta_quat.w);
+
 	gizmo->transform.rotation = delta_quat * gizmo->transform.rotation;
 	gizmo->world_temp_rotation = delta_quat * gizmo->world_temp_rotation;
 }
@@ -202,6 +204,7 @@ void gizmo_update(Transform_Gizmo* gizmo)
 		if (prev_hit.has_hit && new_hit.has_hit)
 		{
 			Vec3 delta = new_hit.position - prev_hit.position;
+			gizmo->prev_mouse_ray = mouse_ray;
 
 			switch(gizmo->mode)
 			{
@@ -218,8 +221,6 @@ void gizmo_update(Transform_Gizmo* gizmo)
 					break;
 			}
 		}
-
-		gizmo->prev_mouse_ray = mouse_ray;
 	}
 }
 

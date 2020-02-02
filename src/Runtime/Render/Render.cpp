@@ -74,14 +74,16 @@ void render_draw()
 	Mat4 light_view;
 	Mat4 light_vp;
 	Mat4 light_vp_inv;
+	Vec3 light_direction = normalize(Vec3(1.f, 1.f, -1.f));
 
 	light_proj = mat_ortho(-15.f, 15.f, -15.f, 15.f, -10.f, 10.f);
-	light_view = mat_look_forward(game.camera.position, Vec3(1.f, 1.f, -1.f), Vec3_Z);
-	state.light = light_proj * light_view;
+	light_view = mat_look_forward(game.camera.position, light_direction, Vec3_Z);
+	state.light_view_projection = light_proj * light_view;
+	state.light_direction = light_direction;
 
 	state.view = light_view;
 	state.projection = light_proj;
-	state.view_projection = state.light;
+	state.view_projection = state.light_view_projection;
 	state.current_pass = PASS_Shadow;
 	render_draw_scene(state);
 

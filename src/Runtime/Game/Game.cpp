@@ -144,7 +144,7 @@ void game_init()
 	game.floor = scene_make_drawable(mesh_load("Mesh/plane.fbx"), material_load("Material/floor.mat"));
 	Drawable* sphere = scene_make_drawable(mesh_load("Mesh/sphere.fbx"), material_load("Material/default.mat"));
 	sphere->transform = mat_position_scale(Vec3(5.f, 5.f, 5.f), Vec3(2.f, 2.f, 2.f));
-	editor_init(&game.editor);
+	editor_init();
 #endif
 
 #if SERVER
@@ -167,7 +167,7 @@ void game_update()
 	}
 	else
 	{
-		editor_update(&game.editor);
+		editor_update();
 	}
 
 	// Time scaling
@@ -221,7 +221,7 @@ void game_render(const Render_State& state)
 	scene_render(state);
 
 	if (game.is_editor)
-		editor_render(&game.editor, state);
+		editor_render(state);
 }
 #endif
 

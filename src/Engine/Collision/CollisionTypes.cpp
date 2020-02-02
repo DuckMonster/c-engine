@@ -18,49 +18,53 @@ void shape_copy(Convex_Shape* target, const Convex_Shape* src)
 	target->transform = src->transform;
 
 	// Faces
-	target->num_faces = src->num_faces;
-	target->faces = new Convex_Shape_Face[src->num_faces];
-	memcpy(target->faces, src->faces, sizeof(Convex_Shape_Face) * src->num_faces);
+	target->num_tris = src->num_tris;
+	target->triangles = new Triangle[src->num_tris];
+	memcpy(target->triangles, src->triangles, sizeof(Triangle) * src->num_tris);
 
-	// Indicies
-	target->num_indicies = src->num_indicies;
-	target->indicies = new u32[src->num_indicies];
-	memcpy(target->indicies, src->indicies, sizeof(u32) * src->num_indicies);
-
-	// Vertices
-	target->num_vertices = src->num_vertices;
-	target->vertices = new Vec3[src->num_vertices];
-	target->vertices_local = new Vec3[src->num_vertices];
-	memcpy(target->vertices, src->vertices, sizeof(Vec3) * src->num_vertices);
-	memcpy(target->vertices_local, src->vertices_local, sizeof(Vec3) * src->num_vertices);
+	target->triangles_local = new Triangle[src->num_tris];
+	memcpy(target->triangles_local, src->triangles_local, sizeof(Triangle) * src->num_tris);
 }
 
 void shape_free(Convex_Shape* shape)
 {
-	if (shape->faces)
-		free(shape->faces);
-	if (shape->indicies)
-		free(shape->indicies);
-	if (shape->vertices)
-		free(shape->vertices);
-	if (shape->vertices_local)
-		free(shape->vertices_local);
+	if (shape->triangles)
+		free(shape->triangles);
+	if (shape->triangles_local)
+		free(shape->triangles_local);
 
-	shape->faces = nullptr;
-	shape->indicies = nullptr;
-	shape->vertices = nullptr;
-	shape->vertices_local = nullptr;
+	shape->num_tris = 0;
+	shape->triangles = nullptr;
+	shape->triangles_local = nullptr;
+}
+
+void triangle_calculate_centroid_radius(Triangle* triangle)
+{
+	triangle->centroid = triangle_center(triangle->verts[0], triangle->verts[1], triangle->verts[2]);
+
+	// Calculate radius
+	triangle->radius_sqrd = BIG_NUMBER;
+
+	for(u32 i=0; i<3; ++i)
+	{
+		float radius_sqrd = distance_sqrd(triangle->verts[i], triangle->centroid);
+		triangle->radius_sqrd = min(triangle->radius_sqrd, radius_sqrd);
+	}
 }
 
 void shape_apply_transform(Convex_Shape* shape, const Mat4& transform)
 {
 	shape->transform = transform;
 
-	// Transform vertices
-	for(u32 i=0; i<shape->num_vertices; ++i)
-		shape->vertices[i] = transform * shape->vertices_local[i];
+	for(u32 i=0; i<shape->num_tris; ++i)
+	{
+		Triangle& triangle_local = shape->triangles_local[i];
+		Triangle& triangle = shape->triangles[i];
 
-	// Transform normals
-	for(u32 i=0; i<shape->num_faces; ++i)
-		shape->faces[i].normal = Vec3(transform * Vec4(shape->faces[i].normal_local, 0.f));
+		for(u32 v=0; v<3; ++v)
+			triangle.verts[v] = transform * triangle_local.verts[v];
+		triangle.normal = normalize(Vec3(transform * Vec4(triangle_local.normal, 0.f)));
+
+		triangle_calculate_centroid_radius(&triangle);
+	}
 }

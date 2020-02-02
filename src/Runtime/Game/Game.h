@@ -30,7 +30,6 @@ struct Game
 	Camera camera;
 
 	bool is_editor = false;
-	Editor editor;
 #endif
 
 #if SERVER

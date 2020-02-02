@@ -58,25 +58,23 @@ struct Box
 	Quat orientation;
 };
 
-struct Convex_Shape_Face
+struct Triangle
 {
-	u32 index_offset = 0;
-	u32 vert_count = 0;
+	Vec3 centroid;
+	float radius_sqrd;
+
 	Vec3 normal;
-	Vec3 normal_local;
+	Vec3 verts[3];
 };
+void triangle_calculate_centroid_radius(Triangle* triangle);
+
 struct Convex_Shape
 {
 	Mat4 transform;
 
-	u32 num_faces = 0;
-	Convex_Shape_Face* faces = nullptr;
-
-	u32 num_indicies = 0;
-	u32* indicies = nullptr;
-	u32 num_vertices = 0;
-	Vec3* vertices_local = nullptr;
-	Vec3* vertices = nullptr;
+	u32 num_tris = 0;
+	Triangle* triangles = nullptr;
+	Triangle* triangles_local = nullptr;
 };
 
 void shape_copy(Convex_Shape* target, const Convex_Shape* src);

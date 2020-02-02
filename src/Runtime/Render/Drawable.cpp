@@ -24,7 +24,8 @@ void drawable_render(const Drawable* drawable, const Render_State& state)
 	material_set(material, "u_View", state.view);
 	material_set(material, "u_Projection", state.projection);
 	material_set(material, "u_ViewProjection", state.view_projection);
-	material_set(material, "u_Light", state.light);
+	material_set(material, "u_LightViewProjection", state.light_view_projection);
+	material_set(material, "u_LightDirection", state.light_direction);
 	material_set(material, RENDER_SHADOW_BUFFER_UNIFORM, RENDER_SHADOW_BUFFER_TEXTURE_INDEX);
 
 	material_set(material, "u_Model", drawable->transform);

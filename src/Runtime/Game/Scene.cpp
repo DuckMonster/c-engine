@@ -213,33 +213,19 @@ void scene_draw_box(const Vec3& position, const Vec3& size, const Quat& orientat
 
 void scene_draw_convex_shape(const Convex_Shape* shape)
 {
-	u32 index_offset = 0;
-	for(u32 face_index=0; face_index<shape->num_faces; ++face_index)
+	for(u32 tri_index = 0; tri_index < shape->num_tris; ++tri_index)
 	{
-		Vec3 min = shape->vertices[shape->indicies[index_offset]];
-		Vec3 max = shape->vertices[shape->indicies[index_offset]];
+		Triangle& triangle = shape->triangles[tri_index];
 
 		// Draw all the edges
-		Convex_Shape_Face& face = shape->faces[face_index];
-		for(u32 i=1; i<face.vert_count; ++i)
+		for(u32 i=0; i<3; ++i)
 		{
-			Vec3 a = shape->vertices[shape->indicies[index_offset + i - 1]];
-			Vec3 b = shape->vertices[shape->indicies[index_offset + i]];
-
-			scene_draw_line(a, b);
-
-			// While we're here, save min and max
-			min = component_min(min, a);
-			min = component_min(min, b);
-			max = component_max(max, a);
-			max = component_max(max, b);
+			int i_next = (i + 1) % 3;
+			scene_draw_line(triangle.verts[i], triangle.verts[i_next]);
 		}
 
 		// Draw the normal
-		Vec3 middle = min + (max - min) * 0.5f;
-		scene_draw_line(middle, middle + face.normal * 0.2f, Color_Red);
-
-		index_offset += face.vert_count;
+		scene_draw_line(triangle.centroid, triangle.centroid + triangle.normal * 0.2f, Color_Red);
 	}
 }
 

@@ -351,6 +351,23 @@ inline bool is_nan(const Vec2& v) { return is_nan(v.x) || is_nan(v.y); }
 inline bool is_nan(const Vec3& v) { return is_nan(v.x) || is_nan(v.y) || is_nan(v.z); }
 inline bool is_nan(const Vec4& v) { return is_nan(v.x) || is_nan(v.y) || is_nan(v.z) || is_nan(v.w); }
 
+inline bool is_counter_clockwise(const Vec3& a, const Vec3& b, const Vec3& c, const Vec3& normal)
+{
+	Vec3 first = b - a;
+	Vec3 second = c - b;
+
+	return dot(cross(first, second), normal) > 0.f;
+}
+
+inline Vec3 triangle_center(const Vec3& a, const Vec3& b, const Vec3& c)
+{
+	// The center will be two-thirds of the way from any vertex to the
+	//	middle of the opposite edge
+	// https://www.dummies.com/education/math/trigonometry/how-to-pinpoint-the-center-of-a-triangle/
+	Vec3 edge_middle = lerp(a, b, 0.5f);
+	return c + (edge_middle - c) * (2.f / 3.f);
+}
+
 inline Vec2 component_min(const Vec2& a, const Vec2& b)
 {
 	return Vec2(

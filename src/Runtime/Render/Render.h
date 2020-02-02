@@ -16,7 +16,10 @@ struct Render_State
 	Mat4 view;
 	Mat4 projection;
 	Mat4 view_projection;
-	Mat4 light;
+
+	Mat4 light_view_projection;
+	Vec3 light_direction;
+
 	u32 render_scale;
 	u32 tile_size;
 

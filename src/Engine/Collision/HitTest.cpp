@@ -1,4 +1,5 @@
 #include "HitTest.h"
+#include "Runtime/Game/Scene.h"
 
 Hit_Result hit_make(const Vec3& position, const Vec3& normal, float time)
 {
@@ -157,42 +158,37 @@ Hit_Result test_ray_box(const Ray& ray, const Box& box)
 
 Hit_Result test_ray_shape(const Ray& ray, const Convex_Shape* shape)
 {
-	// Trace against each face
-	for(u32 face_index = 0; face_index < shape->num_faces; ++face_index)
+	Hit_Result best_hit;
+
+	// Trace against each triangle
+	for(u32 tri_index = 0; tri_index < shape->num_tris; ++tri_index)
 	{
-		Convex_Shape_Face& face = shape->faces[face_index];
+		Triangle& tri = shape->triangles[tri_index];
 
 		// We can't hit a face on the back-side
-		if (dot(face.normal, ray.direction) > 0.f)
+		if (dot(tri.normal, ray.direction) > 0.f)
 			continue;
 
 		// First trace to the plane defining the face
 		//	(we use the first vertex of the face as the plane point)
-		Plane face_plane = plane_make(shape->vertices[shape->indicies[face.index_offset]], face.normal);
+		Plane face_plane = plane_make(tri.centroid, tri.normal);
 		Hit_Result plane_hit = test_ray_plane(ray, face_plane);
 		if (!plane_hit.has_hit)
 			continue;
 
 		// Make sure the plane is within all the edges
 		bool inside_face = true;
-		for(u32 v=0; v<face.vert_count; ++v)
+		for(u32 v=0; v<3; ++v)
 		{
 			// For each vertex, check that the ray hit is counter-clockwise to
 			//	the edge going to the next vertex
 			// If its clockwise the hit is outside of this edge
-			u32 num = face.index_offset + v;
-			u32 num_next = face.index_offset + ((v + 1) % face.vert_count);
+			Vec3 a = tri.verts[v];
+			Vec3 b = tri.verts[(v + 1) % 3];
 
-			Vec3 a = shape->vertices[shape->indicies[num]];
-			Vec3 b = shape->vertices[shape->indicies[num_next]];
-
-			// If the cross points towards the normal, its counter-clockwise (left side of edge = inside)
-			Vec3 edge = b - a;
-			Vec3 dif = plane_hit.position - a;
-			Vec3 edge_dif = cross(edge, dif);
-
-			// .. otherwise its clockwise (right side of edge = outside)
-			if (dot(edge_dif, face.normal) < 0.f)
+			// If the two vertices and the hit makes a counter-clockwise triangle,
+			//	its inside the triangle as a whole
+			if (!is_counter_clockwise(a, b, plane_hit.position, tri.normal))
 			{
 				inside_face = false;
 				break;
@@ -202,10 +198,11 @@ Hit_Result test_ray_shape(const Ray& ray, const Convex_Shape* shape)
 		if (!inside_face)
 			continue;
 
-		return plane_hit;
+		if (!best_hit.has_hit || best_hit.time > plane_hit.time)
+			best_hit = plane_hit;
 	}
 
-	return Hit_Result();
+	return best_hit;
 }
 
 Hit_Result convert_ray_hit_to_line_trace_hit(const Hit_Result& ray_hit, const Line_Trace& line)

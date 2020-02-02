@@ -13,12 +13,14 @@ struct Editor
 	Prop* edit_prop = nullptr;
 	Prefab prefab;
 };
+extern Editor editor;
 
 #if CLIENT
-void editor_init(Editor* editor);
-void editor_update(Editor* editor);
-void editor_render(Editor* editor, const Render_State& state);
-void editor_select_edit(Editor* editor, Prop* prop);
+void editor_init();
+void editor_update();
+void editor_render(const Render_State& state);
+void editor_select_edit(Prop* prop);
+void editor_duplicate_prop(Prop* src);
 
 Ray editor_mouse_ray();
 #endif

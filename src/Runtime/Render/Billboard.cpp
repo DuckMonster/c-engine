@@ -112,7 +112,7 @@ void billboard_render(Billboard* billboard, const Render_State& state)
 	material_set(billboard->material, "u_View", state.view);
 	material_set(billboard->material, "u_Projection", state.projection);
 	material_set(billboard->material, "u_ViewProjection", state.view_projection);
-	material_set(billboard->material, "u_Light", state.light);
+	material_set(billboard->material, "u_LightViewProjection", state.light_view_projection);
 
 	Mat4 tile_matrix;
 

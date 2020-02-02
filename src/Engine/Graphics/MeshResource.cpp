@@ -80,43 +80,40 @@ void mesh_res_create(Resource* resource)
 		Convex_Shape& shape = mesh_res->shape;
 		shape.transform = Mat4();
 
-		Fbx_Face* fbx_faces = fbx_mesh.faces;
-		Convex_Shape_Face* faces = new Convex_Shape_Face[fbx_mesh.num_faces];
+		// We want to keep the shape as triangles only, since the faces could
+		//	be fucked up and not flat 
+		shape.num_tris = num_triangles;
+		shape.triangles = new Triangle[num_triangles];
+		shape.triangles_local = new Triangle[num_triangles];
 
-		u32* indicies = new u32[fbx_mesh.num_verts];
-		memcpy(indicies, fbx_mesh.position_index, fbx_mesh.num_verts * sizeof(u32));
-		Vec3* verts = new Vec3[fbx_mesh.num_positions];
-		memcpy(verts, fbx_mesh.positions, fbx_mesh.num_positions * sizeof(Vec3));
+		u32 triangle_index = 0;
 
-		// Copy and record the normals of all faces
+		// Triangulate all the faces!
 		for(u32 i=0; i<fbx_mesh.num_faces; ++i)
 		{
-			Fbx_Face& face = fbx_faces[i];
-			faces[i].index_offset = face.index_offset;
-			faces[i].vert_count = face.vert_count;
+			Fbx_Face& face = fbx_mesh.faces[i];
 
-			// Get the normal by crossing the vertices
-			Vec3 a = verts[indicies[face.index_offset]];
-			Vec3 b = verts[indicies[face.index_offset + 1]];
-			Vec3 c = verts[indicies[face.index_offset + face.vert_count - 1]];
+			for(u32 v=2; v<face.vert_count; ++v)
+			{
+				Triangle& triangle = shape.triangles_local[triangle_index];
 
-			Vec3 first = b - a;
-			Vec3 second = c - a;
+				// Triangle fan: v[0] - v[n-1] - v[n]
+				triangle.verts[0] = fbx_mesh.positions[fbx_mesh.position_index[face.index_offset]];
+				triangle.verts[1] = fbx_mesh.positions[fbx_mesh.position_index[face.index_offset + v - 1]];
+				triangle.verts[2] = fbx_mesh.positions[fbx_mesh.position_index[face.index_offset + v]];
 
-			faces[i].normal_local = normalize(cross(first, second));
-			faces[i].normal = faces[i].normal_local;
+				// Calculate the normal by crossing the edges
+				Vec3 first = triangle.verts[1] - triangle.verts[0];
+				Vec3 second = triangle.verts[2] - triangle.verts[1];
+
+				triangle.normal = normalize(cross(first, second));
+				triangle_calculate_centroid_radius(&triangle);
+
+				triangle_index++;
+			}
 		}
 
-		shape.faces = faces;
-		shape.num_faces = fbx_mesh.num_faces;
-
-		shape.num_indicies = fbx_mesh.num_verts;
-		shape.indicies = indicies;
-
-		shape.num_vertices = fbx_mesh.num_positions;
-		shape.vertices_local = verts;
-		shape.vertices = new Vec3[fbx_mesh.num_positions];
-		memcpy(shape.vertices, shape.vertices_local, sizeof(Vec3) * fbx_mesh.num_positions);
+		shape_apply_transform(&shape, Mat4());
 	}
 }
 
@@ -124,10 +121,7 @@ void mesh_res_free(Resource* resource)
 {
 	Mesh_Resource* mesh = (Mesh_Resource*)resource->ptr;
 	mesh_free(&mesh->mesh);
-
-	delete mesh->shape.faces;
-	delete mesh->shape.indicies;
-	delete mesh->shape.vertices;
+	shape_free(&mesh->shape);
 }
 
 Mesh_Resource* mesh_resource_load(const char* path)

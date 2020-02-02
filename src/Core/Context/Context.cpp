@@ -98,8 +98,13 @@ LRESULT CALLBACK wnd_proc(HWND wnd, UINT msg, WPARAM wparam, LPARAM lparam)
 
 			// Calculate delta first, since we want it even if the cursor is locked
 			Win_MouseMove_Params* mouse = (Win_MouseMove_Params*)&lparam;
-			input.mouse.delta_x += mouse->x - input.mouse.x;
-			input.mouse.delta_y += mouse->y - input.mouse.y;
+
+			// However, don't do that if we dont have focus
+			if (context.has_focus)
+			{
+				input.mouse.delta_x += mouse->x - input.mouse.x;
+				input.mouse.delta_y += mouse->y - input.mouse.y;
+			}
 
 			if (context.cursor_lock)
 			{
@@ -185,6 +190,22 @@ LRESULT CALLBACK wnd_proc(HWND wnd, UINT msg, WPARAM wparam, LPARAM lparam)
 
 			if (context.cursor_hide)
 				ShowCursor(!context.has_focus);
+
+			if (!context.has_focus)
+				context_unlock_cursor();
+
+			// Reset the mouse positions, otherwise we get delta-spikes
+			if (context.has_focus)
+			{
+				POINT mouse_point;
+				GetCursorPos(&mouse_point);
+				ScreenToClient(window.handle, &mouse_point);
+
+				input.mouse.x = mouse_point.x;
+				input.mouse.y = mouse_point.y;
+				input.mouse.delta_x = 0;
+				input.mouse.delta_y = 0;
+			}
 
 			break;
 		}
