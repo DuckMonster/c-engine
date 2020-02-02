@@ -1,5 +1,3 @@
-#version 330
-
 in vec3 a_Position;
 in vec3 a_Normal;
 layout(location = 2) in vec2 a_UV;

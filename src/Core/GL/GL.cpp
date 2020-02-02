@@ -31,6 +31,8 @@ void load_opengl_functions()
 	IMPORT_FUN(glCompileShader);
 	IMPORT_FUN(glAttachShader);
 	IMPORT_FUN(glDetachShader);
+	IMPORT_FUN(glGetShaderiv);
+	IMPORT_FUN(glGetShaderInfoLog);
 	IMPORT_FUN(glCreateProgram);
 	IMPORT_FUN(glDeleteProgram);
 	IMPORT_FUN(glLinkProgram);

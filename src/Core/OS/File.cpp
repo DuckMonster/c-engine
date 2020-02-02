@@ -27,7 +27,7 @@ i32 file_read_all(const char* path, char* buffer, u32 size)
 }
 
 // Reads all contents of a file, and allocates space for it into the given pointer
-i32 file_read_all_dynamic(const char* path, char*& buffer)
+i32 file_read_all_dynamic(const char* path, char** buffer)
 {
 	FILE* file = fopen(path, "r");
 	if (file == NULL)
@@ -40,9 +40,9 @@ i32 file_read_all_dynamic(const char* path, char*& buffer)
 	u32 file_len = ftell(file);
 	fseek(file, 0, SEEK_SET);
 
-	buffer = (char*)malloc(file_len);
+	*buffer = (char*)malloc(file_len);
 
-	size_t bytes_read = fread(buffer, 1, file_len, file);
+	size_t bytes_read = fread(*buffer, 1, file_len, file);
 	return bytes_read;
 }
 

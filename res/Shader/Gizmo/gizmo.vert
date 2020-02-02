@@ -1,5 +1,3 @@
-#version 330 core
-
 in vec3 a_Position;
 out vec4 f_FragNDC;
 

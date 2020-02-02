@@ -1,5 +1,3 @@
-#version 330 core
-
 in vec2 a_Position;
 in vec2 a_UV;
 

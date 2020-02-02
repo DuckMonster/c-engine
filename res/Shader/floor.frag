@@ -1,4 +1,3 @@
-#version 330 core
 #define SHADOW_BIAS 0.001
 
 in vec3 f_World;

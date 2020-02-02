@@ -1,5 +1,3 @@
-#version 330 core
-
 in vec4 f_FragNDC;
 
 uniform sampler2D u_DepthSampler;

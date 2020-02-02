@@ -1,5 +1,3 @@
-#version 330 core
-
 in vec3 a_Position;
 in float a_Time;
 in float a_Width;

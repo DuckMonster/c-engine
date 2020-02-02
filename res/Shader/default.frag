@@ -1,5 +1,3 @@
-#version 330 core
-
 uniform sampler2D u_Sampler;
 
 out vec4 o_Color;

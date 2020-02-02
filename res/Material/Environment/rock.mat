@@ -1,2 +1,8 @@
 vertex: "Shader/Environment/rock.vert"
 fragment: "Shader/Environment/rock.frag"
+
+defines:
+{
+	MY_VALUE: 0.1
+	MY_OTHER_VALUE: 0.9
+}

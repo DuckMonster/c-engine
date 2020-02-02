@@ -4,14 +4,17 @@ struct Texture;
 
 struct Shader
 {
-	GLuint handle;
+	GLenum type;
+	char* source;
+	u32 source_len;
 };
 
 struct Material
 {
-	GLuint program;
-	GLuint vertex;
-	GLuint fragment;
+	GLuint program = GL_INVALID_INDEX;
+	GLuint vertex = GL_INVALID_INDEX;
+	GLuint fragment = GL_INVALID_INDEX;
+	GLuint geometry = GL_INVALID_INDEX;
 
 	const Texture* texture = nullptr;
 };

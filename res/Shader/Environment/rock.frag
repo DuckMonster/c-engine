@@ -1,4 +1,4 @@
-#version 330 core
+#include "Shader/Include/ColorMap.frag"
 
 in VertData
 {
@@ -17,5 +17,5 @@ void main()
 	float diffuse = -dot(v2f.normal, u_LightDirection);
 	diffuse = clamp(diffuse, 0.2, 1.0);
 
-	o_Color = vec4(color * diffuse, 1.0);
+	o_Color = vec4(MY_VALUE, MY_OTHER_VALUE, 0.0, 1.0);
 }

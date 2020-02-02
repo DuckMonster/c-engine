@@ -1,4 +1,3 @@
-#version 330 core
 in vec2 a_Position;
 
 uniform mat4 u_LineMatrix;
