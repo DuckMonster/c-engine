@@ -9,6 +9,36 @@
 
 const char* SHADER_VERSION_STR = "#version 330 core\n";
 
+const Shader* shader_load(GLenum type, const char* path);
+
+i32 parse_include_directive(const char* directive, char* out_path, u32* out_path_len)
+{
+	*out_path_len = 0;
+	const char* new_line = strstr(directive, "\n");
+	const char* path_start = nullptr;
+
+	for(const char* ptr = directive; ptr < new_line; ++ptr)
+	{
+		if (*ptr == '\"')
+		{
+			// We've already found the start, so save the length!
+			if (path_start)
+			{
+				u32 path_len = ptr - path_start;
+
+				memcpy(out_path, path_start, path_len);
+				out_path[path_len] = 0;
+				*out_path_len = path_len;
+			}
+			else
+				path_start = ptr + 1;
+		}
+	}
+
+	// We want to return the length of the whole directive, so find the newline
+	return (new_line - directive);
+}
+
 /* SHADER */
 void shader_res_create(Resource* resource, GLenum type)
 {
@@ -17,7 +47,7 @@ void shader_res_create(Resource* resource, GLenum type)
 
 	shader->type = type;
 	i32 length = file_read_all_dynamic(resource->path, &shader->source);
-	if (length <= 0)
+	if (length < 0)
 	{
 		msg_box("Failed to load shader '%s', file not found", resource->path);
 		shader->source = nullptr;
@@ -29,30 +59,47 @@ void shader_res_create(Resource* resource, GLenum type)
 	}
 
 	// Pre-process for include directives
-	const char* preprocess_str = shader->source;
-	const char* include_str = nullptr;
+	char* preprocess_str = shader->source;
+	char* include_str = nullptr;
 
 	while(include_str = strstr(preprocess_str, "#include"))
 	{
-		const char* include_path = nullptr;
-		u32 include_path_len = 0;
+		preprocess_str += 10;
 
-		const char* str = include_str;
-		while(*str != '\n')
+		 // Make sure the include directive immediately follows a new-line
+		if (include_str != shader->source && *(include_str - 1) != '\n' && *(include_str - 1) != '\r')
+			continue;
+
+		// Hopefully not longer than 80.......
+		static char path_buffer[80];
+
+		// Parse for include path
+		u32 path_len = 0;
+		i32 directive_len = parse_include_directive(include_str, path_buffer, &path_len);
+
+		// Replace the whole directive with spaces
+		for(char* ptr = include_str; ptr < include_str + directive_len; ++ptr)
+			*ptr = ' ';
+
+		if (shader->num_includes >= MAX_INCLUDES)
 		{
-			// Opening/closing quotes
-			if (*str == '\"')
-			{
-				if (include_path == nullptr)
-					include_path = str + 1;
-				else
-					include_path_len = str - include_path;
-			}
-
-			debug_log("'%s' includes '%.*s'", resource->path, include_path_len, include_path);
+			msg_box("Shader '%s' failed to include shader '%s', it exceeded the maximum amount of includes", resource->path, path_buffer);
+			continue;
 		}
 
-		preprocess_str = include_str + 8;
+		path_buffer[path_len] = 0;
+
+		// Load included shader
+		const Shader* include_shader = shader_load(type, path_buffer);
+		if (include_shader == nullptr)
+		{
+			msg_box("Shader '%s' failed to include shader '%s', it failed to load", resource->path, path_buffer);
+			continue;
+		}
+
+		resource_add_dependency(resource, path_buffer);
+		shader->included_shaders[shader->num_includes] = include_shader;
+		shader->num_includes++;
 	}
 }
 
@@ -99,8 +146,8 @@ GLuint shader_compile(const Shader* shader, const char* const* defines, u32 num_
 {
 	GLuint handle = glCreateShader(shader->type);
 
-	// Total number of sources: version directive -> defines -> source code
-	u32 num_sources = 2 + num_defines;
+	// Total number of sources: version directive -> defines -> includes -> source code
+	u32 num_sources = 2 + num_defines + shader->num_includes;
 
 	const char** sources = new const char*[num_sources];
 	i32* source_lengths = new i32[num_sources];
@@ -115,6 +162,13 @@ GLuint shader_compile(const Shader* shader, const char* const* defines, u32 num_
 	{
 		sources[i + 1] = defines[i];
 		source_lengths[i + 1] = -1;
+	}
+
+	// Third, all includes
+	for(u32 i=0; i<shader->num_includes; ++i)
+	{
+		sources[1 + num_defines + i] = shader->included_shaders[i]->source;
+		source_lengths[1 + num_defines + i] = shader->included_shaders[i]->source_len;
 	}
 
 	// And last, the source of the shader!
