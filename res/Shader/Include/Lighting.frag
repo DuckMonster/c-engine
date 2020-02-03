@@ -1,4 +1,5 @@
-const float SHADOW_BIAS = 0.005;
+#include "Shader/Include/ColorMap.frag"
+#define SHADOW_BIAS 0.005
 
 uniform sampler2D u_ShadowBuffer;
 uniform mat4 u_LightViewProjection;

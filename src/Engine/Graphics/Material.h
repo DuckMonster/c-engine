@@ -1,18 +1,6 @@
 #pragma once
 #include "Core/GL/GL.h"
-#define MAX_INCLUDES 8
-
 struct Texture;
-
-struct Shader
-{
-	GLenum type;
-	char* source;
-	u32 source_len;
-
-	u32 num_includes = 0;
-	const Shader* included_shaders[MAX_INCLUDES];
-};
 
 struct Material
 {

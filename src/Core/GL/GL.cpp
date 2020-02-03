@@ -28,6 +28,7 @@ void load_opengl_functions()
 	IMPORT_FUN(glCreateShader);
 	IMPORT_FUN(glDeleteShader);
 	IMPORT_FUN(glShaderSource);
+	IMPORT_FUN(glGetShaderSource);
 	IMPORT_FUN(glCompileShader);
 	IMPORT_FUN(glAttachShader);
 	IMPORT_FUN(glDetachShader);

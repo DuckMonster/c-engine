@@ -1,4 +1,7 @@
 #include "Shader/Include/Lighting.frag"
+#include "Shader/Include/ColorMap.frag"
+
+#define HOPE 5
 
 in VertData
 {

@@ -28,4 +28,8 @@ Vec2 color_map_get_uv(u32 x, u32 y)
 	return result;
 }
 
+void color_map_bind()
+{
+	texture_bind(color_map.texture, COLOR_MAP_UNIFORM);
+}
 #endif

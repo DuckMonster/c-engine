@@ -12,4 +12,5 @@
 #include "Core/Debug/Log.h"
 #include "Core/Time/Time.h"
 #include "Core/Memory/Mem.h"
+#include "Core/Container/StringBuilder.h"
 #include <new>
