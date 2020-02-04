@@ -220,11 +220,14 @@ void shader_write_includes_recursive(String_Builder* builder, const Shader* shad
 	{
 		String_Builder msg;
 		str_append(&msg, "Shader circular dependency\n\n");
-		str_append_format(&msg, "%s\n", include_stack->shader->path);
+		str_append_format(&msg, "%s\n", shader->path);
 
 		Shader_Include_Stack* stack = include_stack;
-		while((stack = stack->prev))
+		while(stack)
+		{
 			str_append_format(&msg, "%s =>\n", stack->shader->path);
+			stack = stack->prev;
+		}
 
 		msg_box(msg.str);
 		str_free(&msg);

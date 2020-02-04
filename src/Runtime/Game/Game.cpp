@@ -138,6 +138,7 @@ void game_init()
 
 	thing_array_init(&game.players, MAX_PLAYERS);
 	thing_array_init(&game.mobs, MAX_MOBS);
+
 	scene_init();
 
 	game.channel = channel_open("GAME", 0, game_event_proc);
@@ -154,6 +155,9 @@ void game_init()
 	game.ai_spawn_timer.interval = 10.f;
 	game.ai_spawn_timer.variance = 5.f;
 #endif
+
+	Prefab pref;
+	prefab_load(&pref, "Prefab/main.prefab");
 }
 
 void game_update()

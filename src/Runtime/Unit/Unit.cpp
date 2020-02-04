@@ -249,10 +249,21 @@ void unit_move_delta(Unit* unit, const Vec2& delta, bool real)
 		}
 	}
 
+	if (iterations >= 10)
+	{
+		return;
+	}
+
+	if (is_nan(position))
+	{
+		debug_log("Position contained NaN after move");
+		return;
+	}
+
 	// Weapons inherit a bit of the delta
 	Vec2 final_delta = position - unit->position;
-	unit->weapon->position += final_delta * unit_move_inheritance;
 
+	unit->weapon->position += final_delta * unit_move_inheritance;
 	unit->position = position;
 }
 

@@ -15,7 +15,10 @@ void main()
 
 	float noise = perlin(f_World * 0.1) * 0.5 + 0.5;
 	noise = round(noise);
+	noise = 1.0;
 
-	o_Color = mix(color_low, color_high, noise);
-	o_Color.xyz *= sample_shadow(f_World);
+	vec4 albedo = mix(color_low, color_high, noise);
+	vec3 lighted = apply_lighting(albedo.xyz, f_World, vec3(0.0, 0.0, 1.0));
+
+	o_Color = vec4(lighted, 1.0);
 } 

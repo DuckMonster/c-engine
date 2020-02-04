@@ -19,6 +19,11 @@ void prefab_load(Prefab* prefab, const char* path)
 	prefab_free(prefab);
 
 	FILE* file = fopen(path, "rb");
+	if (file == nullptr)
+	{
+		msg_box("Failed to load prefab '%s', file doesn't exist", path);
+		return;
+	}
 
 	// Read number of props
 	u32 num_props;
