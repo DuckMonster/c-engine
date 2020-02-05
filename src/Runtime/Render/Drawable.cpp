@@ -6,6 +6,8 @@
 #include "Engine/Graphics/Texture.h"
 #include "Runtime/Render/ColorMap.h"
 
+#if CLIENT
+
 void drawable_init(Drawable* drawable, const Mesh* mesh, const Material* material, const Texture* texture)
 {
 	drawable->mesh = mesh;
@@ -35,3 +37,5 @@ void drawable_render(const Drawable* drawable, const Render_State& state)
 	material_set(material, "u_Model", drawable->transform);
 	mesh_draw(drawable->mesh);
 }
+
+#endif

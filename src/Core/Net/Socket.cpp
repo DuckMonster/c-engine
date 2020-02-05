@@ -49,7 +49,13 @@ void sock_bind(Socket* socket, Ip_Address* bind_addr)
 
 	// Bind
 	i32 result = bind(socket->handle, (sockaddr*)&addr, sizeof(addr));
-	assert(result != SOCKET_ERROR);
+	if (result == SOCKET_ERROR)
+	{
+		i32 error = WSAGetLastError();
+
+		error("Failed to bind socket to address (%s)", ip_str(*bind_addr));
+		return;
+	}
 
 	// Get and set the resulting bind addr to the input
 	int name_len = sizeof(addr);

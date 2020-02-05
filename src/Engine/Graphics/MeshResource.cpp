@@ -23,6 +23,17 @@ void mesh_res_create(Resource* resource)
 
 	Fbx_Mesh& fbx_mesh = scene->meshes[0];
 
+	// Build the elements buffer to split all faces into triangles
+	u32 num_triangles = 0;
+	for(u32 i=0; i<fbx_mesh.num_faces; ++i)
+	{
+		// First 3 vertices make one triangle.
+		// Each additional vertex makes one more triangle.
+		num_triangles += 1 + (fbx_mesh.faces[i].vert_count - 3);
+	}
+
+#if CLIENT
+
 	/* Create the drawing mesh! */
 	mesh_create(mesh);
 	mesh_add_buffers(mesh, 2);
@@ -50,15 +61,6 @@ void mesh_res_create(Resource* resource)
 
 	mesh_buffer_data(mesh, 0, vertex_array, sizeof(Vertex) * fbx_mesh.num_verts);
 
-	// Build the elements buffer to split all faces into triangles
-	u32 num_triangles = 0;
-	for(u32 i=0; i<fbx_mesh.num_faces; ++i)
-	{
-		// First 3 vertices make one triangle.
-		// Each additional vertex makes one more triangle.
-		num_triangles += 1 + (fbx_mesh.faces[i].vert_count - 3);
-	}
-
 	u32* element_data = new u32[num_triangles * 3];
 	u32 element_offset = 0;
 	for(u32 i=0; i<fbx_mesh.num_faces; ++i)
@@ -74,6 +76,7 @@ void mesh_res_create(Resource* resource)
 	}
 
 	mesh_element_data(mesh, 1, element_data, sizeof(u32) * num_triangles * 3);
+#endif
 
 	/* Create the collision shape */
 	{
