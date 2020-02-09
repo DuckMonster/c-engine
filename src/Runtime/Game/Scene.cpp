@@ -7,6 +7,7 @@
 #include "Runtime/Prop/Prop.h"
 #include "Runtime/Weapon/Weapon.h"
 #include "Runtime/Game/Projectile.h"
+#include "Runtime/Game/Grass.h"
 #include "Runtime/Render/HealthBar.h"
 #include "Runtime/Render/Drawable.h"
 #include "Runtime/Render/Billboard.h"
@@ -27,6 +28,9 @@ void scene_init()
 	thing_array_init(&scene.billboards, MAX_BILLBOARDS);
 	thing_array_init(&scene.line_drawers, MAX_LINE_DRAWERS);
 	thing_array_init(&scene.health_bars, MAX_HEALTH_BARS);
+
+	scene.grass = new Grass();
+	grass_init(scene.grass);
 
 	primitives_init(&scene.primitive_manager);
 	fx_init();
@@ -246,6 +250,7 @@ void scene_render(const Render_State& state)
 		THINGS_FOREACH(&scene.health_bars)
 			health_bar_render(it, state);
 
+		grass_render(scene.grass, state);
 		primitives_render(&scene.primitive_manager, state);
 
 		fx_render(state);

@@ -26,6 +26,7 @@ struct Mesh;
 struct Material;
 struct Texture;
 struct Sprite_Sheet;
+struct Grass;
 
 struct Scene
 {
@@ -40,6 +41,7 @@ struct Scene
 	Thing_Array<Line_Drawer> line_drawers;
 	Thing_Array<Health_Bar> health_bars;
 
+	Grass* grass;
 	Primitive_Manager primitive_manager;
 #endif
 };

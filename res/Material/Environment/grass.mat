@@ -1,0 +1,8 @@
+vertex: "Shader/Environment/grass.vert"
+fragment: "Shader/Environment/grass.frag"
+
+defines:
+{
+	COLOR_X: 1
+	COLOR_Y: 0
+}

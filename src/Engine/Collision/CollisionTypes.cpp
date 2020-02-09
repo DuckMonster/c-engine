@@ -63,8 +63,21 @@ void shape_apply_transform(Convex_Shape* shape, const Mat4& transform)
 
 		for(u32 v=0; v<3; ++v)
 			triangle.verts[v] = transform * triangle_local.verts[v];
-		triangle.normal = normalize(Vec3(transform * Vec4(triangle_local.normal, 0.f)));
+
+		Vec3 first = triangle.verts[1] - triangle.verts[0];
+		Vec3 second = triangle.verts[2] - triangle.verts[1];
+		triangle.normal = normalize(cross(first, second));
 
 		triangle_calculate_centroid_radius(&triangle);
+
+		// Make sure everything is flat...
+		for(u32 v=1; v<3; ++v)
+		{
+			Vec3 line = triangle.verts[v - 1] - triangle.verts[v];
+			float dot_value = dot(line, triangle.normal);
+
+			if (!is_nearly_zero(dot_value))
+				msg_box("Dot is %f", dot_value);
+		}
 	}
 }

@@ -4,8 +4,6 @@ texture: "Texture/color_map.tga"
 
 defines:
 {
-	COLOR_LOW_X: 2
-	COLOR_LOW_Y: 0
-	COLOR_HIGH_X: 1
-	COLOR_HIGH_Y: 0
+	COLOR_X: 1
+	COLOR_Y: 0
 }
