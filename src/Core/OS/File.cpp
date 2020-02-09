@@ -46,6 +46,21 @@ i32 file_read_all_dynamic(const char* path, char** buffer)
 	return bytes_read;
 }
 
+// Creates a file (or overwrites if existing), and fills it with content
+void file_create_write(const char* path, const char* contents, u32 size)
+{
+	FILE* file = fopen(path, "wb");
+	if (file == NULL)
+	{
+		msg_box("Failed to create/write file '%s'", path);
+		return;
+	}
+
+	defer { fclose(file); };
+
+	fwrite(contents, 1, size, file);
+}
+
 // Get the last modified time of a file
 i64 file_modified_time(const char* path)
 {

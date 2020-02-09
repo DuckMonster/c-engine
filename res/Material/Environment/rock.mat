@@ -1,6 +1,11 @@
 vertex: "Shader/Environment/rock.vert"
 fragment: "Shader/Environment/rock.frag"
+texture: "Texture/Environment/rock_01.tga"
 
 defines:
 {
+	COLOR_MAX_X: 2
+	COLOR_MAX_Y: 6
+	COLOR_MIN_X: 0
+	COLOR_MIN_Y: 6
 }

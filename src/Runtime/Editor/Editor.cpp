@@ -111,8 +111,6 @@ void editor_update()
 			gizmo_update(&editor.gizmo);
 			prop_set_transform(editor.edit_prop, editor.gizmo.transform);
 		}
-
-		scene_draw_convex_shape(&editor.edit_prop->shape);
 	}
 
 	// Testing scene collision

@@ -71,8 +71,9 @@ bool tga_load(Tga_File* tga, const char* path)
 	// Read pixel data
 	tga->width = image_spec.width;
 	tga->height = image_spec.height;
+	tga->channels = image_spec.pixel_depth / 8;
 
-	u32 image_size = image_spec.width * image_spec.height * (image_spec.pixel_depth / 8);
+	u32 image_size = image_spec.width * image_spec.height * tga->channels;
 	tga->data = malloc(image_size);
 	fread(tga->data, image_size, 1, file);
 

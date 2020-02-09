@@ -4,6 +4,7 @@ struct Tga_File
 {
 	u16 width;
 	u16 height;
+	u8 channels;
 	void* data;
 };
 

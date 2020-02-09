@@ -2,6 +2,8 @@
 #include "Engine/Graphics/Material.h"
 #include "Runtime/Render/ColorMap.h"
 
+#if CLIENT
+
 struct Grass_Segment
 {
 	float height;
@@ -20,12 +22,12 @@ void grass_init(Grass* grass)
 
 	Grass_Segment segments[num_segments];
 	segments[0].height = 0.f;
-	segments[0].half_width = 0.08f;
-	segments[1].height = 0.2f;
-	segments[1].half_width = 0.06f;
-	segments[2].height = 0.4f;
-	segments[2].half_width = 0.03f;
-	segments[3].height = 0.5f;
+	segments[0].half_width = 0.05f;
+	segments[1].height = 0.18f;
+	segments[1].half_width = 0.03f;
+	segments[2].height = 0.32f;
+	segments[2].half_width = 0.02f;
+	segments[3].height = 0.4f;
 	segments[3].half_width = 0.f;
 
 	mesh_create(&grass->mesh);
@@ -96,3 +98,5 @@ void grass_render(Grass* grass, const Render_State& state)
 
 	mesh_draw(&grass->mesh);
 }
+
+#endif

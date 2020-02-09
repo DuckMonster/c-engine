@@ -100,6 +100,8 @@ void material_res_create(Resource* resource)
 	resource_add_dependency(resource, vert_path);
 	resource_add_dependency(resource, frag_path);
 
+	bool shader_success = true;
+
 	material->vertex = shader_compile(vertex_shdr, defines, num_defines);
 	material->fragment = shader_compile(fragment_shdr, defines, num_defines);
 	glAttachShader(material->program, material->vertex);
@@ -116,38 +118,43 @@ void material_res_create(Resource* resource)
 		glAttachShader(material->program, material->geometry);
 	}
 
-	glLinkProgram(material->program);
+	// Link the program only if all shaders compiled
+	if (material->vertex != GL_INVALID_INDEX && material->fragment != GL_INVALID_INDEX)
+	{
+		glLinkProgram(material->program);
+
+		// Check if everything succeeded
+		GLint success = 0;
+		glGetProgramiv(material->program, GL_LINK_STATUS, &success);
+
+		if (success != GL_TRUE)
+		{
+			// Uh oh!
+			// Get and allocate space for the info log buffer
+			GLint buffer_len = 0;
+			glGetProgramiv(material->program, GL_INFO_LOG_LENGTH, &buffer_len);
+
+			if (buffer_len == 0)
+			{
+				debug_log("Linking of program '%s' failed, but there was no info log...", resource->path);
+			}
+			else
+			{
+				char* buffer = (char*)malloc(buffer_len);
+				defer { free(buffer); };
+
+				// Get info log
+				glGetProgramInfoLog(material->program, buffer_len, nullptr, buffer);
+				debug_log("'%s' program link error:\n%s", resource->path, buffer);
+			}
+		}
+	}
+
 	glDetachShader(material->program, material->vertex);
 	glDetachShader(material->program, material->fragment);
 
 	if (material->geometry != GL_INVALID_INDEX)
 		glDetachShader(material->program, material->geometry);
-
-	// Check if everything succeeded
-	GLint success = 0;
-	glGetProgramiv(material->program, GL_LINK_STATUS, &success);
-
-	if (success != GL_TRUE)
-	{
-		// Uh oh!
-		// Get and allocate space for the info log buffer
-		GLint buffer_len = 0;
-		glGetProgramiv(material->program, GL_INFO_LOG_LENGTH, &buffer_len);
-
-		if (buffer_len == 0)
-		{
-			msg_box("Linking of program '%s' failed, but there was no info log...", resource->path);
-		}
-		else
-		{
-			char* buffer = (char*)malloc(buffer_len);
-			defer { free(buffer); };
-
-			// Get info log
-			glGetProgramInfoLog(material->program, buffer_len, nullptr, buffer);
-			msg_box("'%s' material error:\n%s", resource->path, buffer);
-		}
-	}
 
 	if (defines)
 	{

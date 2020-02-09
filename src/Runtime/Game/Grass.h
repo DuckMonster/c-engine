@@ -9,6 +9,10 @@ struct Grass
 	const Material* material = nullptr;
 };
 
+#if CLIENT
+
 void grass_init(Grass* grass);
 void grass_update(Grass* grass);
 void grass_render(Grass* grass, const Render_State& state);
+
+#endif

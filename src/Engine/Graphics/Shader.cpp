@@ -1,7 +1,10 @@
 #include "Shader.h"
 #include "Core/OS/File.h"
+#include "Core/OS/Path.h"
+#include "Engine/Config/Config.h"
 #include "Engine/Resource/Resource.h"
 #include "Engine/Resource/HotReload.h"
+#include <stdio.h>
 const char* SHADER_VERSION_STR = "#version 330 core\n";
 
 i32 parse_include_directive(const char* directive, char* out_path, u32* out_path_len)
@@ -270,8 +273,19 @@ GLuint shader_compile(const Shader* shader, const char* const* defines, u32 num_
 	shader_include_list_empty();
 
 	GLuint handle = glCreateShader(shader->type);
-	debug_log("Source:");
-	debug_log(source.str);
+
+	// Should we write full source?
+	bool should_dump_shaders;
+	config_get("render.dump_shaders", &should_dump_shaders);
+	if (should_dump_shaders)
+	{
+		char dump_path[128];
+		char* file_name = path_get_file(shader->path);
+		defer { free(file_name); };
+
+		sprintf(dump_path, "../build/ShaderDump/%s", file_name);
+		file_create_write(dump_path, source.str, source.length);
+	}
 
 	glShaderSource(handle, 1, &source.str, nullptr);
 	glCompileShader(handle);
@@ -289,7 +303,7 @@ GLuint shader_compile(const Shader* shader, const char* const* defines, u32 num_
 
 		if (buffer_len == 0)
 		{
-			msg_box("Compiling shader '%s' failed, but there was no info log...", shader->path);
+			debug_log("Compiling shader '%s' failed, but there was no info log...", shader->path);
 		}
 		else
 		{
@@ -298,8 +312,11 @@ GLuint shader_compile(const Shader* shader, const char* const* defines, u32 num_
 
 			// Get info log
 			glGetShaderInfoLog(handle, buffer_len, nullptr, buffer);
-			msg_box("Shader '%s' error:\n%s", shader->path, buffer);
+			debug_log("Shader '%s' error:\n%s", shader->path, buffer);
 		}
+
+		glDeleteShader(handle);
+		return GL_INVALID_INDEX;
 	}
 
 	str_free(&source);

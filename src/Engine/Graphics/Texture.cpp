@@ -37,13 +37,38 @@ void texture_res_create(Resource* resource)
 		return;
 	}
 
-	defer { tga_free(&tga); };
+	defer{ tga_free(&tga); };
+
+	GLenum gl_tex_mode;
+	GLenum gl_int_mode;
+	switch(tga.channels)
+	{
+		case 1:
+			gl_tex_mode = GL_RED;
+			gl_int_mode = GL_RED;
+			break;
+		case 2:
+			gl_tex_mode = GL_RG;
+			gl_int_mode = GL_RG;
+			break;
+		case 3:
+			gl_tex_mode = GL_BGR;
+			gl_int_mode = GL_RGB;
+			break;
+		case 4:
+			gl_tex_mode = GL_BGRA;
+			gl_int_mode = GL_RGBA;
+			break;
+		default:
+			error("Unknown number of channels %d in texture '%s'", tga.channels, resource->path);
+			break;
+	}
 
 	texture->width = tga.width;
 	texture->height = tga.height;
 
 	glBindTexture(GL_TEXTURE_2D, texture->handle);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, tga.width, tga.height, 0, GL_BGRA, GL_UNSIGNED_BYTE, tga.data);
+	glTexImage2D(GL_TEXTURE_2D, 0, gl_int_mode, tga.width, tga.height, 0, gl_tex_mode, GL_UNSIGNED_BYTE, tga.data);
 	glBindTexture(GL_TEXTURE_2D, 0);
 }
 

@@ -156,16 +156,9 @@ Hit_Result test_ray_box(const Ray& ray, const Box& box)
 	return hit;
 }
 
-#include "Core/Input/Input.h"
-i32 debug_triangle = -1;
-
 Hit_Result test_ray_shape(const Ray& ray, const Convex_Shape* shape)
 {
 	Hit_Result best_hit;
-
-	bool show_result = input_key_down(Key::L);
-	bool lock_triangle = input_key_pressed(Key::K);
-	i32 best_triangle = -1;
 
 	// Trace against each triangle
 	for(u32 tri_index = 0; tri_index < shape->num_tris; ++tri_index)
@@ -197,13 +190,6 @@ Hit_Result test_ray_shape(const Ray& ray, const Convex_Shape* shape)
 			//	its inside the triangle as a whole
 			if (!is_counter_clockwise(a, b, plane_hit.position, tri.normal))
 			{
-				if (debug_triangle == tri_index)
-				{
-					scene_draw_line(a, b, Color_Red);
-					scene_draw_line(b, plane_hit.position, Color_Red);
-					scene_draw_line(a, plane_hit.position, Color_Red);
-				}
-
 				inside_face = false;
 				break;
 			}
@@ -213,24 +199,7 @@ Hit_Result test_ray_shape(const Ray& ray, const Convex_Shape* shape)
 			continue;
 
 		if (!best_hit.has_hit || best_hit.time > plane_hit.time)
-		{
 			best_hit = plane_hit;
-			best_triangle = tri_index;
-		}
-	}
-
-	if (best_triangle >= 0 && show_result)
-	{
-		Triangle& tri = shape->triangles[best_triangle];
-
-		for(u32 i=0; i<3; ++i)
-		{
-			u32 i_next = (i + 1) % 3;
-			scene_draw_line(tri.verts[i], tri.verts[i_next], Color_Red);
-		}
-
-		if (lock_triangle)
-			debug_triangle = best_triangle;
 	}
 
 	return best_hit;
