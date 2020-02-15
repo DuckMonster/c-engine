@@ -37,6 +37,8 @@ bool input_key_pressed(Key key);
 // Returns if a key was released this frame
 bool input_key_released(Key key);
 
+void input_key_consume(Key key);
+
 // Returns the coordinate of the mouse in pixel-space
 int input_mouse_x();
 int input_mouse_y();
@@ -49,6 +51,8 @@ int input_mouse_delta_y();
 bool input_mouse_button_down(Mouse_Btn btn);
 bool input_mouse_button_pressed(Mouse_Btn btn);
 bool input_mouse_button_released(Mouse_Btn btn);
+
+void input_mouse_button_consume(Mouse_Btn btn);
 
 // Purge all input, resetting the state completely
 void input_purge();

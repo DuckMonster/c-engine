@@ -6,6 +6,7 @@
 #include "Runtime/Unit/Unit.h"
 #include "Runtime/Prop/Prop.h"
 #include "Runtime/Weapon/Weapon.h"
+#include "Runtime/Weapon/ItemDrop.h"
 #include "Runtime/Game/Projectile.h"
 #include "Runtime/Game/Grass.h"
 #include "Runtime/Render/HealthBar.h"
@@ -22,6 +23,7 @@ void scene_init()
 	thing_array_init(&scene.weapons, MAX_WEAPONS);
 	thing_array_init(&scene.projectiles, MAX_PROJECTILES);
 	thing_array_init(&scene.props, MAX_PROPS);
+	thing_array_init(&scene.drops, MAX_ITEM_DROPS);
 
 #if CLIENT
 	thing_array_init(&scene.drawables, MAX_DRAWABLES);
@@ -101,10 +103,10 @@ u32 scene_get_free_unit_id()
 	return -1;
 }
 
-Weapon* scene_make_weapon(Unit* owner)
+Weapon* scene_make_weapon(Unit* owner, const Weapon_Instance& instance)
 {
 	Weapon* weapon = thing_add(&scene.weapons);
-	weapon_init(weapon, owner);
+	weapon_init(weapon, owner, instance);
 
 	return weapon;
 }
@@ -141,6 +143,20 @@ void scene_destroy_prop(Prop* prop)
 {
 	prop_free(prop);
 	thing_remove(&scene.props, prop);
+}
+
+Item_Drop* scene_make_item_drop(const Vec3& position, const Weapon_Instance& weapon)
+{
+	Item_Drop* drop = thing_add(&scene.drops);
+	item_drop_init(drop, position, weapon);
+
+	return drop;
+}
+
+void scene_destroy_item_drop(Item_Drop* drop)
+{
+	item_drop_free(drop);
+	thing_remove(&scene.drops, drop);
 }
 
 #if CLIENT
@@ -244,6 +260,9 @@ void scene_render(const Render_State& state)
 
 	if (state.current_pass == PASS_Game)
 	{
+		THINGS_FOREACH(&scene.drops)
+			item_drop_render(it, state);
+
 		THINGS_FOREACH(&scene.line_drawers)
 			line_drawer_render(it, state);
 

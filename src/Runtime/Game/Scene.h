@@ -10,14 +10,17 @@
 #define MAX_PROJECTILES 256
 #define MAX_DRAWABLES 256
 #define MAX_PROPS 256
+#define MAX_ITEM_DROPS 256
 #define MAX_BILLBOARDS 256
 #define MAX_LINE_DRAWERS 256
 #define MAX_HEALTH_BARS 256
 
 struct Unit;
 struct Weapon;
+struct Weapon_Instance;
 struct Projectile;
 struct Prop;
+struct Item_Drop;
 struct Drawable;
 struct Billboard;
 struct Line_Drawer;
@@ -34,6 +37,7 @@ struct Scene
 	Thing_Array<Weapon> weapons;
 	Thing_Array<Projectile> projectiles;
 	Thing_Array<Prop> props;
+	Thing_Array<Item_Drop> drops;
 
 #if CLIENT
 	Thing_Array<Drawable> drawables;
@@ -59,7 +63,7 @@ Unit_Handle scene_unit_handle(Unit* unit);
 Unit_Handle scene_unit_handle(u32 id);
 Unit* scene_get_unit(const Unit_Handle& handle);
 
-Weapon* scene_make_weapon(Unit* owner);
+Weapon* scene_make_weapon(Unit* owner, const Weapon_Instance& instance);
 void scene_destroy_weapon(Weapon* weapon);
 
 Projectile* scene_make_projectile(const Unit_Handle& owner, const Vec2& origin, const Vec2& direction);
@@ -67,6 +71,9 @@ void scene_destroy_projectile(Projectile* projectile);
 
 Prop* scene_make_prop(const char* path);
 void scene_destroy_prop(Prop* prop);
+
+Item_Drop* scene_make_item_drop(const Vec3& position, const Weapon_Instance& weapon);
+void scene_destroy_item_drop(Item_Drop* drop);
 
 #if CLIENT
 Drawable* scene_make_drawable(const Mesh* mesh = nullptr, const Material* material = nullptr, const Texture* texture = nullptr);

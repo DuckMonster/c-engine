@@ -250,6 +250,7 @@ void shader_write_includes_recursive(String_Builder* builder, const Shader* shad
 	}
 
 	str_append(builder, shader->source, shader->source_len);
+	str_append(builder, "\n");
 
 	shader_include_pop();
 }

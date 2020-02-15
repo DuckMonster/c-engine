@@ -9,11 +9,11 @@
 #include "Runtime/Render/HealthBar.h"
 #include "Runtime/Player/Player.h"
 #include "Runtime/Mobs/Mob.h"
+#include "Runtime/Weapon/WeaponType.h"
 
 enum Unit_Event
 {
 	EVENT_Set_Position,
-	EVENT_Shoot,
 	EVENT_Hit,
 	EVENT_Set_Target,
 	EVENT_Set_Aim_Direction,
@@ -41,20 +41,6 @@ void unit_event_proc(Channel* chnl, Online_User* src)
 #if SERVER
 			if (src != nullptr)
 				channel_rebroadcast_last(chnl, false);
-#endif
-			break;
-		}
-
-		case EVENT_Shoot:
-		{
-			Vec2 target;
-			channel_read(chnl, &target);
-
-			weapon_shoot(unit->weapon, target);
-
-#if SERVER
-			if (src != nullptr)
-				channel_rebroadcast_last(chnl, true);
 #endif
 			break;
 		}
@@ -134,8 +120,6 @@ void unit_init(Unit* unit, u32 id, const Vec2& position)
 	unit->id = id;
 	unit->position = position;
 
-	unit->weapon = scene_make_weapon(unit);
-
 	unit->channel = channel_open("UNIT", id, unit_event_proc);
 	unit->channel->user_ptr = unit;
 
@@ -155,7 +139,9 @@ void unit_init(Unit* unit, u32 id, const Vec2& position)
 
 void unit_free(Unit* unit)
 {
-	scene_destroy_weapon(unit->weapon);
+	if (unit->weapon)
+		scene_destroy_weapon(unit->weapon);
+
 	channel_close(unit->channel);
 
 #if CLIENT
@@ -263,16 +249,10 @@ void unit_move_delta(Unit* unit, const Vec2& delta, bool real)
 	// Weapons inherit a bit of the delta
 	Vec2 final_delta = position - unit->position;
 
-	unit->weapon->position += final_delta * unit_move_inheritance;
-	unit->position = position;
-}
+	if (unit->weapon)
+		unit->weapon->position += final_delta * unit_move_inheritance;
 
-void unit_shoot(Unit* unit, const Vec2& target)
-{
-	channel_reset(unit->channel);
-	channel_write_u8(unit->channel, EVENT_Shoot);
-	channel_write_vec2(unit->channel, target);
-	channel_broadcast(unit->channel, false);
+	unit->position = position;
 }
 
 void unit_hit(Unit* unit, const Unit_Handle& source, const Vec2& impulse)
@@ -313,4 +293,13 @@ bool unit_has_control(Unit* unit)
 	return player->is_local;
 
 #endif
+}
+
+void unit_equip_weapon(Unit* unit, const Weapon_Instance& instance)
+{
+	if (unit->weapon)
+		scene_destroy_weapon(unit->weapon);
+
+	unit->weapon = scene_make_weapon(unit, instance);
+	debug_log("Equipping weapon: %d [%d]", instance.type, instance.attributes.level);
 }

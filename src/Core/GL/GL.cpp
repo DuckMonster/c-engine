@@ -15,6 +15,7 @@ void load_opengl_functions()
 	IMPORT_FUN(glGenBuffers);
 	IMPORT_FUN(glDeleteBuffers);
 	IMPORT_FUN(glBufferData);
+	IMPORT_FUN(glBufferSubData);
 	IMPORT_FUN(glBindBuffer);
 
 	IMPORT_FUN(glGetAttribLocation);

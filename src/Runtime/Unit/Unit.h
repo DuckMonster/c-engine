@@ -7,6 +7,7 @@ struct Channel;
 struct Online_User;
 struct Health_Bar;
 struct Weapon;
+struct Weapon_Instance;
 
 const float unit_impact_drag = 8.5f;
 const float unit_hit_duration = 0.15f;
@@ -45,6 +46,7 @@ void unit_update(Unit* unit);
 void unit_move_towards(Unit* unit, const Vec2& target);
 void unit_move_direction(Unit* unit, const Vec2& direction);
 void unit_move_delta(Unit* unit, const Vec2& delta, bool real = true);
-void unit_shoot(Unit* unit, const Vec2& target);
 void unit_hit(Unit* unit, const Unit_Handle& source, const Vec2& impulse);
 bool unit_has_control(Unit* unit);
+
+void unit_equip_weapon(Unit* unit, const Weapon_Instance& data);

@@ -20,6 +20,11 @@ bool input_key_released(Key key)
 		input.keyboard[(u32)key].frame_num == input.frame_num;
 }
 
+void input_key_consume(Key key)
+{
+	input.keyboard[(u32)key].frame_num = 0;
+}
+
 int input_mouse_x()
 {
 	return input.mouse.x;
@@ -56,6 +61,11 @@ bool input_mouse_button_released(Mouse_Btn btn)
 	return
 		!input.mouse.buttons[(u32)btn].pressed &&
 		input.mouse.buttons[(u32)btn].frame_num == input.frame_num;
+}
+
+void input_mouse_button_consume(Mouse_Btn btn)
+{
+	input.mouse.buttons[(u32)btn].frame_num = 0;
 }
 
 void input_purge()

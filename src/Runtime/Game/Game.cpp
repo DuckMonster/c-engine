@@ -12,6 +12,7 @@
 #include "Runtime/Unit/Unit.h"
 #include "Runtime/Player/Player.h"
 #include "Runtime/Mobs/Mob.h"
+#include "Runtime/Weapon/WeaponType.h"
 
 Game game;
 
@@ -136,6 +137,8 @@ void game_init()
 	color_map_init();
 #endif
 
+	weapon_types_load();
+
 	thing_array_init(&game.players, MAX_PLAYERS);
 	thing_array_init(&game.mobs, MAX_MOBS);
 
@@ -149,6 +152,9 @@ void game_init()
 
 	game.floor = scene_make_drawable(mesh_load("Mesh/Environment/floor.fbx"), material_load("Material/Environment/floor.mat"));
 	editor_init();
+
+	scene_make_item_drop(Vec3(0.2f, -5.f, 0.f), weapon_instance_make(WEAPON_Pistol, 0));
+	scene_make_item_drop(Vec3(1.2f, -5.f, 0.f), weapon_instance_make(WEAPON_MachineGun, 0));
 #endif
 
 #if SERVER

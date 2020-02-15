@@ -6,16 +6,28 @@
 #include "Runtime/Unit/Unit.h"
 #include "Runtime/Render/Billboard.h"
 #include "Runtime/Fx/Fx.h"
+#include "Runtime/Weapon/WeaponType.h"
+#include "Pistol.h"
 
-void weapon_init(Weapon* weapon, Unit* owner)
+void weapon_init(Weapon* weapon, Unit* owner, const Weapon_Instance& instance)
 {
 	weapon->owner = scene_unit_handle(owner);
 	weapon->position = owner->position;
+	weapon->type = instance.type;
+
+	Pistol* pistol = new Pistol();
+	weapon->weapon_type_ptr = pistol;
+
+	pistol_init(pistol, weapon, instance.attributes);
 
 #if CLIENT
+	const Weapon_Type_Data* type_data = weapon_get_type_data(instance.type);
+
 	weapon->billboard = scene_make_billboard(sprite_sheet_load("Sprite/weapon_sheet.dat"));
 	weapon->billboard->position = Vec3(owner->position, 0.5f);
 	weapon->billboard->rotation_type = ROTATION_World_Direction;
+	weapon->billboard->tile_x = type_data->tile_x;
+	weapon->billboard->tile_y = type_data->tile_y;
 #endif
 }
 
@@ -24,6 +36,9 @@ void weapon_free(Weapon* weapon)
 #if CLIENT
 	scene_destroy_billboard(weapon->billboard);
 #endif
+
+	Pistol* pistol = (Pistol*)weapon->weapon_type_ptr;
+	pistol_free(pistol);
 }
 
 void weapon_update(Weapon* weapon)
@@ -55,50 +70,19 @@ void weapon_update(Weapon* weapon)
 
 	Vec3 aim_forward = quat_x(weapon_quat * recoil_quat);
 	weapon->billboard->rotation_direction = aim_forward;
-
-	if (input_key_down(Key::L))
-	{
-		weapon->billboard->rotation_type = ROTATION_Angle;
-		weapon->billboard->rotation_angle = 1.f;
-	}
 #endif
 }
-
-void weapon_shoot(Weapon* weapon, const Vec2& target)
-{
-	Vec2 direction = normalize(target - weapon->position);
-	Vec2 origin = weapon->position + direction * 0.4f;
-	scene_make_projectile(weapon->owner, origin, direction);
 
 #if CLIENT
-	float impulse_strength = random_float(0.4f, 1.f);
-	/* Shoot animation */
-	// First reset the animation
-	weapon->offset = -direction * 0.2f * impulse_strength;
-	weapon->angle_offset = 0.5f * impulse_strength;
-
-	weapon->offset_velocity = -direction * weapon_shoot_impulse * impulse_strength;
-	weapon->angle_offset_velocity = weapon_shoot_angle_impulse * impulse_strength;
-
-	/* Spawn some pretty particles! */
-	Fx_Particle_Spawn_Params params;
-	params.num_particles = 6;
-	params.position = Vec3(origin, 0.5f);
-	params.position_radius = 0.1f;
-	params.velocity = Vec3(direction, 0.f) * 4.f;
-	params.velocity_cone_angle = 20.f;
-	params.velocity_scale_variance = 0.9f;
-
-	params.drag_min = 1.5f;
-	params.drag_max = 5.5f;
-	params.gravity_min = -20.f;
-	params.gravity_max = -9.f;
-
-	params.color_min = Color_Dark_Gray;
-	params.color_max = Color_Light_Gray;
-
-	params.lifetime_min = 0.4f;
-	params.lifetime_max = 0.8f;
-	fx_make_particle(params);
-#endif
+void weapon_reset_offset(Weapon* weapon)
+{
+	weapon->offset = Vec2();
+	weapon->angle_offset = 0.f;
 }
+
+void weapon_add_velocity(Weapon* weapon, const Vec2& linear_velocity, float angular_velocity)
+{
+	weapon->offset_velocity += linear_velocity;
+	weapon->angle_offset_velocity += angular_velocity;
+}
+#endif

@@ -60,14 +60,23 @@ void mesh_buffer_data(Mesh* mesh, u32 buffer_index, void* data, u32 size, Mesh_S
 		case Mesh_Storage_Dynamic: gl_storage = GL_DYNAMIC_DRAW; break;
 		case Mesh_Storage_Stream: gl_storage = GL_STREAM_DRAW; break;
 	}
-	glBindBuffer(GL_ARRAY_BUFFER, mesh->buffers[buffer_index].handle);
-	glBufferData(GL_ARRAY_BUFFER, size, data, gl_storage);
+
+	Mesh_Buffer& buffer = mesh->buffers[buffer_index];
+	glBindBuffer(GL_ARRAY_BUFFER, buffer.handle);
+
+	// Same size, just sub-data
+	if (buffer.size == size)
+		glBufferSubData(GL_ARRAY_BUFFER, 0, size, data);
+	else
+		glBufferData(GL_ARRAY_BUFFER, size, data, gl_storage);
+
+	buffer.size = size;
 
 	// Re-set the draw count to the number of floats divided by the total vertex-size of the selected buffer
-	if (mesh->buffers[buffer_index].total_element_count > 0)
+	if (buffer.total_element_count > 0)
 	{
 		u32 num_elements = size / sizeof(float);
-		mesh->draw_count = num_elements / mesh->buffers[buffer_index].total_element_count;
+		mesh->draw_count = num_elements / buffer.total_element_count;
 	}
 }
 

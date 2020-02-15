@@ -25,6 +25,7 @@ struct Mesh_Buffer
 
 	u32 total_element_count;
 	GLuint handle;
+	u32 size = 0;
 };
 
 struct Mesh

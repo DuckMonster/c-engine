@@ -134,8 +134,8 @@ void mob_update(Mob* mob)
 		if (is_within_range && target_is_visible)
 		{
 			// Shoot!
-			if (timer_update(&mob->shoot_timer))
-				unit_shoot(unit, target_unit->position);
+			//if (timer_update(&mob->shoot_timer))
+				//unit_shoot(unit, target_unit->position);
 		}
 		else
 		{

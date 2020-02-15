@@ -1,6 +1,7 @@
 #include "Camera.h"
 #include "Core/Input/Input.h"
 #include "Core/Context/Context.h"
+#include "Engine/Collision/HitTest.h"
 #include "Runtime/Player/Player.h"
 #include "Runtime/Render/Render.h"
 #include "Runtime/Game/Game.h"
@@ -18,11 +19,19 @@ void camera_update(Camera* camera)
 
 	if (game.local_player)
 	{
+		// Trace against the ground to find where we should be panning the camera
+		Ray mouse_ray = game_mouse_ray();
+		Plane ground_plane;
+		ground_plane.normal = Vec3_Z;
+		ground_plane.point = Vec3(0.f, 0.f, 0.5f);
+
+		Hit_Result ground_hit = test_ray_plane(mouse_ray, ground_plane);
+
 		Unit* local_unit = scene_get_unit(game.local_player->controlled_unit);
 		if (local_unit)
 		{
 			camera->target_position = Vec3(local_unit->position, 0.f);
-			camera->target_position += (Vec3(game.local_player->aim_position, 0.f) - camera->target_position) * 0.3f;
+			camera->target_position += (ground_hit.position - camera->target_position) * 0.3f;
 		}
 	}
 
