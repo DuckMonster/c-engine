@@ -3,7 +3,7 @@
 enum Weapon_Type
 {
 	WEAPON_Pistol,
-	WEAPON_MachineGun,
+	WEAPON_AssaultRifle,
 	WEAPON_MAX,
 };
 

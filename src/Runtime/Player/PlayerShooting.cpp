@@ -8,6 +8,7 @@
 #include "Runtime/Weapon/WeaponType.h"
 #include "Runtime/Weapon/Weapon.h"
 #include "Runtime/Weapon/Pistol.h"
+#include "Runtime/Weapon/AssaultRifle.h"
 
 #if CLIENT
 void player_shooting_update_local(Player* player)
@@ -47,14 +48,27 @@ void player_shooting_update_local(Player* player)
 	}
 
 	/* Shooting */
-	if (input_mouse_button_pressed(Mouse_Btn::Left))
+	if (unit->weapon != nullptr)
 	{
-		if (unit->weapon != nullptr)
+		switch(unit->weapon->type)
 		{
-			Weapon* weapon = unit->weapon;
+			case WEAPON_Pistol:
+			{
+				Pistol* pistol = (Pistol*)unit->weapon->weapon_type_ptr;
+				if (input_mouse_button_pressed(Mouse_Btn::Left))
+					pistol_fire_local(pistol, shooting.aim_position);
 
-			Pistol* pistol = (Pistol*)weapon->weapon_type_ptr;
-			pistol_fire_net(pistol, shooting.aim_position);
+				break;
+			}
+
+			case WEAPON_AssaultRifle:
+			{
+				Assault_Rifle* rifle = (Assault_Rifle*)unit->weapon->weapon_type_ptr;
+				if (input_mouse_button_down(Mouse_Btn::Left))
+					assault_rifle_fire(rifle, shooting.aim_position);
+
+				break;
+			}
 		}
 	}
 }

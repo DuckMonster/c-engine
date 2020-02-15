@@ -92,7 +92,7 @@ void primitive_add(Primitive_Manager* manager, Primitive_Type type, void* ptr, f
 	Primitive_Draw* draw = new Primitive_Draw();
 	draw->type = type;
 	draw->ptr = ptr;
-	draw->remove_time = time_current() + duration;
+	draw->remove_time = time_elapsed() + duration;
 	draw->next = draw->prev = nullptr;
 
 	// Push to the front of the list
@@ -170,7 +170,7 @@ void primitives_init(Primitive_Manager* manager)
 
 void primitives_render(Primitive_Manager* manager, const Render_State& state)
 {
-	float time = time_current();
+	float time = time_elapsed();
 	Primitive_Draw* draw = manager->draw_list;
 
 	while(draw)

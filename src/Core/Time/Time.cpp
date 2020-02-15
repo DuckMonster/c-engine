@@ -42,7 +42,7 @@ void time_update_delta()
 float time_delta() { return frame_delta * time_scale; }
 float time_delta_unscaled() { return frame_delta; }
 
-float time_current()
+float time_elapsed()
 {
 	LARGE_INTEGER now;
 	QueryPerformanceCounter(&now);

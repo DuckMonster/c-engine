@@ -7,7 +7,7 @@
 #include "Runtime/Prop/Prop.h"
 #include "Runtime/Weapon/Weapon.h"
 #include "Runtime/Weapon/ItemDrop.h"
-#include "Runtime/Game/Projectile.h"
+#include "Runtime/Weapon/Projectile/Bullet.h"
 #include "Runtime/Game/Grass.h"
 #include "Runtime/Render/HealthBar.h"
 #include "Runtime/Render/Drawable.h"
@@ -21,7 +21,7 @@ void scene_init()
 {
 	thing_array_init(&scene.units, MAX_UNITS);
 	thing_array_init(&scene.weapons, MAX_WEAPONS);
-	thing_array_init(&scene.projectiles, MAX_PROJECTILES);
+	thing_array_init(&scene.bullets, MAX_BULLETS);
 	thing_array_init(&scene.props, MAX_PROPS);
 	thing_array_init(&scene.drops, MAX_ITEM_DROPS);
 
@@ -47,8 +47,8 @@ void scene_update()
 	THINGS_FOREACH(&scene.weapons)
 		weapon_update(it);
 
-	THINGS_FOREACH(&scene.projectiles)
-		projectile_update(it);
+	THINGS_FOREACH(&scene.bullets)
+		bullet_update(it);
 
 #if CLIENT
 	THINGS_FOREACH(&scene.health_bars)
@@ -117,18 +117,18 @@ void scene_destroy_weapon(Weapon* weapon)
 	thing_remove(&scene.weapons, weapon);
 }
 
-Projectile* scene_make_projectile(const Unit_Handle& owner, const Vec2& origin, const Vec2& direction)
+Bullet* scene_make_bullet(const Unit_Handle& owner, const Bullet_Params& params)
 {
-	Projectile* projectile = thing_add(&scene.projectiles);
-	projectile_init(projectile, owner, origin, direction);
+	Bullet* bullet = thing_add(&scene.bullets);
+	bullet_init(bullet, owner, params);
 
-	return projectile;
+	return bullet;
 }
 
-void scene_destroy_projectile(Projectile* projectile)
+void scene_destroy_bullet(Bullet* bullet)
 {
-	projectile_free(projectile);
-	thing_remove(&scene.projectiles, projectile);
+	bullet_free(bullet);
+	thing_remove(&scene.bullets, bullet);
 }
 
 Prop* scene_make_prop(const char* path)

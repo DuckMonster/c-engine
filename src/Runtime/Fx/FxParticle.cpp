@@ -29,7 +29,7 @@ void fx_particles_init(Fx_Particles* particles)
 
 void fx_particles_update(Fx_Particles* particles)
 {
-	float current_time = time_current();
+	float current_time = time_elapsed();
 
 	for(u32 i=0; i<PARTICLES_MAX; ++i)
 	{
@@ -86,7 +86,7 @@ void fx_particles_render(Fx_Particles* particles, const Render_State& state)
 
 void fx_particle_make(Fx_Particles* particles, const Fx_Particle_Spawn_Params& params)
 {
-	float current_time = time_current();
+	float current_time = time_elapsed();
 
 	u32 num = params.num_particles;
 	for(u32 i=0; i < PARTICLES_MAX && num > 0; ++i)

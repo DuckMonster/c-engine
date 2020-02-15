@@ -3,7 +3,7 @@
 
 void net_service_flush_out(Connection* connection)
 {
-	float time = time_current();
+	float time = time_elapsed();
 
 	// Update ping sending
 	if (connection->state == Connection_State::Active && connection->ping_send_time < time)

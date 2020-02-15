@@ -8,6 +8,11 @@
 #include "Runtime/Fx/Fx.h"
 #include "Runtime/Weapon/WeaponType.h"
 #include "Pistol.h"
+#include "AssaultRifle.h"
+
+void weapon_free_type_ptr(void* ptr, const Weapon_Instance& instance)
+{
+}
 
 void weapon_init(Weapon* weapon, Unit* owner, const Weapon_Instance& instance)
 {
@@ -15,10 +20,26 @@ void weapon_init(Weapon* weapon, Unit* owner, const Weapon_Instance& instance)
 	weapon->position = owner->position;
 	weapon->type = instance.type;
 
-	Pistol* pistol = new Pistol();
-	weapon->weapon_type_ptr = pistol;
+	switch(weapon->type)
+	{
+		case WEAPON_Pistol:
+		{
+			Pistol* pistol = new Pistol();
+			pistol_init(pistol, weapon, instance.attributes);
 
-	pistol_init(pistol, weapon, instance.attributes);
+			weapon->weapon_type_ptr = pistol;
+			break;
+		}
+
+		case WEAPON_AssaultRifle:
+		{
+			Assault_Rifle* rifle = new Assault_Rifle();
+			assault_rifle_init(rifle, weapon, instance.attributes);
+
+			weapon->weapon_type_ptr = rifle;
+			break;
+		}
+	}
 
 #if CLIENT
 	const Weapon_Type_Data* type_data = weapon_get_type_data(instance.type);
@@ -37,8 +58,20 @@ void weapon_free(Weapon* weapon)
 	scene_destroy_billboard(weapon->billboard);
 #endif
 
-	Pistol* pistol = (Pistol*)weapon->weapon_type_ptr;
-	pistol_free(pistol);
+	void* type_ptr = weapon->weapon_type_ptr;
+
+	switch(weapon->type)
+	{
+		case WEAPON_Pistol:
+			pistol_free((Pistol*)type_ptr);
+			break;
+
+		case WEAPON_AssaultRifle:
+			assault_rifle_free((Assault_Rifle*)type_ptr);
+			break;
+	}
+
+	delete type_ptr;
 }
 
 void weapon_update(Weapon* weapon)
@@ -48,6 +81,13 @@ void weapon_update(Weapon* weapon)
 
 	Vec2 target = owner->position + owner->aim_direction * weapon_hold_distance;
 	weapon->position = lerp(weapon->position, target, weapon_interp_speed * time_delta());
+
+	switch(weapon->type)
+	{
+		case WEAPON_AssaultRifle:
+			assault_rifle_update((Assault_Rifle*)weapon->weapon_type_ptr);
+			break;
+	}
 
 #if CLIENT
 	// Move billboard

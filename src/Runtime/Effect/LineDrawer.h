@@ -20,7 +20,7 @@ struct Line_Drawer
 	Line_Segment segments[20];
 	u32 num_segments = 0;
 	float timer = 0.f;
-	float lifetime = 0.f;
+	float size = 0.2f;
 
 	bool should_destroy = false;
 };

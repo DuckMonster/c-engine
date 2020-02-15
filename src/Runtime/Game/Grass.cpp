@@ -92,7 +92,7 @@ void grass_render(Grass* grass, const Render_State& state)
 	material_set(grass->material, "u_ColorMapSampler", COLOR_MAP_UNIFORM);
 	material_set(grass->material, "u_LightViewProjection", state.light_view_projection);
 	material_set(grass->material, "u_LightDirection", state.light_direction);
-	material_set(grass->material, "u_Time", time_current());
+	material_set(grass->material, "u_Time", time_elapsed());
 	material_set(grass->material, RENDER_SHADOW_BUFFER_UNIFORM, RENDER_SHADOW_BUFFER_TEXTURE_INDEX);
 	color_map_bind();
 

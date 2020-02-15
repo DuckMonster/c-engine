@@ -12,7 +12,6 @@ void line_drawer_init(Line_Drawer* drawer, const Vec3& origin)
 	drawer->num_segments = 0;
 	drawer->position = origin;
 	drawer->timer = 0.5f;
-	drawer->lifetime = 0.f;
 	drawer->segments[0].position = origin;
 
 	// Create the actual mesh
@@ -54,8 +53,6 @@ void line_drawer_add_segment(Line_Drawer* drawer)
 
 void line_drawer_update(Line_Drawer* drawer)
 {
-	drawer->lifetime += time_delta();
-
 	for(u32 i=0; i<=drawer->num_segments; ++i)
 	{
 		drawer->segments[i].time += time_delta();
@@ -79,7 +76,7 @@ void line_drawer_update(Line_Drawer* drawer)
 	}
 
 	drawer->segments[drawer->num_segments].position = drawer->position;
-	drawer->segments[drawer->num_segments].width = min(0.2f, drawer->lifetime);
+	drawer->segments[drawer->num_segments].width = drawer->size;
 
 	mesh_buffer_data(&drawer->mesh, 0, drawer->segments, sizeof(Line_Segment) * (drawer->num_segments + 1));
 	drawer->mesh.draw_count = drawer->num_segments + 1;

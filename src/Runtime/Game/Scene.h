@@ -7,7 +7,7 @@
 
 #define MAX_UNITS 256
 #define MAX_WEAPONS 256
-#define MAX_PROJECTILES 256
+#define MAX_BULLETS 256
 #define MAX_DRAWABLES 256
 #define MAX_PROPS 256
 #define MAX_ITEM_DROPS 256
@@ -18,7 +18,8 @@
 struct Unit;
 struct Weapon;
 struct Weapon_Instance;
-struct Projectile;
+struct Bullet;
+struct Bullet_Params;
 struct Prop;
 struct Item_Drop;
 struct Drawable;
@@ -35,7 +36,7 @@ struct Scene
 {
 	Thing_Array<Unit> units;
 	Thing_Array<Weapon> weapons;
-	Thing_Array<Projectile> projectiles;
+	Thing_Array<Bullet> bullets;
 	Thing_Array<Prop> props;
 	Thing_Array<Item_Drop> drops;
 
@@ -66,8 +67,8 @@ Unit* scene_get_unit(const Unit_Handle& handle);
 Weapon* scene_make_weapon(Unit* owner, const Weapon_Instance& instance);
 void scene_destroy_weapon(Weapon* weapon);
 
-Projectile* scene_make_projectile(const Unit_Handle& owner, const Vec2& origin, const Vec2& direction);
-void scene_destroy_projectile(Projectile* projectile);
+Bullet* scene_make_bullet(const Unit_Handle& owner, const Bullet_Params& params);
+void scene_destroy_bullet(Bullet* bullet);
 
 Prop* scene_make_prop(const char* path);
 void scene_destroy_prop(Prop* prop);

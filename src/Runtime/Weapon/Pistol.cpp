@@ -4,6 +4,7 @@
 #include "Runtime/Unit/Unit.h"
 #include "Runtime/Online/Channel.h"
 #include "Runtime/Fx/Fx.h"
+#include "Runtime/Weapon/Projectile/Bullet.h"
 
 enum Pistol_Event
 {
@@ -48,7 +49,7 @@ void pistol_free(Pistol* pistol)
 	channel_close(pistol->channel);
 }
 
-void pistol_fire_net(Pistol* pistol, const Vec2& target)
+void pistol_fire_local(Pistol* pistol, const Vec2& target)
 {
 	Vec2 direction = normalize(target - pistol->weapon->position);
 	Vec2 origin = pistol->weapon->position + direction * 0.5f;
@@ -62,7 +63,13 @@ void pistol_fire_net(Pistol* pistol, const Vec2& target)
 
 void pistol_fire(Pistol* pistol, const Vec2& origin, const Vec2& direction)
 {
-	scene_make_projectile(pistol->weapon->owner, origin, direction);
+	Bullet_Params bullet_params;
+	bullet_params.origin = origin;
+	bullet_params.direction = direction;
+	bullet_params.size = 0.2f;
+	bullet_params.speed = 85.f;
+
+	scene_make_bullet(pistol->weapon->owner, bullet_params);
 
 #if CLIENT
 	float impulse_strength = random_float(0.4f, 1.f);
