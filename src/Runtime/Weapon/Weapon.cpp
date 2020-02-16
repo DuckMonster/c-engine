@@ -79,7 +79,7 @@ void weapon_update(Weapon* weapon)
 	Unit* owner = scene_get_unit(weapon->owner);
 	assert(owner);
 
-	Vec2 target = owner->position + owner->aim_direction * weapon_hold_distance;
+	Vec3 target = unit_center(owner) + owner->aim_direction * weapon_hold_distance;
 	weapon->position = lerp(weapon->position, target, weapon_interp_speed * time_delta());
 
 	switch(weapon->type)
@@ -91,7 +91,7 @@ void weapon_update(Weapon* weapon)
 
 #if CLIENT
 	// Move billboard
-	weapon->billboard->position = Vec3(weapon->position, 0.5f);
+	weapon->billboard->position = weapon->position;
 
 	/* Shoot animation stuff */
 	weapon->offset += weapon->offset_velocity * time_delta();
@@ -102,10 +102,10 @@ void weapon_update(Weapon* weapon)
 	weapon->angle_offset_velocity -= weapon->angle_offset * weapon_angle_offset_acceleration * time_delta();
 	weapon->angle_offset_velocity -= weapon->angle_offset_velocity * weapon_angle_offset_drag * time_delta();
 
-	weapon->billboard->position += Vec3(weapon->offset, 0.f);
+	weapon->billboard->position += weapon->offset;
 
 	// Rotation
-	Quat weapon_quat = quat_from_x(Vec3(owner->aim_direction, 0.f));
+	Quat weapon_quat = quat_from_x(owner->aim_direction);
 	Quat recoil_quat = angle_axis(weapon->angle_offset, -Vec3_Y);
 
 	Vec3 aim_forward = quat_x(weapon_quat * recoil_quat);
@@ -116,11 +116,11 @@ void weapon_update(Weapon* weapon)
 #if CLIENT
 void weapon_reset_offset(Weapon* weapon)
 {
-	weapon->offset = Vec2();
+	weapon->offset = Vec3();
 	weapon->angle_offset = 0.f;
 }
 
-void weapon_add_velocity(Weapon* weapon, const Vec2& linear_velocity, float angular_velocity)
+void weapon_add_velocity(Weapon* weapon, const Vec3& linear_velocity, float angular_velocity)
 {
 	weapon->offset_velocity += linear_velocity;
 	weapon->angle_offset_velocity += angular_velocity;

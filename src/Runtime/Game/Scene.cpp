@@ -61,7 +61,7 @@ void scene_update()
 #endif
 }
 
-Unit* scene_make_unit(i32 id, const Vec2& position)
+Unit* scene_make_unit(i32 id, const Vec3& position)
 {
 	Unit* unit;
 	if (id == -1)

@@ -17,6 +17,9 @@ void player_movement_init(Player* player)
 #if CLIENT
 void player_movement_update_local(Player* player)
 {
+	if (game.is_editor)
+		return;
+
 	Unit* unit = scene_get_unit(player->controlled_unit);
 	Player_Movement& movement = player->movement;
 

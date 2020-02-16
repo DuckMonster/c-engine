@@ -21,8 +21,8 @@ void assault_rifle_event_proc(Channel* chnl, Online_User* src)
 	{
 		case EVENT_Shoot:
 		{
-			Vec2 origin;
-			Vec2 direction;
+			Vec3 origin;
+			Vec3 direction;
 
 			channel_read(chnl, &origin);
 			channel_read(chnl, &direction);
@@ -72,13 +72,13 @@ void assault_rifle_update(Assault_Rifle* rifle)
 
 			// Apply spread
 			float spread_radians = radians(rifle->spread_degrees);
-			direction = rotate_vector(direction, random_float(-spread_radians, spread_radians));
-			Vec2 origin = rifle->weapon->position + direction * 0.5f;
+			//direction = rotate_vector(direction, random_float(-spread_radians, spread_radians));
+			Vec3 origin = rifle->weapon->position + direction * 0.5f;
 
 			channel_reset(rifle->channel);
 			channel_write_u8(rifle->channel, EVENT_Shoot);
-			channel_write_vec2(rifle->channel, origin);
-			channel_write_vec2(rifle->channel, direction);
+			channel_write_vec3(rifle->channel, origin);
+			channel_write_vec3(rifle->channel, direction);
 			channel_broadcast(rifle->channel, true);
 
 			rifle->last_fire_time = time_elapsed();
@@ -91,7 +91,7 @@ void assault_rifle_update(Assault_Rifle* rifle)
 	rifle->spread_degrees -= rifle->spread_degrees * assault_rifle_spread_decrease * time_delta();
 }
 
-void assault_rifle_fire(Assault_Rifle* rifle, const Vec2& target)
+void assault_rifle_fire(Assault_Rifle* rifle, const Vec3& target)
 {
 	rifle->trigger_held = true;
 	rifle->fire_target = target;

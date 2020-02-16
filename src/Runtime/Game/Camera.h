@@ -7,7 +7,7 @@ struct Camera
 	Vec3 position;
 
 	float yaw = 0.f;
-	float pitch = 40.f;
+	float pitch = 30.f;
 	float distance = 5.f;
 	float size = 10.f;
 	float zoom = 1.f;

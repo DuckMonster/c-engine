@@ -55,8 +55,8 @@ extern Scene scene;
 void scene_init();
 void scene_update();
 
-Unit* scene_make_unit(i32 id, const Vec2& position);
-inline Unit* scene_make_unit(const Vec2& position) { scene_make_unit(-1, position); }
+Unit* scene_make_unit(i32 id, const Vec3& position);
+inline Unit* scene_make_unit(const Vec3& position) { scene_make_unit(-1, position); }
 void scene_destroy_unit(Unit* unit);
 u32 scene_get_free_unit_id();
 

@@ -37,7 +37,7 @@ void game_event_proc(Channel* chnl, Online_User* src)
 		case EVENT_Unit_Spawn:
 		{
 			u32 unit_id;
-			Vec2 unit_position;
+			Vec3 unit_position;
 			channel_read(chnl, &unit_id);
 			channel_read(chnl, &unit_position);
 
@@ -206,7 +206,7 @@ void game_update()
 	{
 		Vec2 position = random_point_on_circle();
 
-		Unit* new_unit = game_spawn_unit_at(position * 20.f);
+		Unit* new_unit = game_spawn_unit_at(Vec3(position, 0.f) * 20.f);
 		Mob* mob = game_create_mob_for_unit(new_unit);
 
 		Player* random_player = nullptr;
@@ -309,21 +309,22 @@ Vec2 game_project_to_screen(const Vec3& position)
 #if SERVER
 Unit* game_spawn_random_unit()
 {
-	Vec2 spawn_position;
+	Vec3 spawn_position;
 	spawn_position.x = random_float(-5.f, 5.f);
 	spawn_position.y = random_float(-5.f, 5.f);
+	spawn_position.z = 0.f;
 
 	return game_spawn_unit_at(spawn_position);
 }
 
-Unit* game_spawn_unit_at(const Vec2& position)
+Unit* game_spawn_unit_at(const Vec3& position)
 {
 	u32 unit_id = scene_get_free_unit_id();
 
 	channel_reset(game.channel);
 	channel_write_u8(game.channel, EVENT_Unit_Spawn);
 	channel_write_u32(game.channel, unit_id);
-	channel_write_vec2(game.channel, position);
+	channel_write_vec3(game.channel, position);
 	channel_broadcast(game.channel, true);
 
 	return scene.units[unit_id];
@@ -346,7 +347,7 @@ void game_user_added(Online_User* user)
 		channel_reset(game.channel);
 		channel_write_u8(game.channel, EVENT_Unit_Spawn);
 		channel_write_u32(game.channel, unit->id);
-		channel_write_vec2(game.channel, unit->position);
+		channel_write_vec3(game.channel, unit->position);
 		channel_send(game.channel, user, true);
 	}
 

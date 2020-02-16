@@ -13,6 +13,9 @@
 #if CLIENT
 void player_shooting_update_local(Player* player)
 {
+	if (game.is_editor)
+		return;
+
 	Unit* unit = scene_get_unit(player->controlled_unit);
 	Player_Shooting& shooting = player->shooting;
 
@@ -23,7 +26,7 @@ void player_shooting_update_local(Player* player)
 	ground_plane.point = Vec3(0.f, 0.f, 0.5f);
 
 	Hit_Result ground_hit = test_ray_plane(mouse_ray, ground_plane);
-	shooting.aim_position = Vec2(ground_hit.position);
+	shooting.aim_position = ground_hit.position;
 
 	/* Update pickups */
 	Item_Drop* drop = item_drop_get_closest(ground_hit.position, 1.f);
@@ -56,7 +59,7 @@ void player_shooting_update_local(Player* player)
 			{
 				Pistol* pistol = (Pistol*)unit->weapon->weapon_type_ptr;
 				if (input_mouse_button_pressed(Mouse_Btn::Left))
-					pistol_fire_local(pistol, shooting.aim_position);
+					pistol_fire(pistol, shooting.aim_position);
 
 				break;
 			}

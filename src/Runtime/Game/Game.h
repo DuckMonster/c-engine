@@ -61,7 +61,7 @@ Vec2 game_project_to_screen(const Vec3& position);
 #if SERVER
 
 Unit* game_spawn_random_unit();
-Unit* game_spawn_unit_at(const Vec2& position);
+Unit* game_spawn_unit_at(const Vec3& position);
 void game_destroy_unit(Unit* unit);
 
 void game_user_added(Online_User* user);

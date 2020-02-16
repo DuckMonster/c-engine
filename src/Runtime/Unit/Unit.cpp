@@ -162,7 +162,7 @@ void unit_update(Unit* unit)
 	unit->billboard->position = unit->position;
 
 	// Update health bar
-	unit->health_bar->position = Vec3(unit->position, 2.f);
+	unit->health_bar->position = unit->position + Vec3(0.f, 0.f, 2.f);
 	unit->health_bar->health_percent = unit->health / unit->health_max;
 
 	// When hit, flash for a bit!
@@ -178,7 +178,7 @@ Vec3 unit_center(Unit* unit)
 	return unit->position + unit_center_offset;
 }
 
-void unit_move_towards(Unit* unit, const Vec2& target)
+void unit_move_towards(Unit* unit, const Vec3& target)
 {
 	if (is_nearly_equal(unit->position, target))
 		return;
@@ -186,7 +186,7 @@ void unit_move_towards(Unit* unit, const Vec2& target)
 	unit_move_delta(unit, normalize(target - unit->position) * unit->move_speed * time_delta());
 }
 
-void unit_move_direction(Unit* unit, const Vec2& direction)
+void unit_move_direction(Unit* unit, const Vec3& direction)
 {
 	if (is_nearly_zero(direction))
 		return;
@@ -209,13 +209,14 @@ void unit_move_delta(Unit* unit, const Vec3& delta)
 	while(!is_nearly_zero(delta) && (++iterations) < 10)
 	{
 		Line_Trace move_trace;
-		move_trace.from = position + unit_center_offset + normalize(remaining_delta) * 0.5f;
+		move_trace.from = position;
 		move_trace.to = move_trace.from + remaining_delta;
 
 		Scene_Query_Result query_result = scene_query_line(move_trace, params);
 		if (query_result.hit.has_hit)
 		{
 			Vec3 normal = query_result.hit.normal;
+			normal = normalize(constrain_to_plane(normal, Vec3_Z));
 
 			// We're penetrating something; depenetrate
 			if (query_result.hit.started_penetrating)
@@ -258,7 +259,7 @@ void unit_move_delta(Unit* unit, const Vec3& delta)
 	unit->position = position;
 }
 
-void unit_hit(Unit* unit, const Unit_Handle& source, const Vec2& impulse)
+void unit_hit(Unit* unit, const Unit_Handle& source, const Vec3& impulse)
 {
 	Unit* source_unit = scene_get_unit(source);
 
@@ -271,7 +272,7 @@ void unit_hit(Unit* unit, const Unit_Handle& source, const Vec2& impulse)
 	else
 		channel_write_i32(unit->channel, -1);
 
-	channel_write_vec2(unit->channel, impulse);
+	channel_write_vec3(unit->channel, impulse);
 	channel_broadcast(unit->channel, true);
 }
 

@@ -9,8 +9,8 @@ const float bullet_line_size_base = 0.5f;
 
 struct Bullet_Params
 {
-	Vec2 origin;
-	Vec2 direction;
+	Vec3 origin;
+	Vec3 direction;
 	float size = 0.2f;
 	float speed = 55.f;
 };
@@ -18,8 +18,8 @@ struct Bullet_Params
 struct Bullet
 {
 	Unit_Handle owner;
-	Vec2 position;
-	Vec2 direction;
+	Vec3 position;
+	Vec3 direction;
 	float size = 0.f;
 	float speed = 55.f;
 

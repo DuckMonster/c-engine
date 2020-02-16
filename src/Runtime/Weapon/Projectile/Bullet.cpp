@@ -22,10 +22,10 @@ void bullet_init(Bullet* bullet, const Unit_Handle& owner, const Bullet_Params& 
 #if CLIENT
 	bullet->drawable = scene_make_drawable(mesh_load("Mesh/sphere.fbx"), material_load("Material/bullet.mat"));
 	bullet->drawable->transform = mat_position_rotation_scale(
-		Vec3(params.origin, 0.5f), quat_from_x(Vec3(params.direction, 0.f)), Vec3_Zero
+		params.origin, quat_from_x(params.direction), Vec3_Zero
 	);
 
-	bullet->line_drawer = scene_make_line_drawer(Vec3(params.origin, 0.5f));
+	bullet->line_drawer = scene_make_line_drawer(params.origin);
 #endif
 
 	bullet->lifetime = 0.f;
@@ -50,7 +50,7 @@ void bullet_update(Bullet* bullet)
 
 	// Movement ray from (before moving)
 	Line_Trace move_trace;
-	move_trace.from = Vec3(bullet->position, 0.5f);
+	move_trace.from = bullet->position;
 
 	// Do movement
 	bullet->position += bullet->direction * bullet->speed * time_delta();
@@ -58,14 +58,14 @@ void bullet_update(Bullet* bullet)
 #if CLIENT
 	float sphere_time_scale = saturate(bullet->lifetime / 0.05f);
 	bullet->drawable->transform = mat_position_rotation_scale(
-		Vec3(bullet->position, 0.5f), quat_from_x(Vec3(bullet->direction, 0.f)), bullet_scale_base * bullet->size * sphere_time_scale
+		bullet->position, quat_from_x(bullet->direction), bullet_scale_base * bullet->size * sphere_time_scale
 	);
-	bullet->line_drawer->position = Vec3(bullet->position, 0.5f);
+	bullet->line_drawer->position = bullet->position;
 	bullet->line_drawer->size = bullet_line_size_base * bullet->size;
 #endif
 
 	// Movement line to (after moving)
-	move_trace.to = Vec3(bullet->position, 0.5f);
+	move_trace.to = bullet->position;
 
 	Scene_Query_Params params;
 	params.ignore_unit = owner;
@@ -82,7 +82,7 @@ void bullet_update(Bullet* bullet)
 #if CLIENT
 			Vec3 normal = query_result.hit.normal;
 			Vec3 pos = query_result.hit.position + normal * 0.1f;
-			Vec3 velocity = reflect(Vec3(bullet->direction, 0.f) * bullet->speed, normal) * 0.2f;
+			Vec3 velocity = reflect(bullet->direction * bullet->speed, normal) * 0.2f;
 
 			if (true)
 			{

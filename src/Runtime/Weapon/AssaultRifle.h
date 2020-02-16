@@ -15,7 +15,7 @@ struct Assault_Rifle
 	Weapon_Attributes attributes;
 
 	bool trigger_held = false;
-	Vec2 fire_target;
+	Vec3 fire_target;
 	float last_fire_time = 0.f;
 	float spread_degrees = 0.f;
 };
@@ -25,4 +25,4 @@ void assault_rifle_free(Assault_Rifle* rifle);
 void assault_rifle_update(Assault_Rifle* rifle);
 
 // Call every frame you want to fire
-void assault_rifle_fire(Assault_Rifle* rifle, const Vec2& target);
+void assault_rifle_fire(Assault_Rifle* rifle, const Vec3& target);

@@ -98,11 +98,11 @@ Scene_Query_Result scene_query_line(const Line_Trace& line, const Scene_Query_Pa
 	return result;
 }
 
-bool scene_query_vision(const Vec2& from, const Vec2& to)
+bool scene_query_vision(const Vec3& from, const Vec3& to)
 {
 	Line_Trace line;
-	line.from = Vec3(from, 0.5f);
-	line.to = Vec3(to, 0.5f);
+	line.from = from + Vec3(0.f, 0.f, 0.5f);
+	line.to = to + Vec3(0.f, 0.f, 0.5f);
 
 	Scene_Query_Params params;
 	params.mask = ~QUERY_Unit;

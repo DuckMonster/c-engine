@@ -85,25 +85,25 @@ void mob_set_agroo(Mob* mob, Unit* unit)
 	channel_broadcast(mob->channel, true);
 }
 
-void mob_update_target_position(Mob* mob, const Vec2& center, float radius_min, float radius_max)
+void mob_update_target_position(Mob* mob, const Vec3& center, float radius_min, float radius_max)
 {
 	Unit* unit = scene_get_unit(mob->controlled_unit);
 	if (!unit)
 		return;
 
 	/* We only want to walk towards visible locations, unless enough fails in which case fuck it */
-	Vec2 target_position;
+	Vec3 target_position;
 	int tries = 5;
 	while(tries--)
 	{
-		target_position = center + random_point_on_circle() * random_float(radius_min, radius_max);
+		target_position = center + Vec3(random_point_on_circle(), 0.f) * random_float(radius_min, radius_max);
 		if (scene_query_vision(unit->position, target_position))
 			break;
 	}
 
 	channel_reset(mob->channel);
 	channel_write_u8(mob->channel, EVENT_Set_Target);
-	channel_write_vec2(mob->channel, target_position);
+	channel_write_vec3(mob->channel, target_position);
 	channel_broadcast(mob->channel, true);
 }
 #endif

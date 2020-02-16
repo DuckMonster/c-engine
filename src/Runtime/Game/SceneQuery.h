@@ -30,4 +30,4 @@ struct Scene_Query_Result
 
 Scene_Query_Result scene_query_line(const Line_Trace& line, const Scene_Query_Params& params = Scene_Query_Params());
 // Will only query props at unit eye-height
-bool scene_query_vision(const Vec2& from, const Vec2& to);
+bool scene_query_vision(const Vec3& from, const Vec3& to);
