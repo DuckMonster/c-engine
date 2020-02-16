@@ -1,5 +1,4 @@
 #include "Shader/Include/Noise.frag"
-#include "Shader/Include/FastTrig.gl"
 
 #define SWAY_AMOUNT_SCALAR 0.5
 #define SWAY_SPEED 0.2
