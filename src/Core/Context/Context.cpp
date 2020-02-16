@@ -344,6 +344,11 @@ void context_close()
 	}
 }
 
+void context_set_title(const char* title)
+{
+	SetWindowText(window.handle, title);
+}
+
 void context_begin_frame()
 {
 	input.frame_num++;

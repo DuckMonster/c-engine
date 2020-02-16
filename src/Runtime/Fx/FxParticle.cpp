@@ -63,7 +63,8 @@ void fx_particles_update(Fx_Particles* particles)
 		Scene_Query_Params params;
 		params.mask = QUERY_Props;
 
-		Scene_Query_Result result = scene_query_line(move_line, params);
+		//Scene_Query_Result result = scene_query_line(move_line, params);
+		Scene_Query_Result result;
 		if (result.hit.has_hit)
 		{
 			// If we did, bounce against it!

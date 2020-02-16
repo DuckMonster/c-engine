@@ -1,6 +1,7 @@
 #include "Scene.h"
 #include "Core/Input/Input.h"
 #include "Core/Context/Context.h"
+#include "Core/Debug/Profiling.h"
 #include "Engine/Graphics/Mesh.h"
 #include "Engine/Graphics/Material.h"
 #include "Runtime/Unit/Unit.h"
@@ -41,6 +42,8 @@ void scene_init()
 
 void scene_update()
 {
+	pix_event_scope("SceneUpdate");
+
 	THINGS_FOREACH(&scene.units)
 		unit_update(it);
 
@@ -251,6 +254,8 @@ void scene_draw_convex_shape(const Convex_Shape* shape)
 
 void scene_render(const Render_State& state)
 {
+	pix_event_scope("SceneRender");
+
 	/* Drawables */
 	THINGS_FOREACH(&scene.drawables)
 		drawable_render(it, state);

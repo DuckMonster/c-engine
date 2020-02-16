@@ -84,7 +84,7 @@ void bullet_update(Bullet* bullet)
 			Vec3 pos = query_result.hit.position + normal * 0.1f;
 			Vec3 velocity = reflect(Vec3(bullet->direction, 0.f) * bullet->speed, normal) * 0.2f;
 
-			if (false)
+			if (true)
 			{
 				// If we hit a prop, spawn some neat bullets!
 				Fx_Particle_Spawn_Params params;

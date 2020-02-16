@@ -6,6 +6,7 @@
 #include "Core/Input/Input.h"
 #include "Core/Math/Random.h"
 #include "Core/Args/Args.h"
+#include "Core/Debug/Profiling.h"
 #include "Engine/UI/UI.h"
 #include "Engine/Resource/Resource.h"
 #include "Engine/Resource/HotReload.h"
@@ -88,6 +89,7 @@ void run()
 	float hot_reload_timer = 0.f;
 	Interval_Timer stat_timer;
 	stat_timer.interval = 5.f;
+	u32 frame_num = 0;
 
 	while(context.is_open)
 	{
@@ -95,6 +97,7 @@ void run()
 		if (!context.is_open)
 			break;
 
+		pix_push_event("Frame%d", frame_num++);
 		time_update_delta();
 
 #if DEBUG
@@ -114,26 +117,33 @@ void run()
 		}
 #endif
 
+		// Set window title to ms
+		static char title_buffer[80];
+		sprintf(title_buffer, "Game ms: %.2f", time_delta() * 1000.f);
+		context_set_title(title_buffer);
+
 		if (timer_update(&stat_timer))
 		{
 			debug_log("ms: %.2f", time_delta_unscaled() * 1000.f);
 		}
 
 		client_update();
+
+		game_update();
+		render_draw();
+		//ui_draw();
+
+		pix_pop_event();
+
+		context_end_frame();
+
+		// Check for disconnection
 		if (client.connection_state == Client_Connection_State::Disconnected)
 		{
 			context_close();
 			debug_log("Disconnected from server :(");
 			system("pause");
-			break;
 		}
-
-		game_update();
-
-		render_draw();
-		//ui_draw();
-
-		context_end_frame();
 	}
 
 	client_shutdown();

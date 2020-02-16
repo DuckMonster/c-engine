@@ -1,6 +1,7 @@
 #include "Game.h"
 #include "Core/Input/Input.h"
 #include "Core/Context/Context.h"
+#include "Core/Debug/Profiling.h"
 #include "Engine/Config/Config.h"
 #include "Engine/Graphics/Material.h"
 #include "Engine/Graphics/MeshResource.h"
@@ -168,6 +169,8 @@ void game_init()
 
 void game_update()
 {
+	pix_event_scope("GameUpdate");
+
 #if CLIENT
 	// Toggle editor mode
 	if (input_key_pressed(Key::Tab))

@@ -18,6 +18,8 @@ extern Context context;
 void context_open(const char* title, u32 x, u32 y, u32 width, u32 height);
 void context_close();
 
+void context_set_title(const char* title);
+
 void context_begin_frame();
 void context_end_frame();
 

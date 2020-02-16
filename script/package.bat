@@ -1,3 +1,4 @@
+pushd ..
 @echo off
 echo -- BUILD START --
 msbuild build.proj -nologo -property:Config=Release+ReleaseServer -verbosity:m
@@ -39,4 +40,5 @@ rmdir /s /q pack-temp
 echo.
 echo -- PACKAGE DONE --
 
+popd
 pause

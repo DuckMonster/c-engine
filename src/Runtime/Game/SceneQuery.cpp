@@ -1,5 +1,6 @@
 #include "SceneQuery.h"
 #include "Scene.h"
+#include "Core/Debug/Profiling.h"
 #include "Runtime/Unit/Unit.h"
 #include "Runtime/Prop/Prop.h"
 
@@ -32,6 +33,8 @@ Scene_Query_Result select_result(const Scene_Query_Result& a, const Scene_Query_
 
 Scene_Query_Result scene_query_line(const Line_Trace& line, const Scene_Query_Params& params)
 {
+	pix_event_scope("SceneQueryLine");
+
 	// Query all units
 	Scene_Query_Result result;
 	result.hit.time = BIG_NUMBER;

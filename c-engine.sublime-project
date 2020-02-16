@@ -14,6 +14,10 @@
 			"name": "Resources"
 		},
 		{
+			"path": "script",
+			"name": "Scripts"
+		},
+		{
 			"folder_exclude_patterns": ["*"],
 			"path": ".",
 		}

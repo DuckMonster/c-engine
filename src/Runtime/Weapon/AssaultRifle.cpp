@@ -37,7 +37,7 @@ void assault_rifle_event_proc(Channel* chnl, Online_User* src)
 
 #if SERVER
 			if (src != nullptr)
-				server_rebroadcast_last(chnl, true);
+				channel_rebroadcast_last(chnl, true);
 #endif
 			break;
 		}
