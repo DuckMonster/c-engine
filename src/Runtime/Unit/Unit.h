@@ -13,13 +13,14 @@ const float unit_impact_drag = 8.5f;
 const float unit_hit_duration = 0.15f;
 const float unit_sync_frequency = 10.f;
 const float unit_move_inheritance = 0.85f;
+const Vec3 unit_center_offset = Vec3(0.f, 0.f, 0.5f);
 
 struct Unit
 {
 	u32 id;
-	Vec2 position;
-	Vec2 aim_direction = Vec2_X;
-	Vec2 impact_velocity;
+	Vec3 position;
+	Vec3 aim_direction = Vec3_X;
+	Vec3 impact_velocity;
 	float move_speed = 6.f;
 
 	Weapon* weapon = nullptr;
@@ -43,9 +44,11 @@ void unit_init(Unit* unit, u32 id, const Vec2& position);
 void unit_free(Unit* unit);
 void unit_update(Unit* unit);
 
-void unit_move_towards(Unit* unit, const Vec2& target);
-void unit_move_direction(Unit* unit, const Vec2& direction);
-void unit_move_delta(Unit* unit, const Vec2& delta, bool real = true);
+Vec3 unit_center(Unit* unit);
+
+void unit_move_towards(Unit* unit, const Vec3& target);
+void unit_move_direction(Unit* unit, const Vec3& direction);
+void unit_move_delta(Unit* unit, const Vec3& delta);
 void unit_hit(Unit* unit, const Unit_Handle& source, const Vec2& impulse);
 bool unit_has_control(Unit* unit);
 

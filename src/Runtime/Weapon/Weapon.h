@@ -17,7 +17,7 @@ const float weapon_angle_offset_acceleration = 100.f;
 struct Weapon
 {
 	Unit_Handle owner;
-	Vec2 position;
+	Vec3 position;
 
 	Weapon_Type type;
 	void* weapon_type_ptr = nullptr;
@@ -25,8 +25,8 @@ struct Weapon
 #if CLIENT
 	Billboard* billboard = nullptr;
 
-	Vec2 offset_velocity = Vec2_Zero;
-	Vec2 offset = Vec2_Zero;
+	Vec3 offset_velocity = Vec3_Zero;
+	Vec3 offset = Vec3_Zero;
 	float angle_offset = 0.f;
 	float angle_offset_velocity = 0.f;
 #endif
@@ -38,7 +38,7 @@ void weapon_update(Weapon* weapon);
 
 #if CLIENT
 void weapon_reset_offset(Weapon* weapon);
-void weapon_add_velocity(Weapon* weapon, const Vec2& linear_velocity, float angular_velocity);
-inline void weapon_add_linear_velocity(Weapon* weapon, const Vec2& velocity) { weapon_add_velocity(weapon, velocity, 0.f); }
-inline void weapon_add_angular_velocity(Weapon* weapon, float velocity) { weapon_add_velocity(weapon, Vec2_Zero, velocity); }
+void weapon_add_velocity(Weapon* weapon, const Vec3& linear_velocity, float angular_velocity);
+inline void weapon_add_linear_velocity(Weapon* weapon, const Vec3& velocity) { weapon_add_velocity(weapon, velocity, 0.f); }
+inline void weapon_add_angular_velocity(Weapon* weapon, float velocity) { weapon_add_velocity(weapon, Vec3_Zero, velocity); }
 #endif

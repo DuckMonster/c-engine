@@ -68,7 +68,7 @@ void assault_rifle_update(Assault_Rifle* rifle)
 		// OK to fire
 		if (rifle->last_fire_time + fire_rate_delta < time_elapsed())
 		{
-			Vec2 direction = normalize(rifle->fire_target - rifle->weapon->position);
+			Vec3 direction = normalize(rifle->fire_target - rifle->weapon->position);
 
 			// Apply spread
 			float spread_radians = radians(rifle->spread_degrees);

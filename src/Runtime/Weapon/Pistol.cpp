@@ -49,10 +49,10 @@ void pistol_free(Pistol* pistol)
 	channel_close(pistol->channel);
 }
 
-void pistol_fire_local(Pistol* pistol, const Vec2& target)
+void pistol_fire_local(Pistol* pistol, const Vec3& target)
 {
-	Vec2 direction = normalize(target - pistol->weapon->position);
-	Vec2 origin = pistol->weapon->position + direction * 0.5f;
+	Vec3 direction = normalize(target - pistol->weapon->position);
+	Vec3 origin = pistol->weapon->position + direction * 0.5f;
 
 	channel_reset(pistol->channel);
 	channel_write_u8(pistol->channel, WEAPON_Pistol);

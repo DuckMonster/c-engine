@@ -30,7 +30,7 @@ void camera_update(Camera* camera)
 		Unit* local_unit = scene_get_unit(game.local_player->controlled_unit);
 		if (local_unit)
 		{
-			camera->target_position = Vec3(local_unit->position, 0.f);
+			camera->target_position = local_unit->position;
 			camera->target_position += (ground_hit.position - camera->target_position) * 0.3f;
 		}
 	}

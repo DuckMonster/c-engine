@@ -21,7 +21,7 @@ void mob_event_proc(Channel* chnl, Online_User* src)
 	{
 		case EVENT_Set_Target:
 		{
-			Vec2 target;
+			Vec3 target;
 			channel_read(chnl, &target);
 
 			mob->target_position = target;

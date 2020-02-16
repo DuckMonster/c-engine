@@ -24,7 +24,7 @@ void player_event_proc(Channel* chnl, Online_User* src)
 #endif
 
 			Vec2 move_input;
-			Vec2 position;
+			Vec3 position;
 			channel_read(chnl, &move_input);
 			channel_read(chnl, &position);
 

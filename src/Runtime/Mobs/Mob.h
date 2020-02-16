@@ -11,7 +11,7 @@ struct Mob
 	Unit_Handle controlled_unit;
 
 	Channel* channel;
-	Vec2 target_position;
+	Vec3 target_position;
 
 	Interval_Timer idle_timer;
 
@@ -24,7 +24,7 @@ void mob_free(Mob* mob);
 
 #if SERVER
 void mob_set_agroo(Mob* mob, Unit* unit);
-void mob_update_target_position(Mob* mob, const Vec2& center, float radius_min, float radius_max);
+void mob_update_target_position(Mob* mob, const Vec3& center, float radius_min, float radius_max);
 #endif
 
 void mob_update(Mob* mob);

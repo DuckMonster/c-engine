@@ -51,7 +51,7 @@ Scene_Query_Result scene_query_line(const Line_Trace& line, const Scene_Query_Pa
 				continue;
 
 			Sphere unit_sphere;
-			unit_sphere.origin = Vec3(unit->position, 0.5f);
+			unit_sphere.origin = unit->position + unit_center_offset;
 			unit_sphere.radius = 0.5f;
 
 			unit_result.unit = unit;

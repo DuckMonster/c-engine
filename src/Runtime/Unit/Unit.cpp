@@ -62,7 +62,7 @@ void unit_event_proc(Channel* chnl, Online_User* src)
 				source_unit = scene.units[source_id];
 
 			// Add impulse
-			Vec2 impulse;
+			Vec3 impulse;
 			channel_read(chnl, &impulse);
 
 			unit->impact_velocity = impulse;
@@ -101,7 +101,7 @@ void unit_event_proc(Channel* chnl, Online_User* src)
 			if (unit_has_control(unit))
 				return;
 
-			Vec2 direction;
+			Vec3 direction;
 			channel_read(chnl, &direction);
 
 			unit->aim_direction = direction;
@@ -115,7 +115,7 @@ void unit_event_proc(Channel* chnl, Online_User* src)
 	}
 }
 
-void unit_init(Unit* unit, u32 id, const Vec2& position)
+void unit_init(Unit* unit, u32 id, const Vec3& position)
 {
 	unit->id = id;
 	unit->position = position;
@@ -128,11 +128,11 @@ void unit_init(Unit* unit, u32 id, const Vec2& position)
 #if CLIENT
 
 	unit->billboard = scene_make_billboard(sprite_sheet_load("Sprite/unit_sheet.dat"));
-	unit->billboard->position = Vec3(position, 0.f);
+	unit->billboard->position = position;
 	unit->billboard->anchor = Vec2(0.5f, 1.f);
 
 	unit->health_bar = scene_make_health_bar();
-	unit->health_bar->position = Vec3(position, 2.f);
+	unit->health_bar->position = position + Vec3(0.f, 0.f, 2.f);
 
 #endif
 }
@@ -159,7 +159,7 @@ void unit_update(Unit* unit)
 #if CLIENT
 
 	// Unit billboard
-	unit->billboard->position = Vec3(unit->position, 0.f);
+	unit->billboard->position = unit->position;
 
 	// Update health bar
 	unit->health_bar->position = Vec3(unit->position, 2.f);
@@ -171,6 +171,11 @@ void unit_update(Unit* unit)
 	unit->billboard->scale = Vec2(unit->hit_timer > 0.f ? 1.f + unit->hit_timer : 1.f);
 
 #endif
+}
+
+Vec3 unit_center(Unit* unit)
+{
+	return unit->position + unit_center_offset;
 }
 
 void unit_move_towards(Unit* unit, const Vec2& target)
@@ -189,13 +194,13 @@ void unit_move_direction(Unit* unit, const Vec2& direction)
 	unit_move_delta(unit, direction * unit->move_speed * time_delta());
 }
 
-void unit_move_delta(Unit* unit, const Vec2& delta, bool real)
+void unit_move_delta(Unit* unit, const Vec3& delta)
 {
 	if (is_nearly_zero(delta))
 		return;
 
-	Vec2 remaining_delta = delta;
-	Vec2 position = unit->position;
+	Vec3 remaining_delta = delta;
+	Vec3 position = unit->position;
 	u32 iterations = 0;
 
 	Scene_Query_Params params;
@@ -204,13 +209,13 @@ void unit_move_delta(Unit* unit, const Vec2& delta, bool real)
 	while(!is_nearly_zero(delta) && (++iterations) < 10)
 	{
 		Line_Trace move_trace;
-		move_trace.from = Vec3(position, 0.f);
-		move_trace.to = move_trace.from + Vec3(remaining_delta, 0.f);
+		move_trace.from = position + unit_center_offset + normalize(remaining_delta) * 0.5f;
+		move_trace.to = move_trace.from + remaining_delta;
 
 		Scene_Query_Result query_result = scene_query_line(move_trace, params);
 		if (query_result.hit.has_hit)
 		{
-			Vec2 normal = normalize(Vec2(query_result.hit.normal));
+			Vec3 normal = query_result.hit.normal;
 
 			// We're penetrating something; depenetrate
 			if (query_result.hit.started_penetrating)
@@ -220,7 +225,7 @@ void unit_move_delta(Unit* unit, const Vec2& delta, bool real)
 			}
 
 			// Apply the amount we managed to move before hitting something
-			Vec2 moved_delta = remaining_delta * query_result.hit.time;
+			Vec3 moved_delta = remaining_delta * query_result.hit.time;
 			position += moved_delta;
 			remaining_delta -= moved_delta;
 
@@ -236,9 +241,7 @@ void unit_move_delta(Unit* unit, const Vec2& delta, bool real)
 	}
 
 	if (iterations >= 10)
-	{
 		return;
-	}
 
 	if (is_nan(position))
 	{
@@ -247,7 +250,7 @@ void unit_move_delta(Unit* unit, const Vec2& delta, bool real)
 	}
 
 	// Weapons inherit a bit of the delta
-	Vec2 final_delta = position - unit->position;
+	Vec3 final_delta = position - unit->position;
 
 	if (unit->weapon)
 		unit->weapon->position += final_delta * unit_move_inheritance;

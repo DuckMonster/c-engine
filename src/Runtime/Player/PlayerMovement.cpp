@@ -48,7 +48,7 @@ void player_movement_update_local(Player* player)
 		channel_reset(player->channel);
 		channel_write_u8(player->channel, PLAYEREV_Set_Input);
 		channel_write_vec2(player->channel, direction);
-		channel_write_vec2(player->channel, unit->position);
+		channel_write_vec3(player->channel, unit->position);
 		channel_broadcast(player->channel, false);
 	}
 
@@ -68,16 +68,16 @@ void player_movement_update(Player* player)
 	}
 	else
 	{
-		Vec2 net_correction_delta = movement.net_position_error * player_net_correction_coefficient * time_delta();
+		Vec3 net_correction_delta = movement.net_position_error * player_net_correction_coefficient * time_delta();
 		movement.net_position_error -= net_correction_delta;
 		unit->position += net_correction_delta;
 	}
 #endif
 
-	unit_move_direction(unit, movement.move_input);
+	unit_move_direction(unit, Vec3(movement.move_input, 0.f));
 }
 
-void player_movement_recv_remote_input(Player* player, const Vec2& remote_input, const Vec2& remote_position)
+void player_movement_recv_remote_input(Player* player, const Vec2& remote_input, const Vec3& remote_position)
 {
 	Player_Movement& movement = player->movement;
 	movement.move_input = remote_input;
