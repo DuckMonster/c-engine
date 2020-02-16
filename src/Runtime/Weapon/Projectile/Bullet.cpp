@@ -84,25 +84,32 @@ void bullet_update(Bullet* bullet)
 			Vec3 pos = query_result.hit.position + normal * 0.1f;
 			Vec3 velocity = reflect(Vec3(bullet->direction, 0.f) * bullet->speed, normal) * 0.2f;
 
-			// If we hit a prop, spawn some neat bullets!
-			Fx_Particle_Spawn_Params params;
-			params.num_particles = 10;
-			params.position = query_result.hit.position + query_result.hit.normal * 0.2f;
-			params.position_radius = 0.1f;
-			params.velocity = velocity;
-			params.velocity_cone_angle = 40.f;
-			params.velocity_scale_variance = 0.9f;
+			if (false)
+			{
+				// If we hit a prop, spawn some neat bullets!
+				Fx_Particle_Spawn_Params params;
+				params.num_particles = 10;
+				params.position = query_result.hit.position + query_result.hit.normal * 0.2f;
+				params.position_radius = 0.1f;
+				params.velocity = velocity;
+				params.velocity_cone_angle = 40.f;
+				params.velocity_scale_variance = 0.9f;
 
-			params.drag_min = 3.5f;
-			params.drag_max = 4.5f;
-			params.gravity_min = 4.f;
-			params.gravity_max = 10.f;
+				params.drag_min = 3.5f;
+				params.drag_max = 4.5f;
+				params.gravity_min = 4.f;
+				params.gravity_max = 10.f;
 
-			params.color_min = Color_Dark_Gray;
-			params.color_max = Color_White;
-			fx_make_particle(params);
+				params.color_min = Color_Dark_Gray;
+				params.color_max = Color_White;
+				fx_make_particle(params);
+			}
 #endif
 		}
+
+#if CLIENT
+		bullet->line_drawer->position = query_result.hit.position;
+#endif
 
 		scene_destroy_bullet(bullet);
 		return;

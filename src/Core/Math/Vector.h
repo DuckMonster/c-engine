@@ -416,3 +416,11 @@ inline Vec4 component_max(const Vec4& a, const Vec4& b)
 		a.w > b.w ? a.w : b.w
 	);
 }
+
+inline Vec2 rotate_vector(const Vec2& vec, float angle)
+{
+	return Vec2(
+		cos(angle) * vec.x - sin(angle) * vec.y,
+		sin(angle) * vec.x + cos(angle) * vec.y
+	);
+}

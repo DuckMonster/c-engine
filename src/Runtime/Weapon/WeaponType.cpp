@@ -23,7 +23,7 @@ static Weapon_Type_Data data_make(u32 tile_x, u32 tile_y)
 void weapon_types_load()
 {
 	type_data[WEAPON_Pistol] = data_make(0, 0);
-	type_data[WEAPON_AssaultRifle] = data_make(1, 0);
+	type_data[WEAPON_AssaultRifle] = data_make(0, 0);
 }
 
 const Weapon_Type_Data* weapon_get_type_data(Weapon_Type type)

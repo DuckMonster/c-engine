@@ -66,7 +66,7 @@ void pistol_fire(Pistol* pistol, const Vec2& origin, const Vec2& direction)
 	Bullet_Params bullet_params;
 	bullet_params.origin = origin;
 	bullet_params.direction = direction;
-	bullet_params.size = 0.2f;
+	bullet_params.size = 0.4f;
 	bullet_params.speed = 85.f;
 
 	scene_make_bullet(pistol->weapon->owner, bullet_params);
