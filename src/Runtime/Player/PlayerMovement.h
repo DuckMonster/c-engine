@@ -5,6 +5,13 @@ struct Player;
 struct Channel;
 struct Online_User;
 
+const float player_force_sync_frequency = 10.f;
+const float player_net_correction_coefficient = 10.f;
+const float player_dash_hori_impulse = 12.f;
+const float player_dash_vert_impulse = 5.f;
+const float player_dash_gravity = 24.f;
+const float player_dash_drag = 1.4f;
+
 struct Player_Movement
 {
 #if CLIENT
@@ -13,6 +20,10 @@ struct Player_Movement
 
 	Vec3 net_position_error;
 	Vec2 move_input;
+
+	bool is_dashing = false;
+	Vec3 dash_velocity;
+	float dash_influence = 0.5f;
 };
 
 void player_movement_init(Player* player);

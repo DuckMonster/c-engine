@@ -219,7 +219,7 @@ void unit_move_delta(Unit* unit, const Vec3& delta)
 			normal = normalize(constrain_to_plane(normal, Vec3_Z));
 
 			// We're penetrating something; depenetrate
-			if (query_result.hit.started_penetrating)
+			if (query_result.hit.started_penetrating || is_nearly_zero(query_result.hit.time))
 			{
 				position += normal * (query_result.hit.penetration_depth + 0.01f);
 				continue;

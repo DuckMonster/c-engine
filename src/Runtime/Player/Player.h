@@ -9,10 +9,6 @@ struct Unit;
 struct Online_User;
 struct Item_Drop;
 
-const float player_force_sync_frequency = 10.f;
-const float player_net_correction_coefficient = 10.f;
-const float player_item_hover_radius = 0.8f;
-
 enum Player_Event
 {
 	PLAYEREV_Set_Input,

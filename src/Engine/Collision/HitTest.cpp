@@ -32,6 +32,10 @@ Hit_Result test_ray_plane(const Ray& ray, const Plane& plane)
 	Vec3 plane_to_ray = ray.origin - plane.point;
 	float ray_height = dot(plane_to_ray, plane.normal);
 
+	// Ray height is too small, we're INSIDE the plane, which makes nonsensical results
+	if (is_nearly_zero(ray_height))
+		return Hit_Result();
+
 	// Get the angle of the ray compared to the normal
 	float ray_angle = dot(ray.direction, -plane.normal);
 
