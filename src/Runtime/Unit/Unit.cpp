@@ -132,7 +132,7 @@ void unit_init(Unit* unit, u32 id, const Vec3& position)
 	unit->billboard->anchor = Vec2(0.5f, 1.f);
 
 	unit->health_bar = scene_make_health_bar();
-	unit->health_bar->position = position + Vec3(0.f, 0.f, 2.f);
+	unit->health_bar->position = position + Vec3(0.f, 0.f, 1.3f);
 
 #endif
 }
@@ -162,7 +162,7 @@ void unit_update(Unit* unit)
 	unit->billboard->position = unit->position;
 
 	// Update health bar
-	unit->health_bar->position = unit->position + Vec3(0.f, 0.f, 2.f);
+	unit->health_bar->position = unit->position + Vec3(0.f, 0.f, 1.3f);
 	unit->health_bar->health_percent = unit->health / unit->health_max;
 
 	// When hit, flash for a bit!

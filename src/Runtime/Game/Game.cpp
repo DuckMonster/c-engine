@@ -156,6 +156,7 @@ void game_init()
 
 	scene_make_item_drop(Vec3(0.2f, -5.f, 0.f), weapon_instance_make(WEAPON_Pistol, 0));
 	scene_make_item_drop(Vec3(1.2f, -5.f, 0.f), weapon_instance_make(WEAPON_AssaultRifle, 0));
+	scene_make_item_drop(Vec3(2.2f, -5.f, 0.f), weapon_instance_make(WEAPON_Shotgun, 0));
 #endif
 
 #if SERVER

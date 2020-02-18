@@ -4,6 +4,7 @@ enum Weapon_Type
 {
 	WEAPON_Pistol,
 	WEAPON_AssaultRifle,
+	WEAPON_Shotgun,
 	WEAPON_MAX,
 };
 
@@ -19,7 +20,12 @@ struct Weapon_Type_Data
 	u32 tile_y;
 
 	float damage;
+
+	u32 projectile_num = 1;
+	float projectile_spread = 0.f;
 	float projectile_speed;
+	float projectile_drag = 0.f;
+	float projectile_gravity = 0.f;
 
 	u32 fire_mode;
 	float fire_rate;

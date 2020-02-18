@@ -14,11 +14,9 @@ void bullet_init(Bullet* bullet, const Unit_Handle& owner, const Bullet_Params& 
 {
 	bullet->owner = owner;
 
-	bullet->damage = params.damage;
 	bullet->position = params.origin;
-	bullet->direction = params.direction;
-	bullet->size = params.size;
-	bullet->speed = params.speed;
+	bullet->velocity = params.direction * params.speed;
+	bullet->params = params;
 
 #if CLIENT
 	bullet->drawable = scene_make_drawable(mesh_load("Mesh/sphere.fbx"), material_load("Material/bullet.mat"));
@@ -54,15 +52,17 @@ void bullet_update(Bullet* bullet)
 	move_trace.from = bullet->position;
 
 	// Do movement
-	bullet->position += bullet->direction * bullet->speed * time_delta();
+	bullet->velocity -= bullet->velocity * bullet->params.drag * time_delta();
+	bullet->velocity -= Vec3_Z * bullet->params.gravity * time_delta();
+	bullet->position += bullet->velocity * time_delta();
 
 #if CLIENT
 	float sphere_time_scale = saturate(bullet->lifetime / 0.05f);
 	bullet->drawable->transform = mat_position_rotation_scale(
-		bullet->position, quat_from_x(bullet->direction), bullet_scale_base * bullet->size * sphere_time_scale
+		bullet->position, quat_from_x(bullet->velocity), bullet_scale_base * bullet->params.size * sphere_time_scale
 	);
 	bullet->line_drawer->position = bullet->position;
-	bullet->line_drawer->size = bullet_line_size_base * bullet->size;
+	bullet->line_drawer->size = bullet_line_size_base * bullet->params.size;
 #endif
 
 	// Movement line to (after moving)
@@ -77,13 +77,13 @@ void bullet_update(Bullet* bullet)
 	{
 		Unit* unit = query_result.unit;
 		if (unit && owner && unit_has_control(owner))
-			unit_hit(unit, bullet->owner, bullet->damage, bullet->direction * 20.f);
+			unit_hit(unit, bullet->owner, bullet->params.damage, bullet->velocity);
 		else if (!unit)
 		{
 #if CLIENT
 			Vec3 normal = query_result.hit.normal;
 			Vec3 pos = query_result.hit.position + normal * 0.1f;
-			Vec3 velocity = reflect(bullet->direction * bullet->speed, normal) * 0.2f;
+			Vec3 velocity = reflect(bullet->velocity, normal) * 0.2f;
 
 			if (true)
 			{

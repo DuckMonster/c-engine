@@ -4,7 +4,7 @@
 struct Material;
 struct Unit;
 
-#define HEALTH_BAR_HEIGHT 0.15f
+#define HEALTH_BAR_HEIGHT 0.1f
 
 struct Health_Bar
 {

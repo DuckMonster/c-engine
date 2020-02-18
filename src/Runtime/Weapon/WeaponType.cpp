@@ -21,7 +21,12 @@ void weapon_res_create(Resource* resource)
 	dat_read(doc.root, "tile[1]", &data->tile_y);
 
 	dat_read(doc.root, "damage", &data->damage);
+
+	dat_read(doc.root, "projectile_num", &data->projectile_num);
+	dat_read(doc.root, "projectile_spread", &data->projectile_spread);
 	dat_read(doc.root, "projectile_speed", &data->projectile_speed);
+	dat_read(doc.root, "projectile_drag", &data->projectile_drag);
+	dat_read(doc.root, "projectile_gravity", &data->projectile_gravity);
 
 	dat_read(doc.root, "fire_mode", &data->fire_mode);
 	dat_read(doc.root, "fire_rate", &data->fire_rate);
@@ -49,6 +54,7 @@ void weapon_types_load()
 {
 	type_data[WEAPON_Pistol] = weapon_type_data_load("Weapon/pistol.dat");
 	type_data[WEAPON_AssaultRifle] = weapon_type_data_load("Weapon/assault_rifle.dat");
+	type_data[WEAPON_Shotgun] = weapon_type_data_load("Weapon/shotgun.dat");
 }
 
 const Weapon_Type_Data* weapon_get_type_data(Weapon_Type type)

@@ -17,6 +17,16 @@ enum Weapon_Event
 	EVENT_Fire_Bullet,
 };
 
+Vec3 add_cone_rotation(const Vec3& vec, float cone_half_angle)
+{
+	Quat cone_quat =
+		quat_from_x(vec) *
+		angle_axis(random_float(TAU), Vec3_X) *
+		angle_axis(radians(random_float(-cone_half_angle, cone_half_angle)), Vec3_Z);
+
+	return quat_x(cone_quat);
+}
+
 void weapon_event_proc(Channel* chnl, Online_User* src)
 {
 	Weapon* weapon = (Weapon*)chnl->user_ptr;
@@ -28,16 +38,27 @@ void weapon_event_proc(Channel* chnl, Online_User* src)
 	{
 		case EVENT_Fire_Bullet:
 		{
-			Bullet_Params params;
-			channel_read_t(chnl, &params);
+			u8 num_bullets;
+			channel_read(chnl, &num_bullets);
 
-			scene_make_bullet(weapon->owner, params);
+			Vec3 target;
+			channel_read(chnl, &target);
+
+			for(u8 i=0; i<num_bullets; ++i)
+			{
+				Bullet_Params params;
+				channel_read_t(chnl, &params);
+
+				scene_make_bullet(weapon->owner, params);
+			}
 
 			weapon->recoil_angle += weapon->type_data->recoil_gain;
 
 #if CLIENT
+			Vec3 direction = normalize(target - weapon->position);
+
 			weapon_reset_offset(weapon);
-			weapon_add_velocity(weapon, -params.direction * 6.f, 5.f);
+			weapon_add_velocity(weapon, -direction * 6.f, 5.f);
 #endif
 			break;
 		}
@@ -111,25 +132,27 @@ void weapon_update(Weapon* weapon)
 
 void weapon_fire(Weapon* weapon, const Vec3& target)
 {
-	float fire_recoil = radians(random_float(-weapon->recoil_angle, weapon->recoil_angle) * 0.5f);
-
-	Quat recoil_quat;
-	recoil_quat =
-		quat_from_x(target - weapon->position) *
-		angle_axis(TAU, Vec3_X) *
-		angle_axis(fire_recoil, Vec3_Z);
-
 	channel_reset(weapon->channel);
 	channel_write_u8(weapon->channel, EVENT_Fire_Bullet);
+	channel_write_u8(weapon->channel, weapon->type_data->projectile_num);
+	channel_write_vec3(weapon->channel, target);
 
-	Bullet_Params params;
-	params.direction = quat_x(recoil_quat);
-	params.origin = weapon->position + params.direction * 0.4f;
-	params.damage = weapon->type_data->damage;
+	for(u32 i=0; i<weapon->type_data->projectile_num; ++i)
+	{
+		Vec3 direction = normalize(target - weapon->position);
+		direction = add_cone_rotation(direction, weapon->recoil_angle + weapon->type_data->projectile_spread);
 
-	channel_write_t(weapon->channel, params);
+		Bullet_Params params;
+		params.direction = direction;
+		params.origin = weapon->position + params.direction * 0.4f;
+		params.damage = weapon->type_data->damage;
+		params.drag = weapon->type_data->projectile_drag;
+		params.gravity = weapon->type_data->projectile_gravity;
+
+		channel_write_t(weapon->channel, params);
+	}
+
 	channel_broadcast(weapon->channel, true);
-
 	weapon->last_fire_time = time_elapsed();
 }
 
