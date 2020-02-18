@@ -259,7 +259,7 @@ void unit_move_delta(Unit* unit, const Vec3& delta)
 	unit->position = position;
 }
 
-void unit_hit(Unit* unit, const Unit_Handle& source, const Vec3& impulse)
+void unit_hit(Unit* unit, const Unit_Handle& source, float damage, const Vec3& impulse)
 {
 	Unit* source_unit = scene_get_unit(source);
 
@@ -272,6 +272,7 @@ void unit_hit(Unit* unit, const Unit_Handle& source, const Vec3& impulse)
 	else
 		channel_write_i32(unit->channel, -1);
 
+	channel_write_f32(unit->channel, damage);
 	channel_write_vec3(unit->channel, impulse);
 	channel_broadcast(unit->channel, true);
 }

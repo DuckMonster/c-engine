@@ -3,6 +3,7 @@
 #include "WeaponType.h"
 
 struct Billboard;
+struct Channel;
 
 const float weapon_interp_speed = 14.2f;
 const float weapon_rotate_speed = 15.f;
@@ -19,8 +20,15 @@ struct Weapon
 	Unit_Handle owner;
 	Vec3 position;
 
-	Weapon_Type type;
-	void* weapon_type_ptr = nullptr;
+	Weapon_Instance instance;
+	const Weapon_Type_Data* type_data;
+
+	Channel* channel = nullptr;
+	bool trigger_held = false;
+
+	float last_fire_time = 0.f;
+
+	float recoil_angle = 0.f;
 
 #if CLIENT
 	Billboard* billboard = nullptr;
@@ -35,6 +43,8 @@ struct Weapon
 void weapon_init(Weapon* weapon, Unit* owner, const Weapon_Instance& instance);
 void weapon_free(Weapon* weapon);
 void weapon_update(Weapon* weapon);
+void weapon_hold_trigger(Weapon* weapon, const Vec3& target);
+void weapon_release_trigger(Weapon* weapon, const Vec3& target);
 
 #if CLIENT
 void weapon_reset_offset(Weapon* weapon);

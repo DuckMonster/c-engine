@@ -685,10 +685,14 @@ Dat_Node* eval_expr(Dat_Object* root, const char* expr, u32 expr_len)
 	u32 sep_len = 0;
 	while(sep_len < expr_len)
 	{
-		if (expr[sep_len] == '.')
+		if (expr[sep_len] == '.' || expr[sep_len] == '[')
 			break;
 
-		assert(ALPHA(expr[sep_len]));
+		if (!ALPHA(expr[sep_len]))
+		{
+			msg_box("Unknown character '%c', in expression '%s'", expr[sep_len], expr);
+			return nullptr;
+		}
 
 		sep_len++;
 	}
@@ -711,13 +715,56 @@ Dat_Node* eval_expr(Dat_Object* root, const char* expr, u32 expr_len)
 	if (result == nullptr)
 		return result;
 
-	// This is a nested expression, so the found node must be an object
+	// Array expression, evaluate the full array getter before continuing with nested objects
+	if (expr[sep_len] == '[')
+	{
+		assert(result->type == Dat_Node_Type::Array);
+
+		i32 array_index = -1;
+		sscanf(&expr[sep_len], "[%d]", &array_index);
+
+		if (array_index == -1)
+		{
+			msg_box("Unknown array index in expression '%s'", expr);
+			return nullptr;
+		}
+
+		// Find end of array index getter
+		while(sep_len < expr_len)
+		{
+			sep_len++;
+			if (expr[sep_len - 1] == ']')
+				break;
+		}
+
+		// Make sure the brackets balance..
+		if (expr[sep_len - 1] != ']')
+		{
+			msg_box("Didn't find matching array bracket in expression '%s'", expr);
+			return nullptr;
+		}
+
+		Dat_Array* array = (Dat_Array*)result;
+		if (array->size <= array_index)
+		{
+			msg_box("Array index %d out of bounds (size %d), in expression '%s'", array_index, array->size, expr);
+			return nullptr;
+		}
+
+		result = array->elements[array_index];
+	}
+
+	// This is a nested expression, so continue parsing
 	if (sep_len != expr_len)
 	{
-		assert(result->type == Dat_Node_Type::Object);
-		Dat_Object* object = (Dat_Object*)result;
+		// Nested objects
+		if (expr[sep_len] == '.')
+		{
+			assert(result->type == Dat_Node_Type::Object);
+			Dat_Object* object = (Dat_Object*)result;
 
-		result = eval_expr(object, expr + sep_len + 1, expr_len - sep_len - 1);
+			result = eval_expr(object, expr + sep_len + 1, expr_len - sep_len - 1);
+		}
 	}
 
 	return result;
@@ -803,6 +850,16 @@ bool dat_read(Dat_Object* root, const char* expr, i32* value)
 bool dat_read(Dat_Object* root, const char* expr, u32* value)
 {
 	return dat_read_value(root, expr, "%ud", value);
+}
+
+bool dat_read(Dat_Object* root, const char* expr, float* value)
+{
+	return dat_read_value(root, expr, "%f", value);
+}
+
+bool dat_read(Dat_Object* root, const char* expr, double* value)
+{
+	return dat_read_value(root, expr, "%lf", value);
 }
 
 bool dat_read(Dat_Object* root, const char* expr, const i8** value)

@@ -95,6 +95,8 @@ inline void channel_write_u16(Channel* channel, const u16 value) { channel_write
 inline void channel_write_i16(Channel* channel, const i16 value) { channel_write_t(channel, value); }
 inline void channel_write_u32(Channel* channel, const u32 value) { channel_write_t(channel, value); }
 inline void channel_write_i32(Channel* channel, const i32 value) { channel_write_t(channel, value); }
+inline void channel_write_f32(Channel* channel, const float value) { channel_write_t(channel, value); }
+inline void channel_write_f64(Channel* channel, const double value) { channel_write_t(channel, value); }
 inline void channel_write_vec2(Channel* channel, const Vec2& value) { channel_write_t(channel, value); }
 inline void channel_write_vec3(Channel* channel, const Vec3& value) { channel_write_t(channel, value); }
 inline void channel_write_vec4(Channel* channel, const Vec4& value) { channel_write_t(channel, value); }
@@ -109,6 +111,8 @@ inline void channel_read(Channel* channel, u16* value) { channel_read_t(channel,
 inline void channel_read(Channel* channel, i16* value) { channel_read_t(channel, value); }
 inline void channel_read(Channel* channel, u32* value) { channel_read_t(channel, value); }
 inline void channel_read(Channel* channel, i32* value) { channel_read_t(channel, value); }
+inline void channel_read(Channel* channel, float* value) { channel_read_t(channel, value); }
+inline void channel_read(Channel* channel, double* value) { channel_read_t(channel, value); }
 inline void channel_read(Channel* channel, Vec2* value) { channel_read_t(channel, value); }
 inline void channel_read(Channel* channel, Vec3* value) { channel_read_t(channel, value); }
 inline void channel_read(Channel* channel, Vec4* value) { channel_read_t(channel, value); }

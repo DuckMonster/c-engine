@@ -49,7 +49,7 @@ Vec3 unit_center(Unit* unit);
 void unit_move_towards(Unit* unit, const Vec3& target);
 void unit_move_direction(Unit* unit, const Vec3& direction);
 void unit_move_delta(Unit* unit, const Vec3& delta);
-void unit_hit(Unit* unit, const Unit_Handle& source, const Vec3& impulse);
+void unit_hit(Unit* unit, const Unit_Handle& source, float damage, const Vec3& impulse);
 bool unit_has_control(Unit* unit);
 
 void unit_equip_weapon(Unit* unit, const Weapon_Instance& data);

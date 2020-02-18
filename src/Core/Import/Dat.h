@@ -73,5 +73,7 @@ bool dat_read(Dat_Object* root, const char* expr, i16* value);
 bool dat_read(Dat_Object* root, const char* expr, u16* value);
 bool dat_read(Dat_Object* root, const char* expr, i32* value);
 bool dat_read(Dat_Object* root, const char* expr, u32* value);
+bool dat_read(Dat_Object* root, const char* expr, float* value);
+bool dat_read(Dat_Object* root, const char* expr, double* value);
 bool dat_read(Dat_Object* root, const char* expr, const char** value);
 bool dat_array_read(Dat_Array* array, int index, int* value);

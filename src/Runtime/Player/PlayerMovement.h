@@ -7,10 +7,10 @@ struct Online_User;
 
 const float player_force_sync_frequency = 10.f;
 const float player_net_correction_coefficient = 10.f;
-const float player_dash_hori_impulse = 12.f;
+const float player_dash_hori_impulse = 15.f;
 const float player_dash_vert_impulse = 5.f;
-const float player_dash_gravity = 24.f;
-const float player_dash_drag = 1.4f;
+const float player_dash_gravity = 30.f;
+const float player_dash_drag = 2.1f;
 
 struct Player_Movement
 {

@@ -90,7 +90,6 @@ void player_movement_update(Player* player)
 		movement.dash_velocity -= movement.dash_velocity * player_dash_drag * time_delta();
 		movement.dash_velocity -= Vec3(0.f, 0.f, player_dash_gravity) * time_delta();
 
-		debug_log("(%f, %f, %f)", movement.dash_velocity.x, movement.dash_velocity.y, movement.dash_velocity.z);
 		unit_move_delta(unit, movement.dash_velocity * time_delta());
 
 		if (movement.dash_velocity.z < 0.f && unit->position.z < 0.1f)
@@ -99,7 +98,8 @@ void player_movement_update(Player* player)
 			movement.is_dashing = false;
 		}
 	}
-	else
+
+	if (!movement.is_dashing)
 	{
 		unit_move_direction(unit, Vec3(movement.move_input, 0.f));
 	}

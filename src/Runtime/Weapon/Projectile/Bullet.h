@@ -13,13 +13,18 @@ struct Bullet_Params
 	Vec3 direction;
 	float size = 0.2f;
 	float speed = 55.f;
+	float damage = 1.f;
 };
 
 struct Bullet
 {
 	Unit_Handle owner;
+
 	Vec3 position;
 	Vec3 direction;
+
+	float damage = 1.f;
+
 	float size = 0.f;
 	float speed = 55.f;
 

@@ -53,26 +53,10 @@ void player_shooting_update_local(Player* player)
 	/* Shooting */
 	if (unit->weapon != nullptr)
 	{
-		switch(unit->weapon->type)
-		{
-			case WEAPON_Pistol:
-			{
-				Pistol* pistol = (Pistol*)unit->weapon->weapon_type_ptr;
-				if (input_mouse_button_pressed(Mouse_Btn::Left))
-					pistol_fire(pistol, shooting.aim_position);
-
-				break;
-			}
-
-			case WEAPON_AssaultRifle:
-			{
-				Assault_Rifle* rifle = (Assault_Rifle*)unit->weapon->weapon_type_ptr;
-				if (input_mouse_button_down(Mouse_Btn::Left))
-					assault_rifle_fire(rifle, shooting.aim_position);
-
-				break;
-			}
-		}
+		if (input_mouse_button_down(Mouse_Btn::Left))
+			weapon_hold_trigger(unit->weapon, shooting.aim_position);
+		if (input_mouse_button_released(Mouse_Btn::Left))
+			weapon_release_trigger(unit->weapon, shooting.aim_position);
 	}
 }
 #endif

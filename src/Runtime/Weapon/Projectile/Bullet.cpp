@@ -14,6 +14,7 @@ void bullet_init(Bullet* bullet, const Unit_Handle& owner, const Bullet_Params& 
 {
 	bullet->owner = owner;
 
+	bullet->damage = params.damage;
 	bullet->position = params.origin;
 	bullet->direction = params.direction;
 	bullet->size = params.size;
@@ -76,7 +77,7 @@ void bullet_update(Bullet* bullet)
 	{
 		Unit* unit = query_result.unit;
 		if (unit && owner && unit_has_control(owner))
-			unit_hit(unit, bullet->owner, bullet->direction * 20.f);
+			unit_hit(unit, bullet->owner, bullet->damage, bullet->direction * 20.f);
 		else if (!unit)
 		{
 #if CLIENT
