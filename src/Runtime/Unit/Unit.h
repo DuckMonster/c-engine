@@ -1,5 +1,6 @@
 #pragma once
 #include "Core/Time/IntervalTimer.h"
+#include "Engine/Collision/HitTest.h"
 #include "Runtime/Game/HandleTypes.h"
 
 struct Billboard;
@@ -14,6 +15,8 @@ const float unit_hit_duration = 0.15f;
 const float unit_sync_frequency = 10.f;
 const float unit_move_inheritance = 0.85f;
 const Vec3 unit_center_offset = Vec3(0.f, 0.f, 0.5f);
+
+const float unit_step_down = 0.2f;
 
 struct Unit
 {
@@ -32,6 +35,10 @@ struct Unit
 	Player_Handle player_owner;
 	Mob_Handle mob_owner;
 
+	// Calculated after each move
+	Vec3 velocity;
+	Hit_Result ground_hit;
+
 #if CLIENT
 	Billboard* billboard = nullptr;
 	Health_Bar* health_bar = nullptr;
@@ -48,8 +55,10 @@ Vec3 unit_center(Unit* unit);
 
 void unit_move_towards(Unit* unit, const Vec3& target);
 void unit_move_direction(Unit* unit, const Vec3& direction);
-void unit_move_delta(Unit* unit, const Vec3& delta);
+void unit_move_delta(Unit* unit, const Vec3& delta, bool teleport = false);
 void unit_hit(Unit* unit, const Unit_Handle& source, float damage, const Vec3& impulse);
 bool unit_has_control(Unit* unit);
+
+bool unit_is_grounded(Unit* unit);
 
 void unit_equip_weapon(Unit* unit, const Weapon_Instance& data);

@@ -56,10 +56,12 @@ void player_movement_update_local(Player* player)
 	}
 
 	// Dashing!
-	if (input_key_pressed(Key::LeftShift) && !is_nearly_zero(direction))
+	if (input_key_pressed(Key::Spacebar) && !is_nearly_zero(direction))
 	{
 		movement.is_dashing = true;
-		movement.dash_velocity = Vec3(direction * player_dash_hori_impulse, player_dash_vert_impulse);
+
+		// Set velocity to be the impulse
+		unit->velocity = Vec3(direction * player_dash_hori_impulse, player_dash_vert_impulse);
 	}
 
 	movement.move_input = direction;
@@ -85,24 +87,30 @@ void player_movement_update(Player* player)
 #endif
 
 	// Dashing
+	Vec3 velocity = unit->velocity;
+
+	// Gravity
+	if (!unit_is_grounded(unit))
+		velocity -= Vec3_Z * player_gravity * time_delta();
+
 	if (movement.is_dashing)
 	{
-		movement.dash_velocity -= movement.dash_velocity * player_dash_drag * time_delta();
-		movement.dash_velocity -= Vec3(0.f, 0.f, player_dash_gravity) * time_delta();
-
-		unit_move_delta(unit, movement.dash_velocity * time_delta());
-
-		if (movement.dash_velocity.z < 0.f && unit->position.z < 0.1f)
-		{
-			unit->position.z = 0.f;
-			movement.is_dashing = false;
-		}
+		velocity -= Vec3(velocity.x, velocity.y, 0.f) * player_dash_drag * time_delta();
 	}
 
 	if (!movement.is_dashing)
 	{
-		unit_move_direction(unit, Vec3(movement.move_input, 0.f));
+		velocity += Vec3(movement.move_input, 0.f) * 80.f * time_delta();
+		if (!unit_is_grounded(unit))
+			velocity -= constrain_to_plane(velocity, Vec3_Z) * 12.f * time_delta();
+		else
+			velocity -= velocity * 12.f * time_delta();
 	}
+
+	unit_move_delta(unit, velocity * time_delta());
+
+	if (unit->ground_hit.has_hit)
+		movement.is_dashing = false;
 }
 
 void player_movement_recv_remote_input(Player* player, const Vec2& remote_input, const Vec3& remote_position)

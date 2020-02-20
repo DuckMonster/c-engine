@@ -80,7 +80,7 @@ Scene_Query_Result scene_query_line(const Line_Trace& line, const Scene_Query_Pa
 	{
 		Scene_Query_Result env_result;
 
-		Plane floor_plane = plane_make(Vec3_Zero, Vec3_Z);
+		Plane floor_plane = plane_make(Vec3(0.f, 0.f, -0.05f), Vec3_Z);
 		env_result.hit = test_line_trace_plane(line, floor_plane);
 
 		result = select_result(result, env_result);
@@ -93,7 +93,12 @@ Scene_Query_Result scene_query_line(const Line_Trace& line, const Scene_Query_Pa
 
 	// Do a bit of pullback at the to, to avoid movement and such being inside of geometry
 	if (result.hit.has_hit)
-		result.hit.time = max(result.hit.time - 0.08f, 0.f);
+	{
+		float pullback_length = 0.05f;
+		float pullback_time = pullback_length / distance(line.from, line.to);
+		result.hit.time = max(result.hit.time - pullback_time, 0.f);
+		result.hit.position = lerp(line.from, line.to, result.hit.time);
+	}
 
 	return result;
 }

@@ -153,7 +153,7 @@ void unit_free(Unit* unit)
 void unit_update(Unit* unit)
 {
 	// Apply impact velocity
-	unit_move_delta(unit, unit->impact_velocity * time_delta());
+	unit_move_delta(unit, unit->impact_velocity * time_delta(), true);
 	unit->impact_velocity -= unit->impact_velocity * unit_impact_drag * time_delta();
 
 #if CLIENT
@@ -194,52 +194,91 @@ void unit_move_direction(Unit* unit, const Vec3& direction)
 	unit_move_delta(unit, direction * unit->move_speed * time_delta());
 }
 
-void unit_move_delta(Unit* unit, const Vec3& delta)
+#if CLIENT
+#include "Core/Input/Input.h"
+#define move_log(format, ...) if (input_key_down(Key::L)) debug_log(format, __VA_ARGS__)
+#elif SERVER
+#define move_log(format, ...)
+#endif
+
+void unit_move_delta(Unit* unit, const Vec3& delta, bool teleport)
 {
 	if (is_nearly_zero(delta))
 		return;
 
+	bool prev_grounded = unit_is_grounded(unit);
+
 	Vec3 remaining_delta = delta;
+	float remaining_time = time_delta();
+
+	Vec3 last_move = Vec3_Zero;
+	float last_move_time = 0.f;
+
 	Vec3 position = unit->position;
 	u32 iterations = 0;
+
+	unit->ground_hit = Hit_Result();
 
 	Scene_Query_Params params;
 	params.mask = ~QUERY_Unit;
 
-	while(!is_nearly_zero(delta) && (++iterations) < 10)
+	move_log("-- MOVE START --");
+
+	while(!is_nearly_zero(remaining_delta) && (++iterations) < 10)
 	{
 		Line_Trace move_trace;
 		move_trace.from = position;
 		move_trace.to = move_trace.from + remaining_delta;
 
+		move_log("(%f, %f, %f) => (%f, %f, %f) [%f, %f, %f]",
+			move_trace.from.x, move_trace.from.y, move_trace.from.z,
+			move_trace.to.x, move_trace.to.y, move_trace.to.z,
+			remaining_delta.x, remaining_delta.y, remaining_delta.z);
+
 		Scene_Query_Result query_result = scene_query_line(move_trace, params);
 		if (query_result.hit.has_hit)
 		{
 			Vec3 normal = query_result.hit.normal;
-			normal = normalize(constrain_to_plane(normal, Vec3_Z));
+			if (dot(normal, Vec3_Z) < 0.f)
+				normal = normalize(constrain_to_plane(normal, Vec3_Z));
+
+			move_log("HIT (%f, %f, %f) [%f]", normal.x, normal.y, normal.z, query_result.hit.time);
 
 			// We're penetrating something; depenetrate
-			if (query_result.hit.started_penetrating || is_nearly_zero(query_result.hit.time))
+			if (query_result.hit.started_penetrating)
 			{
-				position += normal * (query_result.hit.penetration_depth + 0.01f);
+				move_log("PENETRATE %f", query_result.hit.penetration_depth);
+				position += normal * (query_result.hit.penetration_depth + 0.0001f);
 				continue;
 			}
 
 			// Apply the amount we managed to move before hitting something
-			Vec3 moved_delta = remaining_delta * query_result.hit.time;
-			position += moved_delta;
-			remaining_delta -= moved_delta;
+			last_move = remaining_delta * query_result.hit.time;
+			last_move_time = remaining_time * query_result.hit.time;
+
+			position += last_move;
+			remaining_delta -= last_move;
+			remaining_time -= last_move_time;
 
 			// Then redirect the rest
 			remaining_delta = constrain_to_plane(remaining_delta, normal);
+
+			// Set appropriate hits!
+			if (dot(normal, Vec3_Z) > 0.2f)
+				unit->ground_hit = query_result.hit;
 		}
 		else
 		{
 			// We completed a full move! No more iterations needed.
 			position += remaining_delta;
+			last_move = remaining_delta;
+			last_move_time = remaining_time;
+
 			break;
 		}
 	}
+
+	move_log("-- MOVE END --\n");
 
 	if (iterations >= 10)
 		return;
@@ -249,6 +288,24 @@ void unit_move_delta(Unit* unit, const Vec3& delta)
 		debug_log("Position contained NaN after move");
 		return;
 	}
+
+	// Perform a step-down
+	if (prev_grounded)
+	{
+		Line_Trace line;
+		line.from = position;
+		line.to = line.from - Vec3_Z * unit_step_down;
+
+		Scene_Query_Result result = scene_query_line(line, params);
+		if (result.hit.has_hit)
+		{
+			position = result.hit.position;
+			unit->ground_hit = result.hit;
+		}
+	}
+
+	if (!is_nearly_zero(last_move_time))
+		unit->velocity = last_move / last_move_time;
 
 	// Weapons inherit a bit of the delta
 	Vec3 final_delta = position - unit->position;
@@ -275,6 +332,8 @@ void unit_hit(Unit* unit, const Unit_Handle& source, float damage, const Vec3& i
 	channel_write_f32(unit->channel, damage);
 	channel_write_vec3(unit->channel, impulse);
 	channel_broadcast(unit->channel, true);
+
+	debug_log("(%f, %f, %f)", impulse.x, impulse.y, impulse.z);
 }
 
 bool unit_has_control(Unit* unit)
@@ -298,6 +357,11 @@ bool unit_has_control(Unit* unit)
 	return player->is_local;
 
 #endif
+}
+
+bool unit_is_grounded(Unit* unit)
+{
+	return unit->ground_hit.has_hit;
 }
 
 void unit_equip_weapon(Unit* unit, const Weapon_Instance& instance)

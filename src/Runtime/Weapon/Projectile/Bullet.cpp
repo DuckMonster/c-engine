@@ -77,7 +77,10 @@ void bullet_update(Bullet* bullet)
 	{
 		Unit* unit = query_result.unit;
 		if (unit && owner && unit_has_control(owner))
-			unit_hit(unit, bullet->owner, bullet->params.damage, bullet->velocity);
+		{
+			Vec3 impulse = normalize(constrain_to_plane(bullet->params.direction, Vec3_Z)) * 20.f;
+			unit_hit(unit, bullet->owner, bullet->params.damage, impulse);
+		}
 		else if (!unit)
 		{
 #if CLIENT
