@@ -62,6 +62,7 @@ void player_movement_update_local(Player* player)
 
 		// Set velocity to be the impulse
 		unit->velocity = Vec3(direction * player_dash_hori_impulse, player_dash_vert_impulse);
+		unit->ground_hit = Hit_Result();
 	}
 
 	movement.move_input = direction;

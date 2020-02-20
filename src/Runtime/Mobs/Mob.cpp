@@ -3,6 +3,8 @@
 #include "Runtime/Game/Scene.h"
 #include "Runtime/Game/SceneQuery.h"
 #include "Runtime/Game/Game.h"
+#include "Runtime/Weapon/Weapon.h"
+#include "Runtime/Weapon/WeaponType.h"
 
 enum Mob_Events
 {
@@ -61,6 +63,12 @@ void mob_init(Mob* mob, u32 id, const Unit_Handle& unit_to_control)
 	mob->idle_timer.variance = 2.f;
 	mob->shoot_timer.interval = 2.f;
 	mob->shoot_timer.variance = 1.f;
+
+	Weapon_Instance instance;
+	instance.type = WEAPON_Pistol;
+	instance.attributes.level = 0;
+
+	unit_equip_weapon(unit, instance);
 }
 
 void mob_free(Mob* mob)
@@ -131,11 +139,14 @@ void mob_update(Mob* mob)
 #if SERVER 
 		// Check vision
 		bool target_is_visible = scene_query_vision(unit->position, target_unit->position);
-		if (is_within_range && target_is_visible)
+		if (is_within_range && target_is_visible && unit->weapon != nullptr)
 		{
 			// Shoot!
-			//if (timer_update(&mob->shoot_timer))
-				//unit_shoot(unit, target_unit->position);
+			if (timer_update(&mob->shoot_timer))
+			{
+				weapon_hold_trigger(unit->weapon, unit_center(target_unit));
+				weapon_release_trigger(unit->weapon, unit_center(target_unit));
+			}
 		}
 		else
 		{

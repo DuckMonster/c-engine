@@ -61,6 +61,10 @@ void unit_event_proc(Channel* chnl, Online_User* src)
 			if (source_id >= 0)
 				source_unit = scene.units[source_id];
 
+			// Damage
+			float damage;
+			channel_read(chnl, &damage);
+
 			// Add impulse
 			Vec3 impulse;
 			channel_read(chnl, &impulse);
@@ -71,7 +75,7 @@ void unit_event_proc(Channel* chnl, Online_User* src)
 #endif
 
 			// Subtract health and die
-			unit->health -= 1.f;
+			unit->health -= damage;
 			if (unit->health <= 0.f)
 			{
 #if CLIENT
@@ -304,7 +308,7 @@ void unit_move_delta(Unit* unit, const Vec3& delta, bool teleport)
 		}
 	}
 
-	if (!is_nearly_zero(last_move_time))
+	if (!is_nearly_zero(last_move_time) && !teleport)
 		unit->velocity = last_move / last_move_time;
 
 	// Weapons inherit a bit of the delta

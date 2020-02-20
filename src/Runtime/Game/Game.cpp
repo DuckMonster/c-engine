@@ -15,6 +15,8 @@
 #include "Runtime/Mobs/Mob.h"
 #include "Runtime/Weapon/WeaponType.h"
 
+const u32 min_mobs = 1;
+
 Game game;
 
 enum Game_Event
@@ -202,7 +204,7 @@ void game_update()
 #elif SERVER
 
 	if (thing_num(&game.players) > 0 &&
-		thing_num(&game.mobs) < 0 &&
+		thing_num(&game.mobs) < min_mobs &&
 		timer_update(&game.ai_spawn_timer))
 	{
 		Vec2 position = random_point_on_circle();
