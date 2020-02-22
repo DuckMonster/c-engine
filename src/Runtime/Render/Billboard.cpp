@@ -106,6 +106,9 @@ Mat4 get_billboard_transform(const Billboard* billboard, const Render_State& sta
 
 void billboard_render(Billboard* billboard, const Render_State& state)
 {
+	if (!billboard->cast_shadow && state.current_pass == PASS_Shadow)
+		return;
+
 	mesh_bind(billboard->mesh);
 	material_bind(billboard->material);
 
@@ -113,6 +116,7 @@ void billboard_render(Billboard* billboard, const Render_State& state)
 	material_set(billboard->material, "u_Projection", state.projection);
 	material_set(billboard->material, "u_ViewProjection", state.view_projection);
 	material_set(billboard->material, "u_LightViewProjection", state.light_view_projection);
+	material_set(billboard->material, "u_Alpha", billboard->alpha);
 
 	Mat4 tile_matrix;
 

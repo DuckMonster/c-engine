@@ -2,6 +2,8 @@
 #include "Runtime/Render/Render.h"
 #include "Runtime/Weapon/WeaponType.h"
 
+struct Billboard;
+
 struct Item_Drop
 {
 	Vec3 position;
@@ -9,6 +11,8 @@ struct Item_Drop
 
 #if CLIENT
 	bool hovered = false;
+	Billboard* billboard = nullptr;
+	Vec3 billboard_offset;
 #endif
 };
 

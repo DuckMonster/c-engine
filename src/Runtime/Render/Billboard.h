@@ -18,9 +18,12 @@ struct Billboard
 	u32 tile_x = 0;
 	u32 tile_y = 0;
 
+	bool cast_shadow = true;
+
 	Vec2 scale = Vec2(1.f);
 	Vec3 position;
 	Vec2 anchor = Vec2(0.5f, 0.5f);
+	float alpha = 1.f;
 
 	Vec4 fill_color = Vec4(0.f);
 
