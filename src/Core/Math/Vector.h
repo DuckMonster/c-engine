@@ -343,9 +343,42 @@ inline Vec3 reflect(const Vec3& vec, const Vec3& reflection_normal)
 	return vec - projected_vec * 2.f;
 }
 
-inline Vec2 lerp(Vec2 a, Vec2 b, float t) { return a + (b - a) * t; }
-inline Vec3 lerp(Vec3 a, Vec3 b, float t) { return a + (b - a) * t; }
-inline Vec4 lerp(Vec4 a, Vec4 b, float t) { return a + (b - a) * t; }
+inline Vec2 lerp(const Vec2& a, const Vec2& b, float t) { return a + (b - a) * t; }
+inline Vec3 lerp(const Vec3& a, const Vec3& b, float t) { return a + (b - a) * t; }
+inline Vec4 lerp(const Vec4& a, const Vec4& b, float t) { return a + (b - a) * t; }
+inline Vec2 interp_constant(const Vec2& from, const Vec2& to, float speed, float delta_time)
+{
+	if (is_nearly_equal(from, to))
+		return to;
+
+	Vec2 dif = to - from;
+	if (length_sqrd(dif) > square(speed * delta_time))
+		dif = normalize(dif) * speed * delta_time;
+
+	return from + dif;
+}
+inline Vec3 interp_constant(const Vec3& from, const Vec3& to, float speed, float delta_time)
+{
+	if (is_nearly_equal(from, to))
+		return to;
+
+	Vec3 dif = to - from;
+	if (length_sqrd(dif) > square(speed * delta_time))
+		dif = normalize(dif) * speed * delta_time;
+
+	return from + dif;
+}
+inline Vec4 interp_constant(const Vec4& from, const Vec4& to, float speed, float delta_time)
+{
+	if (is_nearly_equal(from, to))
+		return to;
+
+	Vec4 dif = to - from;
+	if (length_sqrd(dif) > square(speed * delta_time))
+		dif = normalize(dif) * speed * delta_time;
+
+	return from + dif;
+}
 
 inline bool is_nan(const Vec2& v) { return is_nan(v.x) || is_nan(v.y); }
 inline bool is_nan(const Vec3& v) { return is_nan(v.x) || is_nan(v.y) || is_nan(v.z); }

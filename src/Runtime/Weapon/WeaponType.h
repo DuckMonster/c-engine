@@ -22,8 +22,10 @@ struct Weapon_Type_Data
 	float damage;
 
 	u32 projectile_num = 1;
+	float projectile_size = 0.3f;
 	float projectile_spread = 0.f;
 	float projectile_speed;
+	float projectile_speed_variance = 0.f;
 	float projectile_drag = 0.f;
 	float projectile_gravity = 0.f;
 

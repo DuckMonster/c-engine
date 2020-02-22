@@ -19,12 +19,7 @@ enum Weapon_Event
 
 Vec3 add_cone_rotation(const Vec3& vec, float cone_half_angle)
 {
-	Quat cone_quat =
-		quat_from_x(vec) *
-		angle_axis(random_float(TAU), Vec3_X) *
-		angle_axis(radians(random_float(-cone_half_angle, cone_half_angle)), Vec3_Z);
-
-	return quat_x(cone_quat);
+	return angle_axis(radians(random_float(-cone_half_angle, cone_half_angle)), Vec3_Z) * vec;
 }
 
 void weapon_event_proc(Channel* chnl, Online_User* src)
@@ -142,10 +137,14 @@ void weapon_fire(Weapon* weapon, const Vec3& target)
 		Vec3 direction = normalize(target - weapon->position);
 		direction = add_cone_rotation(direction, weapon->recoil_angle + weapon->type_data->projectile_spread);
 
+		float speed = weapon->type_data->projectile_speed + weapon->type_data->projectile_speed_variance * random_float(-1.f, 1.f);
+
 		Bullet_Params params;
 		params.direction = direction;
 		params.origin = weapon->position + params.direction * 0.4f;
 		params.damage = weapon->type_data->damage;
+		params.size = weapon->type_data->projectile_size;
+		params.speed = speed;
 		params.drag = weapon->type_data->projectile_drag;
 		params.gravity = weapon->type_data->projectile_gravity;
 

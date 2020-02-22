@@ -336,8 +336,6 @@ void unit_hit(Unit* unit, const Unit_Handle& source, float damage, const Vec3& i
 	channel_write_f32(unit->channel, damage);
 	channel_write_vec3(unit->channel, impulse);
 	channel_broadcast(unit->channel, true);
-
-	debug_log("(%f, %f, %f)", impulse.x, impulse.y, impulse.z);
 }
 
 bool unit_has_control(Unit* unit)

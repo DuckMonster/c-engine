@@ -4,8 +4,10 @@ damage: 0.4
 fire_mode: 0
 
 projectile_num: 6
+projectile_size: 0.1
 projectile_spread: 12
-projectile_speed: 30
+projectile_speed: 50
+projectile_speed_variance: 5
 projectile_gravity: 30
 projectile_drag: 2.2
 

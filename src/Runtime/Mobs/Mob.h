@@ -4,6 +4,8 @@
 #include "Runtime/Online/Channel.h"
 
 const float mob_shoot_range = 8.f;
+const float mob_aim_duration = 0.4f;
+const float mob_predict_lerp_speed = 10.f;
 
 struct Mob
 {
@@ -17,6 +19,12 @@ struct Mob
 
 	Unit_Handle agroo_target;
 	Interval_Timer shoot_timer;
+
+	Vec3 aim_target;
+	float aim_timer = 0.f;
+	bool is_aiming = false;
+
+	Vec3 target_predict_velocity;
 };
 
 void mob_init(Mob* mob, u32 id, const Unit_Handle& unit_to_control);

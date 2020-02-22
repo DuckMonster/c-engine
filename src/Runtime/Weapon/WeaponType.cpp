@@ -23,8 +23,10 @@ void weapon_res_create(Resource* resource)
 	dat_read(doc.root, "damage", &data->damage);
 
 	dat_read(doc.root, "projectile_num", &data->projectile_num);
+	dat_read(doc.root, "projectile_size", &data->projectile_size);
 	dat_read(doc.root, "projectile_spread", &data->projectile_spread);
 	dat_read(doc.root, "projectile_speed", &data->projectile_speed);
+	dat_read(doc.root, "projectile_speed_variance", &data->projectile_speed_variance);
 	dat_read(doc.root, "projectile_drag", &data->projectile_drag);
 	dat_read(doc.root, "projectile_gravity", &data->projectile_gravity);
 

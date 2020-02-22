@@ -68,7 +68,7 @@ void line_drawer_update(Line_Drawer* drawer)
 	}
 	else
 	{
-		if (drawer->timer > 0.5f)
+		if (drawer->timer > 0.05f)
 		{
 			line_drawer_add_segment(drawer);
 			drawer->timer = 0.f;
