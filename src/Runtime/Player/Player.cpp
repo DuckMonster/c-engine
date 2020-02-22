@@ -6,6 +6,7 @@
 #include "Runtime/Game/Game.h"
 #include "Runtime/Online/Online.h"
 #include "Runtime/Weapon/WeaponType.h"
+#include "Runtime/Fx/Fx.h"
 
 void player_event_proc(Channel* chnl, Online_User* src)
 {
@@ -84,13 +85,6 @@ void player_free(Player* player)
 	channel_close(player->channel);
 }
 
-#if CLIENT
-void player_update_local_input(Player* player)
-{
-	Unit* unit = scene_get_unit(player->controlled_unit);
-}
-#endif
-
 void player_update(Player* player)
 {
 	Unit* unit = scene_get_unit(player->controlled_unit);
@@ -100,8 +94,18 @@ void player_update(Player* player)
 	if (unit_has_control(unit))
 	{
 #if CLIENT
-		if (!game.is_editor)
-			player_update_local_input(player);
+		if (input_key_pressed(Key::F))
+		{
+			Fx_Spike_Params params;
+			params.from = unit->position + Vec3(1.f, 0.f, 0.5f);
+			params.to = player->shooting.aim_position;
+			params.size = 0.2f;
+			params.center_alpha = 0.3f;
+			params.translate_delta = 5.f;
+			params.duration = 0.4f;
+
+			fx_make_spike(params);
+		}
 #endif
 	}
 

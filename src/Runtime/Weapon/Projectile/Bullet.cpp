@@ -10,6 +10,57 @@
 #include "Runtime/Unit/Unit.h"
 #include "Runtime/Fx/Fx.h"
 
+#if CLIENT
+static Vec3 rotate_cone(const Vec3& vec, float half_angle)
+{
+	Quat result =
+		quat_from_x(vec) *
+		angle_axis(radians(random_float(-half_angle, half_angle)), Vec3_Z) *
+		angle_axis(random_float(TAU), Vec3_X);
+
+	return quat_x(result);
+}
+
+static void make_hit_fx(const Vec3& velocity, const Hit_Result& hit)
+{
+	Vec3 direction = normalize(velocity);
+	//direction = reflect(direction, hit.normal);
+	direction = -direction;
+
+	// Main spike
+	{
+		Fx_Spike_Params spike;
+		spike.from = hit.position - direction * 0.4f;
+		spike.to = hit.position + direction * 0.6f;
+		spike.size = 0.4f;
+		spike.duration = 0.35f;
+		spike.center_alpha = 0.3f;
+		spike.translate_delta = 0.1f;
+		spike.to_delta = 1.7f;
+		spike.move_exponent = 6.f;
+		spike.size_exponent = 6.f;
+
+		fx_make_spike(spike);
+	}
+
+	// Spread spikes
+	for(u32 i=0; i<8; ++i)
+	{
+		Vec3 spread_direction = rotate_cone(direction, 40.f);
+
+		Fx_Spike_Params spike;
+		spike.from = hit.position + spread_direction * 0.1f;
+		spike.to = hit.position + spread_direction * 0.5f;
+		spike.size = 0.15f;
+		spike.duration = 0.1f;
+		spike.center_alpha = 0.3f;
+		spike.to_delta = 0.5f;
+
+		//fx_make_spike(spike);
+	}
+}
+#endif
+
 void bullet_init(Bullet* bullet, const Unit_Handle& owner, const Bullet_Params& params)
 {
 	bullet->owner = owner;
@@ -87,33 +138,14 @@ void bullet_update(Bullet* bullet)
 			Vec3 normal = query_result.hit.normal;
 			Vec3 pos = query_result.hit.position + normal * 0.1f;
 			Vec3 velocity = reflect(bullet->velocity, normal) * 0.2f;
-
-			if (true)
-			{
-				// If we hit a prop, spawn some neat bullets!
-				Fx_Particle_Spawn_Params params;
-				params.num_particles = 10;
-				params.position = query_result.hit.position + query_result.hit.normal * 0.2f;
-				params.position_radius = 0.1f;
-				params.velocity = velocity;
-				params.velocity_cone_angle = 40.f;
-				params.velocity_scale_variance = 0.9f;
-
-				params.drag_min = 3.5f;
-				params.drag_max = 4.5f;
-				params.gravity_min = 4.f;
-				params.gravity_max = 10.f;
-
-				params.color_min = Color_Dark_Gray;
-				params.color_max = Color_White;
-				fx_make_particle(params);
-			}
 #endif
 		}
 
 #if CLIENT
 		bullet->line_drawer->position = query_result.hit.position;
+		make_hit_fx(bullet->velocity, query_result.hit);
 #endif
+
 
 		scene_destroy_bullet(bullet);
 		return;

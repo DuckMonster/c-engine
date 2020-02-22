@@ -13,3 +13,5 @@ projectile_drag: 2.2
 
 recoil_gain: 0
 recoil_decay: 0
+
+muzzle_fx_scale: 1.5

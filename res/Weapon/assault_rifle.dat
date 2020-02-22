@@ -8,3 +8,5 @@ projectile_speed: 80
 
 recoil_gain: 2
 recoil_decay: 4.9
+
+muzzle_fx_scale: 0.4

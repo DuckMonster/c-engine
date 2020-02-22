@@ -35,6 +35,8 @@ void weapon_res_create(Resource* resource)
 
 	dat_read(doc.root, "recoil_gain", &data->recoil_gain);
 	dat_read(doc.root, "recoil_decay", &data->recoil_decay);
+
+	dat_read(doc.root, "muzzle_fx_scale", &data->muzzle_fx_scale);
 }
 
 const Weapon_Type_Data* weapon_type_data_load(const char* path)

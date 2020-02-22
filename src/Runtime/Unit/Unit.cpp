@@ -10,6 +10,7 @@
 #include "Runtime/Player/Player.h"
 #include "Runtime/Mobs/Mob.h"
 #include "Runtime/Weapon/WeaponType.h"
+#include "Runtime/Fx/Fx.h"
 
 enum Unit_Event
 {
@@ -72,6 +73,23 @@ void unit_event_proc(Channel* chnl, Online_User* src)
 			unit->impact_velocity = impulse;
 #if CLIENT
 			unit->hit_timer = unit_hit_duration;
+#endif
+
+#if CLIENT
+			Vec3 origin = unit_center(unit);
+			Vec3 direction = normalize(impulse);
+
+			// Make some neat FX
+			Fx_Spike_Params spike;
+			spike.from = origin - direction * 0.3f;
+			spike.to = origin + direction * 0.5f;
+			spike.center_alpha = 0.3f;
+			spike.translate_delta = 1.f;
+			spike.to_delta = 5.f;
+			spike.duration = 0.25f;
+			spike.size = 0.5f;
+
+			fx_make_spike(spike);
 #endif
 
 			// Subtract health and die

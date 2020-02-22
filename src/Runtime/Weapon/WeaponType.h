@@ -34,6 +34,8 @@ struct Weapon_Type_Data
 
 	float recoil_gain;
 	float recoil_decay;
+
+	float muzzle_fx_scale = 1.f;
 };
 
 struct Weapon_Attributes
