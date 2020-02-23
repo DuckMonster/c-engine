@@ -162,8 +162,8 @@ void game_init()
 #endif
 
 #if SERVER
-	game.ai_spawn_timer.interval = 10.f;
-	game.ai_spawn_timer.variance = 5.f;
+	game.ai_spawn_timer.interval = 3.f;
+	game.ai_spawn_timer.variance = 2.f;
 #endif
 
 	Prefab pref;

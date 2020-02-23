@@ -153,6 +153,7 @@ void weapon_init(Weapon* weapon, Unit* owner, const Weapon_Instance& instance)
 
 	weapon->billboard = scene_make_billboard(sprite_sheet_load("Sprite/weapon_sheet.dat"));
 	weapon->billboard->position = owner->position;
+	weapon->billboard->anchor = Vec2(0.f, 0.5f);
 	weapon->billboard->rotation_type = ROTATION_World_Direction;
 	weapon->billboard->tile_x = type_data->tile_x;
 	weapon->billboard->tile_y = type_data->tile_y;

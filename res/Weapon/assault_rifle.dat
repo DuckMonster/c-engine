@@ -1,9 +1,10 @@
 tile: [1, 0]
-damage: 0.4
+damage: 0.6
 
 fire_mode: 1
 fire_rate: 10
 
+projectile_size: 0.1
 projectile_speed: 80
 
 recoil_gain: 2

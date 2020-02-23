@@ -74,5 +74,5 @@ void player_shooting_update(Player* player)
 #endif
 	}
 
-	unit->aim_direction = normalize_safe(player->shooting.aim_position - unit->position);
+	unit->aim_direction = normalize_safe(player->shooting.aim_position - unit_center(unit));
 }

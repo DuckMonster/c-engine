@@ -101,7 +101,7 @@ Mat4 get_billboard_transform(const Billboard* billboard, const Render_State& sta
 	// 4. Pixel scaling
 	// 5. Camera inverse rotation
 	// 6. World location (billboard->location)
-	return position * camera_inverse_rotation * pixel_scale * rotation * anchor * scale;
+	return position * camera_inverse_rotation * rotation * pixel_scale * anchor * scale;
 }
 
 void billboard_render(Billboard* billboard, const Render_State& state)

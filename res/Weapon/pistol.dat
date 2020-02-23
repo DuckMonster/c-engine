@@ -1,10 +1,10 @@
 tile: [0, 0]
-damage: 1
+damage: 1.4
 
 fire_mode: 0
 fire_rate: 0
 
 projectile_speed: 80
 
-recoil_gain: 10
-recoil_decay: 2.5
+recoil_gain: 5
+recoil_decay: 4.9

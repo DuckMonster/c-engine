@@ -7,7 +7,7 @@ struct Channel;
 
 const float weapon_interp_speed = 14.2f;
 const float weapon_rotate_speed = 15.f;
-const float weapon_hold_distance = 0.8f;
+const float weapon_hold_distance = 0.2f;
 
 const float weapon_offset_drag = 10.5f;
 const float weapon_offset_acceleration = 210.f;
