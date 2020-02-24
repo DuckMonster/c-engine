@@ -592,12 +592,18 @@ Dat_Node* dat_parse_value(Dat_Document* doc)
 			for(u32 i=0; i<array->size; ++i)
 			{
 				array->elements[i] = dat_parse_value(doc);
+
+				// Uh oh, no value was parsed... must be a trailing ','
+				// Decrease the size so we dont lie
+				if (array->elements[i] == nullptr)
+					array->size--;
+
 				if (i != array->size - 1)
 					token_expect(TOKEN_ArraySeparator);
 			}
 		}
 
-		token_find(TOKEN_ArrayClose);
+		token_expect(TOKEN_ArrayClose);
 		return (Dat_Node*)array;
 	}
 	else
