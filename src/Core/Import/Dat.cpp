@@ -674,7 +674,7 @@ void dat_free(Dat_Document* doc)
 	doc->root = nullptr;
 }
 
-Dat_Node* eval_expr(Dat_Object* root, const char* expr, u32 expr_len)
+const Dat_Node* eval_expr(const Dat_Object* root, const char* expr, u32 expr_len)
 {
 	if (root == nullptr)
 		return nullptr;
@@ -698,8 +698,8 @@ Dat_Node* eval_expr(Dat_Object* root, const char* expr, u32 expr_len)
 	}
 
 	// Get the key of the root-object with given name
-	Dat_Node* result = nullptr;
-	for(Dat_Key* key = root->first_key; key != nullptr; key = key->next)
+	const Dat_Node* result = nullptr;
+	for(const Dat_Key* key = root->first_key; key != nullptr; key = key->next)
 	{
 		if (key->name_len != sep_len)
 			continue;
@@ -744,7 +744,7 @@ Dat_Node* eval_expr(Dat_Object* root, const char* expr, u32 expr_len)
 			return nullptr;
 		}
 
-		Dat_Array* array = (Dat_Array*)result;
+		const Dat_Array* array = (Dat_Array*)result;
 		if (array->size <= array_index)
 		{
 			msg_box("Array index %d out of bounds (size %d), in expression '%s'", array_index, array->size, expr);
@@ -761,7 +761,7 @@ Dat_Node* eval_expr(Dat_Object* root, const char* expr, u32 expr_len)
 		if (expr[sep_len] == '.')
 		{
 			assert(result->type == Dat_Node_Type::Object);
-			Dat_Object* object = (Dat_Object*)result;
+			const Dat_Object* object = (Dat_Object*)result;
 
 			result = eval_expr(object, expr + sep_len + 1, expr_len - sep_len - 1);
 		}
@@ -770,9 +770,14 @@ Dat_Node* eval_expr(Dat_Object* root, const char* expr, u32 expr_len)
 	return result;
 }
 
-Dat_Object* dat_get_object(Dat_Object* root, const char* expr)
+const Dat_Node* dat_get_node(const Dat_Object* root, const char* expr)
 {
-	Dat_Node* node = eval_expr(root, expr, strlen(expr));
+	return eval_expr(root, expr, strlen(expr));
+}
+
+const Dat_Object* dat_get_object(const Dat_Object* root, const char* expr)
+{
+	const Dat_Node* node = eval_expr(root, expr, strlen(expr));
 	if (node == nullptr)
 	{
 		return nullptr;
@@ -784,12 +789,12 @@ Dat_Object* dat_get_object(Dat_Object* root, const char* expr)
 		return nullptr;
 	}
 
-	return (Dat_Object*)node;
+	return (const Dat_Object*)node;
 }
 
-Dat_Array* dat_get_array(Dat_Object* root, const char* expr)
+const Dat_Array* dat_get_array(const Dat_Object* root, const char* expr)
 {
-	Dat_Node* node = eval_expr(root, expr, strlen(expr));
+	const Dat_Node* node = eval_expr(root, expr, strlen(expr));
 	if (node == nullptr)
 		return nullptr;
 
@@ -799,32 +804,43 @@ Dat_Array* dat_get_array(Dat_Object* root, const char* expr)
 		return nullptr;
 	}
 
-	return (Dat_Array*)node;
+	return (const Dat_Array*)node;
 }
 
 /* READING STUFF */
-bool dat_read_value(Dat_Object* root, const char* expr, const char* scan_str, void* value)
+void value_scan(const Dat_Value_Raw* node, const char* scan_str, void* value)
 {
-	Dat_Node* node = eval_expr(root, expr, strlen(expr));
-	if (node == nullptr)
-		return false;
+	sscanf(node->str, scan_str, value);
+}
 
-	assert(node->type == Dat_Node_Type::ValueRaw);
-
-	Dat_Value_Raw* node_value = (Dat_Value_Raw*)node;
-	sscanf(node_value->str, scan_str, value);
+bool dat_value_get(const Dat_Value_Raw* node, float* value)
+{
+	value_scan(node, "%f", value);
 	return true;
 }
 
-bool dat_read(Dat_Object* root, const char* expr, bool* value)
+bool dat_read_value(const Dat_Object* root, const char* expr, const char* scan_str, void* value)
 {
-	Dat_Node* node = eval_expr(root, expr, strlen(expr));
+	const Dat_Node* node = eval_expr(root, expr, strlen(expr));
 	if (node == nullptr)
 		return false;
 
 	assert(node->type == Dat_Node_Type::ValueRaw);
 
-	Dat_Value_Raw* node_value = (Dat_Value_Raw*)node;
+	const Dat_Value_Raw* node_value = (Dat_Value_Raw*)node;
+	value_scan(node_value, scan_str, value);
+	return true;
+}
+
+bool dat_read(const Dat_Object* root, const char* expr, bool* value)
+{
+	const Dat_Node* node = eval_expr(root, expr, strlen(expr));
+	if (node == nullptr)
+		return false;
+
+	assert(node->type == Dat_Node_Type::ValueRaw);
+
+	const Dat_Value_Raw* node_value = (const Dat_Value_Raw*)node;
 	assert(node_value->str_len == 4 || node_value->str_len == 5);
 
 	*value = (strncmp(node_value->str, "true", 4) == 0);
@@ -832,39 +848,39 @@ bool dat_read(Dat_Object* root, const char* expr, bool* value)
 	return true;
 }
 
-bool dat_read(Dat_Object* root, const char* expr, i16* value)
+bool dat_read(const Dat_Object* root, const char* expr, i16* value)
 {
 	return dat_read_value(root, expr, "%hd", value);
 }
 
-bool dat_read(Dat_Object* root, const char* expr, u16* value)
+bool dat_read(const Dat_Object* root, const char* expr, u16* value)
 {
 	return dat_read_value(root, expr, "%uhd", value);
 }
 
-bool dat_read(Dat_Object* root, const char* expr, i32* value)
+bool dat_read(const Dat_Object* root, const char* expr, i32* value)
 {
 	return dat_read_value(root, expr, "%d", value);
 }
 
-bool dat_read(Dat_Object* root, const char* expr, u32* value)
+bool dat_read(const Dat_Object* root, const char* expr, u32* value)
 {
 	return dat_read_value(root, expr, "%ud", value);
 }
 
-bool dat_read(Dat_Object* root, const char* expr, float* value)
+bool dat_read(const Dat_Object* root, const char* expr, float* value)
 {
 	return dat_read_value(root, expr, "%f", value);
 }
 
-bool dat_read(Dat_Object* root, const char* expr, double* value)
+bool dat_read(const Dat_Object* root, const char* expr, double* value)
 {
 	return dat_read_value(root, expr, "%lf", value);
 }
 
-bool dat_read(Dat_Object* root, const char* expr, const i8** value)
+bool dat_read(const Dat_Object* root, const char* expr, const char** value)
 {
-	Dat_Node* node = eval_expr(root, expr, strlen(expr));
+	const Dat_Node* node = eval_expr(root, expr, strlen(expr));
 	if (node == nullptr)
 		return false;
 
@@ -888,9 +904,21 @@ bool dat_read(Dat_Object* root, const char* expr, const i8** value)
 	return true;
 }
 
-bool dat_array_read(Dat_Array* array, int index, int* value)
+bool dat_array_parse_value(const Dat_Array* array, int index, const char* scan_str, void* value)
 {
-	//Dat_Value_Raw* node_value = (Dat_Value_Raw*)node;
-	//sscanf(node_value->str, "%d", value);
+	if (array->size < index)
+		return false;
+
+	if (array->elements[index]->type != Dat_Node_Type::ValueRaw)
+		return false;
+
+	const Dat_Value_Raw* node_value = (const Dat_Value_Raw*)array->elements[index];
+	value_scan(node_value, scan_str, value);
+
 	return true;
+}
+
+bool dat_array_read(const Dat_Array* array, int index, float* value)
+{
+	return dat_array_parse_value(array, index, "%f", value);
 }

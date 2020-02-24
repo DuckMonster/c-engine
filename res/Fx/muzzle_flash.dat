@@ -1,0 +1,12 @@
+emitters:
+[
+	# Testing...
+	{
+		type: "Spike"
+		from: 0.0
+		to: 5.0
+		duration: 0.4
+		size: 0.2
+		center_alpha: 0.4
+	},
+]

@@ -8,21 +8,18 @@ void fx_spike_build_verts(Fx_Spike* spike, Vec3* verts)
 	Fx_Spike_Params& params = spike->params;
 
 	// Make the center
-	float move_time = spike->timer / params.duration;
-	move_time = 1.f - pow(move_time, params.move_exponent);
-	Vec3 direction = normalize(params.to - params.from);
+	float move_time = 1.f - spike->timer / params.duration;
+	Vec3 direction = normalize(params.base.direction);
 
-	Vec3 translate = direction * params.translate_delta * move_time;
-	Vec3 from = params.from + direction * params.from_delta * move_time + translate;
-	Vec3 to = params.to + direction * params.to_delta * move_time + translate;
+	Vec3 from = params.base.position + direction * params.from;
+	Vec3 to = params.base.position + direction * params.to;
 	verts[0] = from;
 	verts[3] = to;
 
-	float center_alpha = params.center_alpha + params.center_delta * move_time;
+	float center_alpha = params.center_alpha;
 	Vec3 center = lerp(from, to, center_alpha);
 
 	float size_time = spike->timer / params.duration;
-	size_time = pow(size_time, params.size_exponent);
 	float size = params.size * size_time;
 
 	Vec3 center_tangent = Vec3(direction.y, -direction.x, direction.z);

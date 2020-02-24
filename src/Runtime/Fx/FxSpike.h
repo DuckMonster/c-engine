@@ -1,5 +1,6 @@
 #pragma once
 #include "Engine/Graphics/Mesh.h"
+#include "FxParams.h"
 
 #define MAX_SPIKES 40
 
@@ -8,21 +9,12 @@ struct Render_State;
 
 struct Fx_Spike_Params
 {
-	Vec3 from;
-	Vec3 to;
+	Fx_Params base;
+	float from = 0.f;
+	float to = 0.f;
 	float size = 1.f;
 	float center_alpha = 0.5f;
 	float duration = 1.f;
-
-	// Movement
-	// Delta is length to move in the (from - to) direction through the duration
-	float from_delta = 0.f;
-	float to_delta = 0.f;
-	float translate_delta = 0.f;
-	float center_delta = 0.f;
-
-	float move_exponent = 4.f;
-	float size_exponent = 2.f;
 };
 
 struct Fx_Spike

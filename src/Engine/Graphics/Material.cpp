@@ -30,7 +30,7 @@ void material_res_create(Resource* resource)
 	defer { dat_free(&doc); };
 
 	// Read define-list
-	Dat_Object* define_obj = dat_get_object(doc.root, "defines");
+	const Dat_Object* define_obj = dat_get_object(doc.root, "defines");
 	char** defines = nullptr;
 	u32 num_defines = 0;
 
@@ -56,7 +56,7 @@ void material_res_create(Resource* resource)
 		// Loop through all keys with raw values, and add them as defines
 		while(key)
 		{
-			Dat_Node* value = key->value;
+			const Dat_Node* value = key->value;
 
 			// Only raw values...
 			if (value->type == Dat_Node_Type::ValueRaw)
@@ -64,7 +64,7 @@ void material_res_create(Resource* resource)
 				// Hard-coded 80 bytes, hopefully no defines will be bigger......
 				defines[define_index] = new char[80];
 
-				Dat_Value_Raw* value_raw = (Dat_Value_Raw*)value;
+				const Dat_Value_Raw* value_raw = (const Dat_Value_Raw*)value;
 				sprintf(defines[define_index], "#define %.*s %.*s\n", 
 					key->name_len, key->name,
 					value_raw->str_len, value_raw->str

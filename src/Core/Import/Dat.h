@@ -65,15 +65,19 @@ struct Dat_Document
 bool dat_load_file(Dat_Document* doc, const char* file_path);
 void dat_free(Dat_Document* doc);
 
-Dat_Object* dat_get_object(Dat_Object* root, const char* expr);
-Dat_Array* dat_get_array(Dat_Object* root, const char* expr);
+const Dat_Node* dat_get_node(const Dat_Object* root, const char* expr);
+const Dat_Object* dat_get_object(const Dat_Object* root, const char* expr);
+const Dat_Array* dat_get_array(const Dat_Object* root, const char* expr);
 
-bool dat_read(Dat_Object* root, const char* expr, bool* value);
-bool dat_read(Dat_Object* root, const char* expr, i16* value);
-bool dat_read(Dat_Object* root, const char* expr, u16* value);
-bool dat_read(Dat_Object* root, const char* expr, i32* value);
-bool dat_read(Dat_Object* root, const char* expr, u32* value);
-bool dat_read(Dat_Object* root, const char* expr, float* value);
-bool dat_read(Dat_Object* root, const char* expr, double* value);
-bool dat_read(Dat_Object* root, const char* expr, const char** value);
-bool dat_array_read(Dat_Array* array, int index, int* value);
+bool dat_value_get(const Dat_Value_Raw* node, float* value);
+
+bool dat_read(const Dat_Object* root, const char* expr, bool* value);
+bool dat_read(const Dat_Object* root, const char* expr, i16* value);
+bool dat_read(const Dat_Object* root, const char* expr, u16* value);
+bool dat_read(const Dat_Object* root, const char* expr, i32* value);
+bool dat_read(const Dat_Object* root, const char* expr, u32* value);
+bool dat_read(const Dat_Object* root, const char* expr, float* value);
+bool dat_read(const Dat_Object* root, const char* expr, double* value);
+bool dat_read(const Dat_Object* root, const char* expr, const char** value);
+
+bool dat_array_read(const Dat_Array* array, int index, float* value);

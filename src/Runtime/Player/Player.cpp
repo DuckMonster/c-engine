@@ -7,6 +7,7 @@
 #include "Runtime/Online/Online.h"
 #include "Runtime/Weapon/WeaponType.h"
 #include "Runtime/Fx/Fx.h"
+#include "Runtime/Fx/FxResource.h"
 
 void player_event_proc(Channel* chnl, Online_User* src)
 {
@@ -96,15 +97,10 @@ void player_update(Player* player)
 #if CLIENT
 		if (input_key_pressed(Key::F))
 		{
-			Fx_Spike_Params params;
-			params.from = unit->position + Vec3(1.f, 0.f, 0.5f);
-			params.to = player->shooting.aim_position;
-			params.size = 0.2f;
-			params.center_alpha = 0.3f;
-			params.translate_delta = 5.f;
-			params.duration = 0.4f;
-
-			fx_make_spike(params);
+			fx_make_res(
+				fx_resource_load("Fx/muzzle_flash.dat"),
+				fx_params_make(unit->position + Vec3(1.f, 0.f, 0.5f), Vec3(1.f, 0.f, 0.f))
+			);
 		}
 #endif
 	}

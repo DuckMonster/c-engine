@@ -22,74 +22,6 @@ Vec3 add_cone_rotation(const Vec3& vec, float cone_half_angle)
 	return angle_axis(radians(random_float(-cone_half_angle, cone_half_angle)), Vec3_Z) * vec;
 }
 
-#if CLIENT
-static void make_muzzle_fx(const Vec3& origin, const Vec3& direction, float scale)
-{
-	// Make some FX
-	{
-		// Main bullet spike
-		Fx_Spike_Params spike;
-		spike.from = origin;
-		spike.to = origin + direction * 0.4f;
-		spike.center_alpha = 0.35f;
-		spike.to_delta = 6.f;
-		spike.from_delta = 0.4f;
-		spike.duration = 0.19f;
-		spike.size = 0.4f * scale;
-
-		//fx_make_spike(spike);
-	}
-	{
-		// Muzzle flash
-		Vec3 perpendicular = Vec3(direction.y, -direction.x, direction.z);
-
-		Fx_Spike_Params spike;
-		spike.from = origin - direction * 0.1f;
-		spike.to = origin + direction * 1.2f;
-		spike.center_alpha = 0.2f;
-		spike.to_delta = 1.f;
-		spike.from_delta = -0.2f;
-		spike.duration = 0.31f;
-		spike.size = 0.6f * scale;
-
-		fx_make_spike(spike);
-	}
-	{
-		// Perpendicular muzzle flashes
-		{
-			Vec3 perpendicular = Vec3(direction.y, -direction.x, direction.z);
-			perpendicular = add_cone_rotation(perpendicular, 5.f);
-
-			Fx_Spike_Params spike;
-			spike.from = origin + perpendicular * 0.2f;
-			spike.to = origin - perpendicular * 0.2f;
-			spike.center_alpha = 0.3f;
-			spike.to_delta = 2.f;
-			spike.from_delta = 0.4f;
-			spike.duration = 0.12f;
-			spike.size = 0.45f * scale;
-
-			fx_make_spike(spike);
-		}
-		{
-			Vec3 perpendicular = Vec3(-direction.y, direction.x, direction.z);
-			perpendicular = add_cone_rotation(perpendicular, 5.f);
-
-			Fx_Spike_Params spike;
-			spike.from = origin + perpendicular * 0.2f;
-			spike.to = origin - perpendicular * 0.2f;
-			spike.center_alpha = 0.3f;
-			spike.to_delta = 2.f;
-			spike.from_delta = 0.4f;
-			spike.duration = 0.12f;
-			spike.size = 0.45f * scale;
-
-			fx_make_spike(spike);
-		}
-	}
-}
-#endif
-
 void weapon_event_proc(Channel* chnl, Online_User* src)
 {
 	Weapon* weapon = (Weapon*)chnl->user_ptr;
@@ -121,13 +53,9 @@ void weapon_event_proc(Channel* chnl, Online_User* src)
 					shoot_direction = params.direction;
 			}
 
-#if CLIENT
-#endif
-
 			weapon->recoil_angle += weapon->type_data->recoil_gain;
 
 #if CLIENT
-			make_muzzle_fx(weapon->position + shoot_direction * 0.5f, shoot_direction, weapon->type_data->muzzle_fx_scale);
 			Vec3 direction = normalize(target - weapon->position);
 
 			weapon_reset_offset(weapon);
