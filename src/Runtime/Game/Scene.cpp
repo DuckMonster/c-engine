@@ -54,6 +54,9 @@ void scene_update()
 		bullet_update(it);
 
 #if CLIENT
+	THINGS_FOREACH(&scene.billboards)
+		billboard_update(it);
+
 	THINGS_FOREACH(&scene.health_bars)
 		health_bar_update(it);
 

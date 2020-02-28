@@ -18,6 +18,12 @@ void billboard_init(Billboard* billboard, const Sprite_Sheet* sheet)
 	material_set(billboard->material, RENDER_SHADOW_BUFFER_UNIFORM, RENDER_SHADOW_BUFFER_TEXTURE_INDEX);
 }
 
+void billboard_update(Billboard* billboard)
+{
+	if (billboard->current_animation)
+		billboard->anim_time += time_delta();
+}
+
 Mat4 get_billboard_rotation_matrix(const Billboard* billboard, const Render_State& state)
 {
 	// We do rotations in two ways!
@@ -109,6 +115,17 @@ void billboard_render(Billboard* billboard, const Render_State& state)
 	if (!billboard->cast_shadow && state.current_pass == PASS_Shadow)
 		return;
 
+	// If we're playing an animation, update the billboard tile
+	if (billboard->current_animation)
+	{
+		const Sprite_Anim* anim = billboard->current_animation;
+		float time_alpha = billboard->anim_time / (anim->duration);
+		i32 frame = (i32)(anim->length * time_alpha);
+
+		billboard->tile_x = anim->origin_x;
+		billboard->tile_y = anim->origin_y + frame;
+	}
+
 	mesh_bind(billboard->mesh);
 	material_bind(billboard->material);
 
@@ -141,6 +158,16 @@ void billboard_render(Billboard* billboard, const Render_State& state)
 	material_set(billboard->material, "u_FillColor", billboard->fill_color);
 
 	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, NULL);
+}
+
+void billboard_play_animation(Billboard* billboard, const char* anim_name)
+{
+	const Sprite_Anim* anim = sprite_sheet_get_animation(billboard->sheet, anim_name);
+	if (anim != billboard->current_animation)
+	{
+		billboard->current_animation = anim;
+		billboard->anim_time = 0.f;
+	}
 }
 
 #endif

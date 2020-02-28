@@ -1,5 +1,6 @@
 #pragma once
 struct Sprite_Sheet;
+struct Sprite_Anim;
 struct Render_State;
 struct Mesh;
 struct Material;
@@ -31,9 +32,15 @@ struct Billboard
 	Billboard_Rotation_Type rotation_type = ROTATION_Angle;
 	float rotation_angle = 0.f;			// Used if ROTATION_Angle
 	Vec3 rotation_direction = Vec3_X;	// Used if ROTATION_World_Direction
+
+	// Animations
+	const Sprite_Anim* current_animation = nullptr;
+	float anim_time = 0.f;
 };
 
 #if CLIENT
 void billboard_init(Billboard* billboard, const Sprite_Sheet* sheet);
+void billboard_update(Billboard* billboard);
 void billboard_render(Billboard* billboard, const Render_State& state);
+void billboard_play_animation(Billboard* billboard, const char* anim_name);
 #endif

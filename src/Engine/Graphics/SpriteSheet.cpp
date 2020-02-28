@@ -16,7 +16,8 @@ static void sprite_sheet_res_create(Resource* resource)
 	Dat_Document doc;
 	if (!dat_load_file(&doc, resource->path))
 	{
-		error("Failed to load spritesheet file '%s'", resource->path);
+		msg_box("Failed to load spritesheet file '%s'", resource->path);
+		return;
 	}
 
 	defer { dat_free(&doc); };
@@ -44,11 +45,60 @@ static void sprite_sheet_res_create(Resource* resource)
 
 	dat_read(doc.root, "padding", &sheet->padding);
 
+	// Save some neat nice variables
 	sheet->tile_aspect = (float)sheet->tile_width / sheet->tile_height;
 	sheet->tile_width_uv = (float)sheet->tile_width / sheet->texture->width;
 	sheet->tile_height_uv = (float)sheet->tile_height / sheet->texture->height;
 	sheet->tile_padding_x_uv = (float)sheet->padding / sheet->texture->width;
 	sheet->tile_padding_y_uv = (float)sheet->padding / sheet->texture->height;
+
+	// Read animations
+	const Dat_Object* anim_root = dat_get_object(doc.root, "animations");
+	if (anim_root && anim_root->first_key)
+	{
+		// First count how many animations there are
+		const Dat_Key* key = anim_root->first_key;
+		while(key)
+		{
+			if (key->value->type != Dat_Node_Type::Object)
+			{
+				msg_box("Error parsing animations in sprite sheet '%s'", resource->path);
+				return;
+			}
+			sheet->num_animations++;
+			key = key->next;
+		}
+
+		// Okay, now _actually_ read them
+		key = anim_root->first_key;
+		sheet->animations = new Sprite_Anim[sheet->num_animations];
+
+		Sprite_Anim* anim = sheet->animations;
+		while(key)
+		{
+			const Dat_Object* anim_node = (const Dat_Object*)key->value;
+
+			anim->name = strcpy_malloc(key->name, key->name_len);
+			dat_read(anim_node, "origin[0]", &anim->origin_x);
+			dat_read(anim_node, "origin[1]", &anim->origin_y);
+			dat_read(anim_node, "length", &anim->length);
+			dat_read(anim_node, "duration", &anim->duration);
+
+			key = key->next;
+			anim++;
+		}
+	}
+
+	String_Builder str;
+	str_append_format(&str, "SpriteSheet '%s' animations:\n", resource->path);
+	for(u32 i=0; i<sheet->num_animations; ++i)
+	{
+		Sprite_Anim& anim = sheet->animations[i];
+		str_append_format(&str, "%s: [%d, %d], %d, %f\n", anim.name, anim.origin_x, anim.origin_y, anim.length, anim.duration);
+	}
+
+	debug_log(str.str);
+	str_free(&str);
 }
 
 static void sprite_sheet_res_destroy(Resource* resource)
@@ -60,4 +110,15 @@ const Sprite_Sheet* sprite_sheet_load(const char* path)
 {
 	Resource* resource = resource_load(path, sprite_sheet_res_create, sprite_sheet_res_destroy);
 	return (Sprite_Sheet*)resource->ptr;
+}
+
+const Sprite_Anim* sprite_sheet_get_animation(const Sprite_Sheet* sheet, const char* name)
+{
+	for(u32 i=0; i<sheet->num_animations; ++i)
+	{
+		if (strcmp(sheet->animations[i].name, name) == 0)
+			return &sheet->animations[i];
+	}
+
+	return nullptr;
 }
