@@ -78,6 +78,7 @@ void unit_event_proc(Channel* chnl, Online_User* src)
 
 			// Subtract health and die
 			unit->health -= damage;
+			unit->health = max(unit->health, 0.f);
 			if (unit->health <= 0.f)
 			{
 #if CLIENT
@@ -87,7 +88,11 @@ void unit_event_proc(Channel* chnl, Online_User* src)
 				}
 #endif
 
-				scene_destroy_unit(unit);
+				Vec3 impulse_direction = normalize(constrain_to_plane(impulse, Vec3_Z));
+				unit->velocity =
+					impulse_direction * unit_death_hori_impulse +
+					Vec3_Z * unit_death_vert_impulse;
+				unit->ground_hit = Hit_Result();
 			}
 
 #if SERVER
@@ -158,9 +163,31 @@ void unit_free(Unit* unit)
 
 void unit_update(Unit* unit)
 {
-	// Apply impact velocity
-	unit_move_delta(unit, unit->impact_velocity * time_delta(), true);
-	unit->impact_velocity -= unit->impact_velocity * unit_impact_drag * time_delta();
+	// Apply death movement
+	if (!unit_is_alive(unit))
+	{
+		Vec3 prev_velocity = unit->velocity;
+
+		unit_move_delta(unit, unit->velocity * time_delta());
+
+		if (unit->ground_hit.has_hit && !is_nearly_zero(unit->velocity, 0.1f))
+		{
+			unit->velocity.x *= 0.5f;
+			unit->velocity.y *= 0.5f;
+			unit->velocity.z = -prev_velocity.z * unit_death_bounce;
+
+			unit->ground_hit = Hit_Result();
+		}
+
+		unit->velocity -= unit->velocity * unit_death_friction * time_delta();
+		unit->velocity -= Vec3_Z * unit_death_gravity * time_delta();
+	}
+	else
+	{
+		// Apply impact velocity
+		unit_move_delta(unit, unit->impact_velocity * time_delta(), true);
+		unit->impact_velocity -= unit->impact_velocity * unit_impact_drag * time_delta();
+	}
 
 #if CLIENT
 
@@ -178,9 +205,23 @@ void unit_update(Unit* unit)
 
 	// Are we looking left or right?
 	Vec3 cam_right = camera_right(&game.camera);
-	float right_dot = dot(unit->aim_direction, cam_right);
+	Vec3 constrained_aim_dir = constrain_to_direction(unit->aim_direction, cam_right);
+
+	float right_dot = dot(constrained_aim_dir, cam_right);
 	if (right_dot < 0.f)
 		unit->billboard->scale.x *= -1.f;
+
+	// Play running/idle animations
+	if (length(unit->velocity) > 2.f)
+	{
+		float right_dot = dot(unit->velocity, constrained_aim_dir);
+		if (right_dot > 0.f)
+			billboard_play_animation(unit->billboard, "run");
+		else
+			billboard_play_animation(unit->billboard, "run_bwd");
+	}
+	else
+		billboard_play_animation(unit->billboard, "idle");
 
 #endif
 }
@@ -195,7 +236,13 @@ void unit_move_towards(Unit* unit, const Vec3& target)
 	if (is_nearly_equal(unit->position, target))
 		return;
 
-	unit_move_delta(unit, normalize(target - unit->position) * unit->move_speed * time_delta());
+	Vec3 diff = target - unit->position;
+	Vec3 delta = normalize(diff) * unit->move_speed * time_delta();
+
+	if (length_sqrd(diff) < length_sqrd(delta))
+		delta = diff;
+
+	unit_move_delta(unit, delta);
 }
 
 void unit_move_direction(Unit* unit, const Vec3& direction)
@@ -216,7 +263,11 @@ void unit_move_direction(Unit* unit, const Vec3& direction)
 void unit_move_delta(Unit* unit, const Vec3& delta, bool teleport)
 {
 	if (is_nearly_zero(delta))
+	{
+		if (!teleport)
+			unit->velocity = Vec3_Zero;
 		return;
+	}
 
 	bool prev_grounded = unit_is_grounded(unit);
 
@@ -367,6 +418,11 @@ bool unit_has_control(Unit* unit)
 	return player->is_local;
 
 #endif
+}
+
+bool unit_is_alive(Unit* unit)
+{
+	return unit->health > 0.f;
 }
 
 bool unit_is_grounded(Unit* unit)

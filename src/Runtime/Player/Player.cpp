@@ -90,30 +90,17 @@ void player_free(Player* player)
 void player_update(Player* player)
 {
 	Unit* unit = scene_get_unit(player->controlled_unit);
-	if (unit == nullptr)
+	if (unit == nullptr || !unit_is_alive(unit))
 		return;
 
 	if (unit_has_control(unit))
 	{
+#if CLIENT
+		if (input_key_pressed(Key::F))
+			unit_hit(unit, player->controlled_unit, 50.f, Vec3_X);
+#endif
 	}
 
 	player_movement_update(player);
 	player_shooting_update(player);
-
-#if CLIENT
-
-	if (length(unit->velocity) > 2.f)
-	{
-		Vec3 cam_right = camera_right(&game.camera);
-		Vec3 constrained_aim_dir = constrain_to_direction(unit->aim_direction, cam_right);
-
-		float right_dot = dot(unit->velocity, constrained_aim_dir);
-		if (right_dot > 0.f)
-			billboard_play_animation(unit->billboard, "run");
-		else
-			billboard_play_animation(unit->billboard, "run_bwd");
-	}
-	else
-		billboard_play_animation(unit->billboard, "idle");
-#endif
 }

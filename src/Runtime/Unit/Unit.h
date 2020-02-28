@@ -14,6 +14,13 @@ const float unit_impact_drag = 8.5f;
 const float unit_hit_duration = 0.15f;
 const float unit_sync_frequency = 10.f;
 const float unit_move_inheritance = 0.85f;
+
+const float unit_death_hori_impulse = 12.f;
+const float unit_death_vert_impulse = 4.f;
+const float unit_death_gravity = 14.f;
+const float unit_death_friction = 0.4f;
+const float unit_death_bounce = 0.4f;
+
 const Vec3 unit_center_offset = Vec3(0.f, 0.f, 0.5f);
 
 const float unit_step_down = 0.2f;
@@ -56,8 +63,10 @@ Vec3 unit_center(Unit* unit);
 void unit_move_towards(Unit* unit, const Vec3& target);
 void unit_move_direction(Unit* unit, const Vec3& direction);
 void unit_move_delta(Unit* unit, const Vec3& delta, bool teleport = false);
+
 void unit_hit(Unit* unit, const Unit_Handle& source, float damage, const Vec3& impulse);
 bool unit_has_control(Unit* unit);
+bool unit_is_alive(Unit* unit);
 
 bool unit_is_grounded(Unit* unit);
 

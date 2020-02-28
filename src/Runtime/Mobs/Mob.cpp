@@ -139,7 +139,7 @@ void mob_update_target_position(Mob* mob, const Vec3& center, float radius_min, 
 void mob_update(Mob* mob)
 {
 	Unit* unit = scene_get_unit(mob->controlled_unit);
-	if (!unit)
+	if (!unit || !unit_is_alive(unit))
 	{
 #if SERVER
 		game_destroy_mob(mob);
