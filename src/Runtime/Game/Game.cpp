@@ -15,7 +15,7 @@
 #include "Runtime/Mobs/Mob.h"
 #include "Runtime/Weapon/WeaponType.h"
 
-const u32 min_mobs = 4;
+const u32 min_mobs = 0;
 
 Game game;
 

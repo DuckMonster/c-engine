@@ -30,6 +30,8 @@ void weapon_res_create(Resource* resource)
 	dat_read(doc.root, "projectile_drag", &data->projectile_drag);
 	dat_read(doc.root, "projectile_gravity", &data->projectile_gravity);
 
+	dat_read(doc.root, "muzzle_offset", &data->muzzle_offset);
+
 	dat_read(doc.root, "fire_mode", &data->fire_mode);
 	dat_read(doc.root, "fire_rate", &data->fire_rate);
 

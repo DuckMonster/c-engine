@@ -6,6 +6,7 @@
 #include "Runtime/Unit/Unit.h"
 #include "Runtime/Render/Billboard.h"
 #include "Runtime/Fx/Fx.h"
+#include "Runtime/Fx/FxResource.h"
 #include "Runtime/Weapon/WeaponType.h"
 #include "Runtime/Weapon/Projectile/Bullet.h"
 #include "Runtime/Online/Channel.h"
@@ -57,6 +58,16 @@ void weapon_event_proc(Channel* chnl, Online_User* src)
 
 #if CLIENT
 			Vec3 direction = normalize(target - weapon->position);
+			Fx_Params params = fx_params_make(
+				weapon->position + direction * weapon->type_data->muzzle_offset,
+				direction,
+				weapon->type_data->muzzle_fx_scale
+			);
+
+			fx_make_res(
+				fx_resource_load("Fx/muzzle_flash.dat"),
+				params
+			);
 
 			weapon_reset_offset(weapon);
 			weapon_add_velocity(weapon, -direction * 6.f, 5.f);
@@ -148,7 +159,7 @@ void weapon_fire(Weapon* weapon, const Vec3& target)
 
 		Bullet_Params params;
 		params.direction = direction;
-		params.origin = weapon->position + params.direction * 0.4f;
+		params.origin = weapon->position + params.direction * weapon->type_data->muzzle_offset;
 		params.damage = weapon->type_data->damage;
 		params.size = weapon->type_data->projectile_size;
 		params.speed = speed;

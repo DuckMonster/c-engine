@@ -6,5 +6,7 @@ fire_rate: 0
 
 projectile_speed: 80
 
+muzzle_offset: 0.8
+
 recoil_gain: 5
 recoil_decay: 4.9

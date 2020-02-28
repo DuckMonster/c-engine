@@ -29,6 +29,8 @@ struct Weapon_Type_Data
 	float projectile_drag = 0.f;
 	float projectile_gravity = 0.f;
 
+	float muzzle_offset = 0.5f;
+
 	u32 fire_mode;
 	float fire_rate;
 

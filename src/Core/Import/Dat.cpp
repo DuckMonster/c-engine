@@ -920,7 +920,7 @@ bool dat_read(const Dat_Object* root, const char* expr, const char** value)
 
 bool dat_array_parse_value(const Dat_Array* array, int index, const char* scan_str, void* value)
 {
-	if (array->size < index)
+	if (array->size <= index)
 		return false;
 
 	if (array->elements[index]->type != Dat_Node_Type::ValueRaw)

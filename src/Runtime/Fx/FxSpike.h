@@ -15,6 +15,13 @@ struct Fx_Spike_Params
 	float size = 1.f;
 	float center_alpha = 0.5f;
 	float duration = 1.f;
+
+	// Movement
+	float from_delta = 0.f;
+	float to_delta = 0.f;
+
+	float move_exponent = 4.f;
+	float size_exponent = 2.f;
 };
 
 struct Fx_Spike

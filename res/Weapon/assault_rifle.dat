@@ -7,6 +7,8 @@ fire_rate: 10
 projectile_size: 0.1
 projectile_speed: 80
 
+muzzle_offset: 1.8
+
 recoil_gain: 2
 recoil_decay: 4.9
 

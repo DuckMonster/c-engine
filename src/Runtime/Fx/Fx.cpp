@@ -95,6 +95,12 @@ Fx_Spike_Params fx_read_spike_params(const Dat_Object* obj)
 	fx_read_value_or_range(obj, "size", &params.size);
 	fx_read_value_or_range(obj, "center_alpha", &params.center_alpha);
 
+	fx_read_value_or_range(obj, "from_delta", &params.from_delta);
+	fx_read_value_or_range(obj, "to_delta", &params.to_delta);
+
+	fx_read_value_or_range(obj, "move_exponent", &params.move_exponent);
+	fx_read_value_or_range(obj, "size_exponent", &params.size_exponent);
+
 	return params;
 }
 
@@ -128,12 +134,12 @@ void fx_make_res(const Fx_Resource* resource, const Fx_Params& params)
 		for(u32 j=0; j<count; ++j)
 		{
 			// Transform the direction and origin
-			Fx_Params transformed_params;
+			Fx_Params transformed_params = params;
 
+			// Rotation
 			Vec3 rotate_euler = Vec3_Zero;
 			fx_read_vec3(object, "rotation", &rotate_euler);
 
-			transformed_params.position = params.position;
 			transformed_params.direction =
 				quat_x(quat_from_x(params.direction) * quat_from_euler(rotate_euler));
 

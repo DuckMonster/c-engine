@@ -94,15 +94,6 @@ void player_update(Player* player)
 
 	if (unit_has_control(unit))
 	{
-#if CLIENT
-		if (input_key_pressed(Key::F))
-		{
-			fx_make_res(
-				fx_resource_load("Fx/muzzle_flash.dat"),
-				fx_params_make(unit->position + Vec3(1.f, 0.f, 0.5f), Vec3(1.f, 0.f, 0.f))
-			);
-		}
-#endif
 	}
 
 	player_movement_update(player);

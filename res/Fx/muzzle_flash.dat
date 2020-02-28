@@ -1,15 +1,32 @@
 emitters:
 [
-	# Testing...
+	# Main spike
 	{
-		rotation: [0.0, 0.0, [-20.0, 20.0]]
+		rotation: [0.0, 0.0, 0.0]
 		type: "Spike"
-		count: 5
 
-		from: [0.0, 1.0]
-		to: [3.0, 5.0]
-		duration: [0.4, 2.0]
+		from: [0.0, -0.5]
+		to: [2.0, 4.0]
+		duration: [0.3, 0.5]
 		size: [0.2, 1.0]
-		center_alpha: 0.4
+		center_alpha: 0.3
+
+		from_delta: -0.4
+		to_delta: 0.8
+	},
+
+	# Side spikes
+	{
+		rotation: [0.0, 0.0, 90.0]
+		type: "Spike"
+
+		from: 0.5
+		from_delta: 2.0
+		to: -0.5
+		to_delta: -2.0
+
+		duration: [0.2, 0.25]
+		size: [0.2, 0.4]
+		center_alpha: 0.5
 	}
 ]

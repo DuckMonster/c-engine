@@ -15,6 +15,8 @@ const float weapon_offset_acceleration = 210.f;
 const float weapon_angle_offset_drag = 10.5f;
 const float weapon_angle_offset_acceleration = 100.f;
 
+const float weapon_muzzle_offset = 2.f;
+
 struct Weapon
 {
 	Unit_Handle owner;

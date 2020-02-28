@@ -11,6 +11,8 @@ projectile_speed_variance: 40
 projectile_gravity: 50
 projectile_drag: 0.9
 
+muzzle_offset: 1.8
+
 recoil_gain: 0
 recoil_decay: 0
 
