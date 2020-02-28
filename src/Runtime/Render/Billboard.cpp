@@ -21,7 +21,21 @@ void billboard_init(Billboard* billboard, const Sprite_Sheet* sheet)
 void billboard_update(Billboard* billboard)
 {
 	if (billboard->current_animation)
-		billboard->anim_time += time_delta();
+	{
+		const Sprite_Anim* anim = billboard->current_animation;
+		if (is_nearly_zero(anim->duration))
+		{
+			billboard->anim_time = 0.f;
+		}
+		else
+		{
+			billboard->anim_time += time_delta();
+			while(billboard->anim_time > billboard->current_animation->duration)
+			{
+				billboard->anim_time -= billboard->current_animation->duration;
+			}
+		}
+	}
 }
 
 Mat4 get_billboard_rotation_matrix(const Billboard* billboard, const Render_State& state)
@@ -119,11 +133,19 @@ void billboard_render(Billboard* billboard, const Render_State& state)
 	if (billboard->current_animation)
 	{
 		const Sprite_Anim* anim = billboard->current_animation;
-		float time_alpha = billboard->anim_time / (anim->duration);
-		i32 frame = (i32)(anim->length * time_alpha);
+		if (is_nearly_zero(anim->duration))
+		{
+			billboard->tile_x = anim->origin_x;
+			billboard->tile_y = anim->origin_y;
+		}
+		else
+		{
+			float time_alpha = billboard->anim_time / (anim->duration);
+			i32 frame = (i32)(anim->length * time_alpha);
 
-		billboard->tile_x = anim->origin_x;
-		billboard->tile_y = anim->origin_y + frame;
+			billboard->tile_x = anim->origin_x + frame;
+			billboard->tile_y = anim->origin_y;
+		}
 	}
 
 	mesh_bind(billboard->mesh);

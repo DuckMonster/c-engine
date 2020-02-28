@@ -4,6 +4,7 @@
 #include "Runtime/Game/Scene.h"
 #include "Runtime/Game/SceneQuery.h"
 #include "Runtime/Game/Game.h"
+#include "Runtime/Game/Game.h"
 #include "Runtime/Online/Channel.h"
 #include "Runtime/Weapon/Weapon.h"
 #include "Runtime/Render/HealthBar.h"
@@ -174,6 +175,12 @@ void unit_update(Unit* unit)
 	unit->hit_timer -= time_delta();
 	unit->billboard->fill_color = Vec4(Vec3(1.f), unit->hit_timer > 0.f ? 1.f : 0.f);
 	unit->billboard->scale = Vec2(unit->hit_timer > 0.f ? 1.f + unit->hit_timer : 1.f);
+
+	// Are we looking left or right?
+	Vec3 cam_right = camera_right(&game.camera);
+	float right_dot = dot(unit->aim_direction, cam_right);
+	if (right_dot < 0.f)
+		unit->billboard->scale.x *= -1.f;
 
 #endif
 }

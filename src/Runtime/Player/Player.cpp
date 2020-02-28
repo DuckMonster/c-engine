@@ -8,6 +8,7 @@
 #include "Runtime/Weapon/WeaponType.h"
 #include "Runtime/Fx/Fx.h"
 #include "Runtime/Fx/FxResource.h"
+#include "Runtime/Render/Billboard.h"
 
 void player_event_proc(Channel* chnl, Online_User* src)
 {
@@ -98,4 +99,21 @@ void player_update(Player* player)
 
 	player_movement_update(player);
 	player_shooting_update(player);
+
+#if CLIENT
+
+	if (length(unit->velocity) > 2.f)
+	{
+		Vec3 cam_right = camera_right(&game.camera);
+		Vec3 constrained_aim_dir = constrain_to_direction(unit->aim_direction, cam_right);
+
+		float right_dot = dot(unit->velocity, constrained_aim_dir);
+		if (right_dot > 0.f)
+			billboard_play_animation(unit->billboard, "run");
+		else
+			billboard_play_animation(unit->billboard, "run_bwd");
+	}
+	else
+		billboard_play_animation(unit->billboard, "idle");
+#endif
 }

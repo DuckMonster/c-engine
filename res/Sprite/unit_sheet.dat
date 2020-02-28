@@ -12,13 +12,19 @@ animations:
 	idle:
 	{
 		origin: [0, 0]
-		length: 4
-		duration: 0.5
+		length: 0
+		duration: 0
 	}
-	walk:
+	run:
 	{
 		origin: [0, 1]
-		length: 8
-		duration: 1.2
+		length: 6
+		duration: 0.4
+	}
+	run_bwd:
+	{
+		origin: [5, 1]
+		length: -6
+		duration: 0.4
 	}
 }
