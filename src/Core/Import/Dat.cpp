@@ -59,7 +59,7 @@ const char* token_type_str(Token token)
 #define NEWLINE(c) ((c == '\r') || (c == '\n'))
 #define WHITESPACE(c) ((c == ' ') || (c == '\t') || (c == 0) || NEWLINE(c))
 #define ALPHA(c) ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c == '_') || (c == '-'))
-#define DIGIT(c) ((c >= '0' && c <= '9'))
+#define DIGIT(c) ((c >= '0' && c <= '9') || c == '-' || c == '+')
 #define COMMENT(c) (c == '#')
 
 #define ALPHA_DIGIT(c) (ALPHA(c) || DIGIT(c))
@@ -209,12 +209,8 @@ bool read_token(char** out_token, i32* out_token_len, Token* out_token_type, boo
 			advance_ptr(&ptr);
 		}	
 
-		// And then skip all the leading whitespace to the next token
-		skip_whitespace(skip_newline);
-		ptr = buffer_ptr();
-
-		if (!ptr)
-			return false;
+		// Then continue reading recursively from there...
+		return read_token(out_token, out_token_len, out_token_type, skip_newline);
 	}
 
 	// Boolean expression
@@ -260,14 +256,16 @@ bool read_token(char** out_token, i32* out_token_len, Token* out_token_type, boo
 		}
 	}
 
-	// Keyword
-	if (ALPHA(*ptr))
+	// Number
+	// Check numbers first in case of '-' and '+', we dont want to accidentally
+	//	classify as a keyword
+	if (DIGIT(*ptr))
 	{
 		*out_token = ptr;
 		*out_token_len = 0;
-		*out_token_type = TOKEN_Key;
+		*out_token_type = TOKEN_Number;
 
-		while(ptr && ALPHA_DIGIT(*ptr))
+		while(ptr && NUMERIC(*ptr))
 		{
 			(*out_token_len)++;
 			advance_ptr(&ptr);
@@ -276,14 +274,14 @@ bool read_token(char** out_token, i32* out_token_len, Token* out_token_type, boo
 		return true;
 	}
 
-	// Number
-	if (DIGIT(*ptr))
+	// Keyword
+	if (ALPHA(*ptr))
 	{
 		*out_token = ptr;
 		*out_token_len = 0;
-		*out_token_type = TOKEN_Number;
+		*out_token_type = TOKEN_Key;
 
-		while(ptr && NUMERIC(*ptr))
+		while(ptr && ALPHA_DIGIT(*ptr))
 		{
 			(*out_token_len)++;
 			advance_ptr(&ptr);
@@ -513,9 +511,30 @@ bool token_find(u32 token_filter, Token* out_token_type = nullptr)
 }
 
 Dat_Key* dat_parse_key(Dat_Document* doc);
-Dat_Node* dat_parse_value(Dat_Document* doc);
+Dat_Node* dat_parse_value(Dat_Document* doc, bool expect = true);
 
-Dat_Node* dat_parse_value(Dat_Document* doc)
+void dat_array_add(Dat_Array* array, Dat_Node* node_to_add)
+{
+	Dat_Document* doc = array->doc;
+
+	if (array->elements != nullptr)
+	{
+		Dat_Node** new_array = arena_malloc_t(&doc->arena, Dat_Node*, array->size + 1);
+		memcpy(new_array, array->elements, sizeof(Dat_Node*) * array->size);
+		new_array[array->size] = node_to_add;
+
+		array->elements = new_array;
+	}
+	else
+	{
+		array->elements = arena_malloc_t(&doc->arena, Dat_Node*, 1);
+		array->elements[0] = node_to_add;
+	}
+
+	array->size++;
+}
+
+Dat_Node* dat_parse_value(Dat_Document* doc, bool expect)
 {
 	Token token;
 	char* peek_str;
@@ -523,7 +542,10 @@ Dat_Node* dat_parse_value(Dat_Document* doc)
 
 	if (!token_peek(TOKEN_Value | TOKEN_ArrayOpen | TOKEN_ObjectOpen, &token, &peek_str, &peek_len, true))
 	{
-		doc_error(buffer.data + buffer.offset, "Unexpected token '%.*s' (%s) when expecting key value", peek_len, peek_str, token_type_str(token));
+		// If we're expecting a value, not reading one is an error
+		if (expect)
+			doc_error(buffer.data + buffer.offset, "Unexpected token '%.*s' (%s) when expecting key value", peek_len, peek_str, token_type_str(token));
+
 		return nullptr;
 	}
 
@@ -564,46 +586,30 @@ Dat_Node* dat_parse_value(Dat_Document* doc)
 		}
 		else
 		{
-			array->size = 1;
+			array->size = 0;
 
 			// Count array size first
 			u32 start_of_array_offset = buffer.offset;
 
 			while(true)
 			{
-				Token arr_token = TOKEN_None;
-				if (!token_find(TOKEN_ArraySeparator | TOKEN_ArrayClose, &arr_token))
+				Dat_Node* value = dat_parse_value(doc, false);
+				if (value != nullptr)
 				{
-					doc_error(buffer.data + start_of_array_offset, "Array bracket mismatch");
-					return nullptr;
+					dat_array_add(array, value);
 				}
 
-				if (arr_token == TOKEN_ArrayClose)
+				Token arr_token = TOKEN_None;
+				if (!token_expect(TOKEN_ArrayClose | TOKEN_ArraySeparator, &arr_token))
+					return nullptr;
+
+				if (arr_token == TOKEN_ArraySeparator)
+					continue;
+				else
 					break;
-
-				array->size++;
-			}
-
-			// Rewind to beginning of array
-			buffer.offset = start_of_array_offset;
-
-			// Start reading elements!
-			array->elements = arena_malloc_t(&doc->arena, Dat_Node*, array->size);
-			for(u32 i=0; i<array->size; ++i)
-			{
-				array->elements[i] = dat_parse_value(doc);
-
-				// Uh oh, no value was parsed... must be a trailing ','
-				// Decrease the size so we dont lie
-				if (array->elements[i] == nullptr)
-					array->size--;
-
-				if (i != array->size - 1)
-					token_expect(TOKEN_ArraySeparator);
 			}
 		}
 
-		token_expect(TOKEN_ArrayClose);
 		return (Dat_Node*)array;
 	}
 	else
@@ -831,7 +837,8 @@ bool dat_read_value(const Dat_Object* root, const char* expr, const char* scan_s
 	if (node == nullptr)
 		return false;
 
-	assert(node->type == Dat_Node_Type::ValueRaw);
+	if (node->type != Dat_Node_Type::ValueRaw)
+		return false;
 
 	const Dat_Value_Raw* node_value = (Dat_Value_Raw*)node;
 	value_scan(node_value, scan_str, value);
@@ -844,13 +851,14 @@ bool dat_read(const Dat_Object* root, const char* expr, bool* value)
 	if (node == nullptr)
 		return false;
 
-	assert(node->type == Dat_Node_Type::ValueRaw);
+	if (node->type != Dat_Node_Type::ValueRaw)
+		return false;
 
 	const Dat_Value_Raw* node_value = (const Dat_Value_Raw*)node;
-	assert(node_value->str_len == 4 || node_value->str_len == 5);
+	if (node_value->str_len != 4 && node_value->str_len != 5)
+		return false;
 
 	*value = (strncmp(node_value->str, "true", 4) == 0);
-
 	return true;
 }
 

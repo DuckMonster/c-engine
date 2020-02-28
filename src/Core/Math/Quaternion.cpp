@@ -146,6 +146,14 @@ Quat quat_from_xz(const Vec3& x, const Vec3& z)
 	return mat_to_quat(mat);
 }
 
+Quat quat_from_euler(const Vec3& euler)
+{
+	return
+		angle_axis(radians(euler.z), Vec3_Z) * 
+		angle_axis(radians(euler.y), Vec3_Y) *
+		angle_axis(radians(euler.x), Vec3_X);
+}
+
 Vec3 quat_x(const Quat& q)
 {
 	return q * Vec3_X;

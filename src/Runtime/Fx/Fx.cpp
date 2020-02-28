@@ -34,9 +34,8 @@ void fx_make_spike(const Fx_Spike_Params& params)
 	fx_spike_make(fx_manager.spikes, params);
 }
 
-void fx_read_value_or_range(const Dat_Object* obj, const char* expr, float* value)
+void fx_node_get_value_or_range(const Dat_Node* node, float* value)
 {
-	const Dat_Node* node = dat_get_node(obj, expr);
 	if (node == nullptr)
 		return;
 
@@ -52,7 +51,7 @@ void fx_read_value_or_range(const Dat_Object* obj, const char* expr, float* valu
 
 		if (!is_valid)
 		{
-			msg_box("Invalid float range '%s' in fx file", expr);
+			msg_box("Invalid float range in fx file");
 			return;
 		}
 
@@ -66,14 +65,35 @@ void fx_read_value_or_range(const Dat_Object* obj, const char* expr, float* valu
 	}
 }
 
+void fx_read_value_or_range(const Dat_Object* obj, const char* expr, float* value)
+{
+	const Dat_Node* node = dat_get_node(obj, expr);
+	fx_node_get_value_or_range(node, value);
+}
+
+void fx_read_vec3(const Dat_Object* root, const char* expr, Vec3* value)
+{
+	const Dat_Node* value_node = dat_get_node(root, expr);
+	if (value_node->type != Dat_Node_Type::Array)
+	{
+		msg_box("Invalid vec3 '%s' in fx file", expr);
+		return;
+	}
+
+	const Dat_Array* array = (const Dat_Array*)value_node;
+	fx_node_get_value_or_range(array->elements[0], &value->x);
+	fx_node_get_value_or_range(array->elements[1], &value->y);
+	fx_node_get_value_or_range(array->elements[2], &value->z);
+}
+
 Fx_Spike_Params fx_read_spike_params(const Dat_Object* obj)
 {
 	Fx_Spike_Params params;
-	dat_read(obj, "from", &params.from);
-	dat_read(obj, "to", &params.to);
-	dat_read(obj, "duration", &params.duration);
-	dat_read(obj, "size", &params.size);
-	dat_read(obj, "center_alpha", &params.center_alpha);
+	fx_read_value_or_range(obj, "from", &params.from);
+	fx_read_value_or_range(obj, "to", &params.to);
+	fx_read_value_or_range(obj, "duration", &params.duration);
+	fx_read_value_or_range(obj, "size", &params.size);
+	fx_read_value_or_range(obj, "center_alpha", &params.center_alpha);
 
 	return params;
 }
@@ -91,6 +111,7 @@ void fx_make_res(const Fx_Resource* resource, const Fx_Params& params)
 			continue;
 
 		const Dat_Object* object = (const Dat_Object*)array->elements[i];
+
 		const char* emitter_type = nullptr;
 		dat_read(object, "type", &emitter_type);
 
@@ -101,18 +122,35 @@ void fx_make_res(const Fx_Resource* resource, const Fx_Params& params)
 			continue;
 		}
 
-		if (strcmp(emitter_type, "Spike") == 0)
-		{
-			Fx_Spike_Params spike = fx_read_spike_params(object);
-			spike.base = params;
+		u32 count = 1;
+		dat_read(object, "count", &count);
 
-			debug_log("Making spike (%f, %f)", spike.from, spike.to);
-			fx_make_spike(spike);
-		}
-		else
+		for(u32 j=0; j<count; ++j)
 		{
-			msg_box("Unknown emitter type '%s' in fx file", emitter_type);
-			continue;
+			// Transform the direction and origin
+			Fx_Params transformed_params;
+
+			Vec3 rotate_euler = Vec3_Zero;
+			fx_read_vec3(object, "rotation", &rotate_euler);
+
+			transformed_params.position = params.position;
+			transformed_params.direction =
+				quat_x(quat_from_x(params.direction) * quat_from_euler(rotate_euler));
+
+			// Read which type of effect it is
+			if (strcmp(emitter_type, "Spike") == 0)
+			{
+				Fx_Spike_Params spike = fx_read_spike_params(object);
+				spike.base = transformed_params;
+
+				debug_log("Making spike (%f, %f)", spike.from, spike.to);
+				fx_make_spike(spike);
+			}
+			else
+			{
+				msg_box("Unknown emitter type '%s' in fx file", emitter_type);
+				continue;
+			}
 		}
 	}
 }

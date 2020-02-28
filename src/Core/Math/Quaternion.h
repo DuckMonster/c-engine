@@ -20,6 +20,8 @@ Quat quat_from_x(const Vec3& x);
 Quat quat_from_xy(const Vec3& x, const Vec3& y);
 Quat quat_from_xz(const Vec3& x, const Vec3& z);
 
+Quat quat_from_euler(const Vec3& euler);
+
 Vec3 quat_x(const Quat& q);
 Vec3 quat_y(const Quat& q);
 Vec3 quat_z(const Quat& q);

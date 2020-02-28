@@ -2,11 +2,14 @@ emitters:
 [
 	# Testing...
 	{
+		rotation: [0.0, 0.0, [-20.0, 20.0]]
 		type: "Spike"
-		from: 0.0
-		to: 5.0
-		duration: 0.4
-		size: 0.2
+		count: 5
+
+		from: [0.0, 1.0]
+		to: [3.0, 5.0]
+		duration: [0.4, 2.0]
+		size: [0.2, 1.0]
 		center_alpha: 0.4
-	},
+	}
 ]
