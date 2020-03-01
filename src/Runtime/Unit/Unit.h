@@ -46,6 +46,8 @@ struct Unit
 	Vec3 velocity;
 	Hit_Result ground_hit;
 
+	float death_timer = 0.f;
+
 #if CLIENT
 	Billboard* billboard = nullptr;
 	Health_Bar* health_bar = nullptr;

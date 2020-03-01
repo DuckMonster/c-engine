@@ -96,8 +96,6 @@ void player_update(Player* player)
 	if (unit_has_control(unit))
 	{
 #if CLIENT
-		if (input_key_pressed(Key::F))
-			unit_hit(unit, player->controlled_unit, 50.f, Vec3_X);
 #endif
 	}
 

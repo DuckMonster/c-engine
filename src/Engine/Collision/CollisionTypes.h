@@ -75,6 +75,8 @@ struct Convex_Shape
 	u32 num_tris = 0;
 	Triangle* triangles = nullptr;
 	Triangle* triangles_local = nullptr;
+
+	Aligned_Box bounding_box;
 };
 
 void shape_copy(Convex_Shape* target, const Convex_Shape* src);

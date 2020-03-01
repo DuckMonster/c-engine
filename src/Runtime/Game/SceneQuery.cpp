@@ -50,6 +50,9 @@ Scene_Query_Result scene_query_line(const Line_Trace& line, const Scene_Query_Pa
 			if (unit == params.ignore_unit)
 				continue;
 
+			if (!unit_is_alive(unit))
+				continue;
+
 			Sphere unit_sphere;
 			unit_sphere.origin = unit->position + unit_center_offset;
 			unit_sphere.radius = 0.5f;

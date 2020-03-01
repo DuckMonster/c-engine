@@ -75,8 +75,8 @@
     </ClCompile>
     <Link>
       <AdditionalLibraryDirectories>lib\$(ConfPath)\</AdditionalLibraryDirectories>
-      <AdditionalDependencies Condition="$(Optimize)">opengl32.lib;Ws2_32.lib;freetype.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalDependencies Condition="!$(Optimize)">opengl32.lib;Ws2_32.lib;freetype.lib;WinPixEventRuntime.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies Condition="$(Optimize)">DoomExternal.lib;opengl32.lib;Ws2_32.lib;freetype.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies Condition="!$(Optimize)">DoomExternal.lib;opengl32.lib;Ws2_32.lib;freetype.lib;WinPixEventRuntime.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SubSystem>Console</SubSystem>
       <EntryPointSymbol>mainCRTStartup</EntryPointSymbol>
     </Link>

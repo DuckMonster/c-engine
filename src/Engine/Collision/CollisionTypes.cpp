@@ -69,15 +69,19 @@ void shape_apply_transform(Convex_Shape* shape, const Mat4& transform)
 		triangle.normal = normalize(cross(first, second));
 
 		triangle_calculate_centroid_radius(&triangle);
+	}
 
-		// Make sure everything is flat...
-		for(u32 v=1; v<3; ++v)
+	// Make bounding box 
+	Vec3 min = shape->triangles[0].verts[0];
+	Vec3 max = shape->triangles[0].verts[0];
+	for(u32 i=0; i<shape->num_tris; ++i)
+	{
+		for(u32 v=0; v<3; ++v)
 		{
-			Vec3 line = triangle.verts[v - 1] - triangle.verts[v];
-			float dot_value = dot(line, triangle.normal);
-
-			if (!is_nearly_zero(dot_value))
-				msg_box("Dot is %f", dot_value);
+			min = component_min(min, shape->triangles[i].verts[v]);
+			max = component_max(max, shape->triangles[i].verts[v]);
 		}
 	}
+
+	shape->bounding_box = aligned_box_from_min_max(min, max);
 }

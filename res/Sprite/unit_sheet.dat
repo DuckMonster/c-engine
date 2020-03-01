@@ -15,6 +15,12 @@ animations:
 		length: 0
 		duration: 0
 	}
+	death:
+	{
+		origin: [0, 2]
+		length: 0
+		duration: 0
+	}
 	run:
 	{
 		origin: [0, 1]

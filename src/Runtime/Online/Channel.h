@@ -4,7 +4,7 @@
 struct Online_User;
 struct Rpc_Channel_Event;
 
-#define MAX_CHANNELS 20
+#define MAX_CHANNELS 256
 #define WRITE_BUFFER_SIZE 512
 
 struct Channel;

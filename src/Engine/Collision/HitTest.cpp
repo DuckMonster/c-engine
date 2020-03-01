@@ -259,7 +259,12 @@ Hit_Result test_line_trace_box(const Line_Trace& line, const Box& box)
 Hit_Result test_line_trace_shape(const Line_Trace& line, const Convex_Shape* shape)
 {
 	Ray line_ray = ray_from_to(line.from, line.to);
-	Hit_Result ray_hit = test_ray_shape(line_ray, shape);
 
+	// First check if the line intersects the bounding box
+	Hit_Result box_hit = test_line_trace_aligned_box(line, shape->bounding_box);
+	if (!box_hit.has_hit)
+		return Hit_Result();
+
+	Hit_Result ray_hit = test_ray_shape(line_ray, shape);
 	return convert_ray_hit_to_line_trace_hit(ray_hit, line);
 }

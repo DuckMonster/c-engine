@@ -74,6 +74,13 @@ void unit_event_proc(Channel* chnl, Online_User* src)
 			unit->impact_velocity = impulse;
 #if CLIENT
 			unit->hit_timer = unit_hit_duration;
+
+			if (unit->health_bar == nullptr)
+			{
+				unit->health_bar = scene_make_health_bar();
+				unit->health_bar->position = unit->position + Vec3(0.f, 0.f, 1.3f);
+				unit->health_bar->health_percent = unit->health / unit->health_max;
+			}
 #endif
 
 			// Subtract health and die
@@ -93,6 +100,17 @@ void unit_event_proc(Channel* chnl, Online_User* src)
 					impulse_direction * unit_death_hori_impulse +
 					Vec3_Z * unit_death_vert_impulse;
 				unit->ground_hit = Hit_Result();
+
+				if (unit->weapon)
+				{
+					scene_destroy_weapon(unit->weapon);
+					unit->weapon = nullptr;
+				}
+
+#if CLIENT
+				scene_destroy_health_bar(unit->health_bar);
+				unit->health_bar = nullptr;
+#endif
 			}
 
 #if SERVER
@@ -142,9 +160,6 @@ void unit_init(Unit* unit, u32 id, const Vec3& position)
 	unit->billboard->position = position;
 	unit->billboard->anchor = Vec2(0.5f, 1.f);
 
-	unit->health_bar = scene_make_health_bar();
-	unit->health_bar->position = position + Vec3(0.f, 0.f, 1.3f);
-
 #endif
 }
 
@@ -157,7 +172,9 @@ void unit_free(Unit* unit)
 
 #if CLIENT
 	scene_destroy_billboard(unit->billboard);
-	scene_destroy_health_bar(unit->health_bar);
+
+	if (unit->health_bar)
+		scene_destroy_health_bar(unit->health_bar);
 #endif
 }
 
@@ -181,6 +198,13 @@ void unit_update(Unit* unit)
 
 		unit->velocity -= unit->velocity * unit_death_friction * time_delta();
 		unit->velocity -= Vec3_Z * unit_death_gravity * time_delta();
+
+		unit->death_timer += time_delta();
+		if (unit->death_timer > 3.f)
+		{
+			scene_destroy_unit(unit);
+			return;
+		}
 	}
 	else
 	{
@@ -195,8 +219,11 @@ void unit_update(Unit* unit)
 	unit->billboard->position = unit->position;
 
 	// Update health bar
-	unit->health_bar->position = unit->position + Vec3(0.f, 0.f, 1.3f);
-	unit->health_bar->health_percent = unit->health / unit->health_max;
+	if (unit->health_bar)
+	{
+		unit->health_bar->position = unit->position + Vec3(0.f, 0.f, 1.3f);
+		unit->health_bar->health_percent = unit->health / unit->health_max;
+	}
 
 	// When hit, flash for a bit!
 	unit->hit_timer -= time_delta();
@@ -212,16 +239,23 @@ void unit_update(Unit* unit)
 		unit->billboard->scale.x *= -1.f;
 
 	// Play running/idle animations
-	if (length(unit->velocity) > 2.f)
+	if (unit_is_alive(unit))
 	{
-		float right_dot = dot(unit->velocity, constrained_aim_dir);
-		if (right_dot > 0.f)
-			billboard_play_animation(unit->billboard, "run");
+		if (length(unit->velocity) > 2.f)
+		{
+			float right_dot = dot(unit->velocity, constrained_aim_dir);
+			if (right_dot > 0.f)
+				billboard_play_animation(unit->billboard, "run");
+			else
+				billboard_play_animation(unit->billboard, "run_bwd");
+		}
 		else
-			billboard_play_animation(unit->billboard, "run_bwd");
+			billboard_play_animation(unit->billboard, "idle");
 	}
 	else
-		billboard_play_animation(unit->billboard, "idle");
+	{
+		billboard_play_animation(unit->billboard, "death");
+	}
 
 #endif
 }
@@ -233,9 +267,6 @@ Vec3 unit_center(Unit* unit)
 
 void unit_move_towards(Unit* unit, const Vec3& target)
 {
-	if (is_nearly_equal(unit->position, target))
-		return;
-
 	Vec3 diff = target - unit->position;
 	Vec3 delta = normalize(diff) * unit->move_speed * time_delta();
 
@@ -381,6 +412,9 @@ void unit_move_delta(Unit* unit, const Vec3& delta, bool teleport)
 
 void unit_hit(Unit* unit, const Unit_Handle& source, float damage, const Vec3& impulse)
 {
+	if (!unit_is_alive(unit))
+		return;
+
 	Unit* source_unit = scene_get_unit(source);
 
 	channel_reset(unit->channel);
