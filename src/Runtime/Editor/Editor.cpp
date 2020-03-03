@@ -125,7 +125,7 @@ void editor_update()
 
 	Line_Trace trace;
 	trace.from = test_ray.origin;
-	trace.to = ray_get_point(test_ray, 10.f);
+	trace.to = ray_get_point(test_ray, 2.f);
 	Scene_Query_Params params;
 	params.debug_render = true;
 

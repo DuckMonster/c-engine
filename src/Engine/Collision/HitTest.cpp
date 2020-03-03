@@ -1,4 +1,5 @@
 #include "HitTest.h"
+#include "Core/Debug/Profiling.h"
 #include "Runtime/Game/Scene.h"
 
 Hit_Result hit_make(const Vec3& position, const Vec3& normal, float time)
@@ -114,7 +115,7 @@ Hit_Result test_ray_aligned_box(const Ray& ray, const Aligned_Box& box)
 		return Hit_Result();
 
 	if (max_entry < 0.f)
-		return Hit_Result();
+		return hit_make_depen(ray.origin, Vec3_Zero, 0.f);
 
 	Vec3 normal = Vec3_X;
 	Vec3 intersection_point = (ray.origin + ray.direction * max_entry) - box.position;
@@ -176,6 +177,13 @@ Hit_Result test_ray_shape(const Ray& ray, const Convex_Shape* shape)
 		if (!plane_hit.has_hit)
 			continue;
 
+		// Do an early-out test first
+		float hit_distance_sqrd = distance_sqrd(tri.centroid, plane_hit.position);
+		if (hit_distance_sqrd > tri.radius_sqrd)
+			continue;
+
+		pix_event_scope("RayShapeFull");
+
 		// Make sure the plane is within all the edges
 		bool inside_face = true;
 		for(u32 v=0; v<3; ++v)
@@ -199,7 +207,7 @@ Hit_Result test_ray_shape(const Ray& ray, const Convex_Shape* shape)
 			continue;
 
 		if (!best_hit.has_hit || best_hit.time > plane_hit.time)
-			best_hit = plane_hit;
+			return plane_hit;
 	}
 
 	return best_hit;

@@ -84,7 +84,7 @@ void unit_event_proc(Channel* chnl, Online_User* src)
 #endif
 
 			// Subtract health and die
-			unit->health -= damage;
+			//unit->health -= damage;
 			unit->health = max(unit->health, 0.f);
 			if (unit->health <= 0.f)
 			{
@@ -267,6 +267,13 @@ Vec3 unit_center(Unit* unit)
 
 void unit_move_towards(Unit* unit, const Vec3& target)
 {
+	if (is_nearly_equal(target, unit->position))
+	{
+		unit->position = target;
+		unit->velocity = Vec3_Zero;
+		return;
+	}
+
 	Vec3 diff = target - unit->position;
 	Vec3 delta = normalize(diff) * unit->move_speed * time_delta();
 
@@ -333,7 +340,7 @@ void unit_move_delta(Unit* unit, const Vec3& delta, bool teleport)
 		if (query_result.hit.has_hit)
 		{
 			Vec3 normal = query_result.hit.normal;
-			if (dot(normal, Vec3_Z) < 0.f)
+			if (dot(normal, Vec3_Z) < 0.9f)
 				normal = normalize(constrain_to_plane(normal, Vec3_Z));
 
 			move_log("HIT (%f, %f, %f) [%f]", normal.x, normal.y, normal.z, query_result.hit.time);
