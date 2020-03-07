@@ -145,7 +145,7 @@ void mob_update(Mob* mob)
 		if (unit)
 		{
 			Weapon_Instance wpn_drop;
-			wpn_drop.type = WEAPON_Pistol;
+			wpn_drop.type = WEAPON_AssaultRifle;
 			wpn_drop.attributes.level = 0;
 
 			game_create_item_drop(unit->position, wpn_drop);

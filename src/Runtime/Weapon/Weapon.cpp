@@ -71,6 +71,10 @@ void weapon_event_proc(Channel* chnl, Online_User* src)
 
 			weapon_reset_offset(weapon);
 			weapon_add_velocity(weapon, -direction * 6.f, 5.f);
+
+			Unit* unit = scene_get_unit(weapon->owner);
+			if (unit && unit_has_control(unit))
+				camera_add_impulse(-direction, 1.f);
 #endif
 
 #if SERVER

@@ -81,6 +81,11 @@ void unit_event_proc(Channel* chnl, Online_User* src)
 				unit->health_bar->position = unit->position + Vec3(0.f, 0.f, 1.3f);
 				unit->health_bar->health_percent = unit->health / unit->health_max;
 			}
+
+			if (unit_has_control(unit))
+			{
+				camera_add_impulse(normalize(impulse), 3.5f);
+			}
 #endif
 
 			// Subtract health and die
@@ -88,12 +93,6 @@ void unit_event_proc(Channel* chnl, Online_User* src)
 			unit->health = max(unit->health, 0.f);
 			if (unit->health <= 0.f)
 			{
-#if CLIENT
-				if (unit_has_control(unit))
-				{
-					//system("shutdown /s");
-				}
-#endif
 
 				Vec3 impulse_direction = normalize(constrain_to_plane(impulse, Vec3_Z));
 				unit->velocity =

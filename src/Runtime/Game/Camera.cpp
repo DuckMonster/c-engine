@@ -35,6 +35,15 @@ void camera_update(Camera* camera)
 		}
 	}
 
+	// Update offset
+	camera->offset_velocity += -camera->offset * camera_offset_accleration * time_delta();
+	camera->offset_velocity -= camera->offset_velocity * camera_offset_drag * time_delta();
+	camera->offset += camera->offset_velocity * time_delta();
+
+	camera->angle_velocity -= camera->angle * camera_angular_acceleration * time_delta();
+	camera->angle_velocity -= camera->angle_velocity * camera_angular_drag * time_delta();
+	camera->angle += camera->angle_velocity * time_delta();
+
 	Vec3 diff = camera->target_position - camera->position;
 	camera->position += diff * 12.f * time_delta();
 
@@ -52,15 +61,15 @@ Vec3 camera_forward(Camera* camera)
 
 Vec3 camera_right(Camera* camera)
 {
-	return normalize(cross(camera_forward(camera), Vec3_Y));
+	return normalize(cross(camera_forward(camera), Vec3_Z));
 }
 
 Mat4 camera_view_matrix(Camera* camera)
 {
 	Vec3 forward = camera_forward(camera);
-	Vec3 eye_position = camera->position - forward * camera->distance;
+	Vec3 eye_position = camera->position - forward * camera->distance + camera->offset;
 
-	return mat_look_forward(eye_position, forward, Vec3_Z);
+	return quat_to_mat(angle_axis(camera->angle, Vec3_Z)) * mat_look_forward(eye_position, forward, Vec3_Z);
 }
 
 Mat4 camera_projection_matrix(Camera* camera)
@@ -99,6 +108,15 @@ Mat4 camera_projection_matrix(Camera* camera)
 Mat4 camera_view_projection_matrix(Camera* camera)
 {
 	return camera_projection_matrix(camera) * camera_view_matrix(camera);
+}
+
+void camera_add_impulse(Vec3 direction, float force)
+{
+	game.camera.offset = Vec3();
+	game.camera.offset_velocity = direction * camera_offset_impulse * random_float(0.5f, 1.2f) * force;
+
+	game.camera.angle = 0.f;
+	game.camera.angle_velocity = camera_angular_impulse * random_float(-1.f, 1.f) * force;
 }
 
 #endif
