@@ -2,6 +2,7 @@
 #include "Runtime/Game/HandleTypes.h"
 #include "WeaponType.h"
 
+struct Unit;
 struct Billboard;
 struct Channel;
 

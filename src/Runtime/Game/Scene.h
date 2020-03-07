@@ -73,7 +73,7 @@ void scene_destroy_bullet(Bullet* bullet);
 Prop* scene_make_prop(const char* path);
 void scene_destroy_prop(Prop* prop);
 
-Item_Drop* scene_make_item_drop(const Vec3& position, const Weapon_Instance& weapon);
+Item_Drop* scene_make_item_drop(u32 id, u32 generation, const Vec3& position, const Weapon_Instance& weapon);
 void scene_destroy_item_drop(Item_Drop* drop);
 
 #if CLIENT

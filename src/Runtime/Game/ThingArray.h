@@ -181,7 +181,6 @@ bool _thing_iterate(Thing_Array<Type>* array, Type*& it)
 // Contains a handle to a specific instance of a thing in a thing array
 // If the thing becomes disabled, or overwritten with a new instance, the handle will
 // 	become invalid
-template<typename Type>
 struct Thing_Handle
 {
 	i32 index = -1;
@@ -189,15 +188,15 @@ struct Thing_Handle
 };
 
 template<typename Type>
-Thing_Handle<Type> thing_get_handle_at(Thing_Array<Type>* array, u32 index)
+Thing_Handle thing_get_handle_at(Thing_Array<Type>* array, u32 index)
 {
 	assert_msg(index < array->size, "Tried to get handle to instance not in thing array");
 
 	// Instance is not enabled, just return a null-handle
 	if (!array->enable[index])
-		return Thing_Handle<Type>();
+		return Thing_Handle();
 
-	Thing_Handle<Type> handle;
+	Thing_Handle handle;
 	handle.index = index;
 	handle.generation = array->generation[index];
 
@@ -205,16 +204,25 @@ Thing_Handle<Type> thing_get_handle_at(Thing_Array<Type>* array, u32 index)
 }
 
 template<typename Type>
-Thing_Handle<Type> thing_get_handle(Thing_Array<Type>* array, Type* instance)
+Thing_Handle thing_get_handle(Thing_Array<Type>* array, Type* instance)
 {
 	if (instance == nullptr)
-		return Thing_Handle<Type>();
+		return Thing_Handle();
 
 	return thing_get_handle_at(array, instance - array->data);
 }
 
 template<typename Type>
-Type* thing_resolve(Thing_Array<Type>* array, const Thing_Handle<Type>& handle)
+Thing_Handle thing_get_first_free_handle(Thing_Array<Type>* array, Type* instance)
+{
+	if (instance == nullptr)
+		return Thing_Handle();
+
+	return thing_get_handle_at(array, instance - array->data);
+}
+
+template<typename Type>
+Type* thing_resolve(Thing_Array<Type>* array, const Thing_Handle& handle)
 {
 	// Null-handle
 	if (handle.index < 0)

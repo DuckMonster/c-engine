@@ -151,10 +151,13 @@ void scene_destroy_prop(Prop* prop)
 	thing_remove(&scene.props, prop);
 }
 
-Item_Drop* scene_make_item_drop(const Vec3& position, const Weapon_Instance& weapon)
+Item_Drop* scene_make_item_drop(u32 id, u32 generation, const Vec3& position, const Weapon_Instance& weapon)
 {
-	Item_Drop* drop = thing_add(&scene.drops);
+	Item_Drop* drop = thing_add_at(&scene.drops, id);
 	item_drop_init(drop, position, weapon);
+
+	// Manually set the generation
+	scene.drops.generation[id] = generation;
 
 	return drop;
 }

@@ -8,6 +8,7 @@
 struct Channel;
 struct Online_User;
 struct Drawable;
+struct Weapon_Instance;
 
 struct Player;
 struct Mob;
@@ -68,5 +69,7 @@ void game_user_added(Online_User* user);
 void game_user_leave(Online_User* user);
 Mob* game_create_mob_for_unit(Unit* unit);
 void game_destroy_mob(Mob* mob);
+
+void game_create_item_drop(const Vec3& position, const Weapon_Instance& weapon);
 
 #endif

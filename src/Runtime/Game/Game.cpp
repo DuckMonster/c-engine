@@ -27,6 +27,8 @@ enum Game_Event
 	EVENT_Player_Leave,
 	EVENT_Mob_Create,
 	EVENT_Mob_Destroy,
+	EVENT_Drop_Create,
+	EVENT_Drop_Pickup,
 };
 
 void game_event_proc(Channel* chnl, Online_User* src)
@@ -128,6 +130,27 @@ void game_event_proc(Channel* chnl, Online_User* src)
 			break;
 		}
 
+		case EVENT_Drop_Create:
+		{
+			u32 drop_id;
+			u32 drop_generation;
+			Vec3 position;
+			Weapon_Instance weapon;
+
+			channel_read_t(chnl, &drop_id);
+			channel_read_t(chnl, &drop_generation);
+			channel_read_t(chnl, &position);
+			channel_read_t(chnl, &weapon);
+
+			scene_make_item_drop(drop_id, position, weapon);
+			break;
+		}
+
+		case EVENT_Drop_Pickup:
+		{
+
+		}
+
 		default:
 			debug_log("Received unknown event type %d", event_type);
 			break;
@@ -155,10 +178,6 @@ void game_init()
 
 	game.floor = scene_make_drawable(mesh_load("Mesh/Environment/floor.fbx"), material_load("Material/Environment/floor.mat"));
 	editor_init();
-
-	scene_make_item_drop(Vec3(0.2f, -5.f, 0.f), weapon_instance_make(WEAPON_Pistol, 0));
-	scene_make_item_drop(Vec3(1.2f, -5.f, 0.f), weapon_instance_make(WEAPON_AssaultRifle, 0));
-	scene_make_item_drop(Vec3(2.2f, -5.f, 0.f), weapon_instance_make(WEAPON_Shotgun, 0));
 #endif
 
 #if SERVER
@@ -434,6 +453,16 @@ void game_destroy_mob(Mob* mob)
 	channel_reset(game.channel);
 	channel_write_u8(game.channel, EVENT_Mob_Destroy);
 	channel_write_u32(game.channel, mob->id);
+	channel_broadcast(game.channel, true);
+}
+
+void game_create_item_drop(const Vec3& position, const Weapon_Instance& weapon)
+{
+	u32 drop_id = thing_find_first_free(&scene.drops);
+	channel_reset(game.channel);
+	channel_write_u8(game.channel, drop_id);
+	channel_write_vec3(game.channel, position);
+	channel_write_t(game.channel, weapon);
 	channel_broadcast(game.channel, true);
 }
 #endif
