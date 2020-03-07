@@ -39,6 +39,18 @@ void player_event_proc(Channel* chnl, Online_User* src)
 			break;
 		}
 
+		case PLAYEREV_Set_Aim_Position:
+		{
+			Vec3 aim_position;
+			channel_read(chnl, &aim_position);
+			player->shooting.aim_position_remote = aim_position;
+
+#if SERVER
+			channel_rebroadcast_last(chnl, false);
+#endif
+			break;
+		}
+
 		case PLAYEREV_Pickup_Weapon:
 		{
 			Unit* unit = scene_get_unit(player->controlled_unit);
@@ -70,6 +82,8 @@ void player_init(Player* player, u32 id, const Unit_Handle& unit_to_control)
 	player->channel = channel_open("PLYR", id, player_event_proc);
 	player->channel->user_ptr = player;
 
+	player->shooting.aim_sync_timer.interval = 0.2f;
+
 	Unit* unit = scene_get_unit(unit_to_control);
 
 #if CLIENT
@@ -80,6 +94,12 @@ void player_init(Player* player, u32 id, const Unit_Handle& unit_to_control)
 			unit->player_owner = game_player_handle(player);
 	}
 #endif
+
+	Weapon_Instance instance;
+	instance.type = WEAPON_Pistol;
+	instance.attributes.level = 0;
+
+	unit_equip_weapon(unit, instance);
 }
 
 void player_free(Player* player)

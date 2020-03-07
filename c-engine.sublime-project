@@ -45,7 +45,7 @@
 				"outputs":
 				[
 					{ "path": "bin/debug/game.exe", "args": "Player0" },
-					//{ "path": "bin/debug/game.exe", "args": "Player1" },
+					{ "path": "bin/debug/game.exe", "args": "Player1" },
 					{ "path": "bin/debug/game_server.exe" }
 				]
 			}

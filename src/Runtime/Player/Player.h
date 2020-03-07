@@ -12,6 +12,7 @@ struct Item_Drop;
 enum Player_Event
 {
 	PLAYEREV_Set_Input,
+	PLAYEREV_Set_Aim_Position,
 	PLAYEREV_Pickup_Weapon,
 };
 

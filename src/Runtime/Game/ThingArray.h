@@ -187,6 +187,40 @@ struct Thing_Handle
 	u32 generation = -1;
 };
 
+inline bool thing_handle_is_valid(const Thing_Handle& handle)
+{
+	return handle.index >= 0;
+}
+
+// Will add a thing at the point of a specific handle (usually coming from server)
+// This will also set the generation to whatever the handle is
+template<typename Type>
+Type* thing_add_at(Thing_Array<Type>* array, const Thing_Handle& handle)
+{
+	assert_msg(thing_handle_is_valid(handle), "Tried to add at specific handle, but the handle was invalid");
+	assert_msg(handle.index < array->size, "Tried too add at specific handle, but index was out of bounds");
+	assert_msg(!array->enable[handle.index], "Tried to add at specific handle in thing array, but that index is full");
+	array->enable[handle.index] = true;
+	array->generation[handle.index] = handle.generation;
+
+	// Update edge pointers!
+	if (array->num == 0)
+	{
+		// This is the first entry in the array, so both edges are this index
+		array->index_min = array->index_max = handle.index;
+	}
+	else
+	{
+		if (handle.index < array->index_min)
+			array->index_min = handle.index;
+		if (handle.index > array->index_max)
+			array->index_max = handle.index;
+	}
+
+	array->num++;
+	return array->data + handle.index;
+}
+
 template<typename Type>
 Thing_Handle thing_get_handle_at(Thing_Array<Type>* array, u32 index)
 {
@@ -213,12 +247,14 @@ Thing_Handle thing_get_handle(Thing_Array<Type>* array, Type* instance)
 }
 
 template<typename Type>
-Thing_Handle thing_get_first_free_handle(Thing_Array<Type>* array, Type* instance)
+Thing_Handle thing_find_first_free_handle(Thing_Array<Type>* array)
 {
-	if (instance == nullptr)
-		return Thing_Handle();
+	u32 free_index = thing_find_first_free(array);
 
-	return thing_get_handle_at(array, instance - array->data);
+	Thing_Handle free_handle;
+	free_handle.index = free_index;
+	free_handle.generation = array->generation[free_index];
+	return free_handle;
 }
 
 template<typename Type>

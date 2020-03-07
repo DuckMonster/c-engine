@@ -72,6 +72,11 @@ void weapon_event_proc(Channel* chnl, Online_User* src)
 			weapon_reset_offset(weapon);
 			weapon_add_velocity(weapon, -direction * 6.f, 5.f);
 #endif
+
+#if SERVER
+			if (src != nullptr)
+				channel_rebroadcast_last(chnl, true);
+#endif
 			break;
 		}
 	}

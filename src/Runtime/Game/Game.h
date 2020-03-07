@@ -5,6 +5,7 @@
 #include "Runtime/Game/Camera.h"
 #include "Runtime/Editor/Editor.h"
 
+struct Unit;
 struct Channel;
 struct Online_User;
 struct Drawable;

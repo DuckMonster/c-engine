@@ -149,7 +149,6 @@ void fx_make_res(const Fx_Resource* resource, const Fx_Params& params)
 				Fx_Spike_Params spike = fx_read_spike_params(object);
 				spike.base = transformed_params;
 
-				debug_log("Making spike (%f, %f)", spike.from, spike.to);
 				fx_make_spike(spike);
 			}
 			else

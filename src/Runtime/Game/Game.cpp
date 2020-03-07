@@ -132,17 +132,15 @@ void game_event_proc(Channel* chnl, Online_User* src)
 
 		case EVENT_Drop_Create:
 		{
-			u32 drop_id;
-			u32 drop_generation;
 			Vec3 position;
+			Thing_Handle drop_handle;
 			Weapon_Instance weapon;
 
-			channel_read_t(chnl, &drop_id);
-			channel_read_t(chnl, &drop_generation);
-			channel_read_t(chnl, &position);
+			channel_read(chnl, &position);
+			channel_read_t(chnl, &drop_handle);
 			channel_read_t(chnl, &weapon);
 
-			scene_make_item_drop(drop_id, position, weapon);
+			scene_make_item_drop(drop_handle, position, weapon);
 			break;
 		}
 
@@ -181,8 +179,17 @@ void game_init()
 #endif
 
 #if SERVER
+	u32 num_mobs = 0;
 	game.ai_spawn_timer.interval = 3.f;
 	game.ai_spawn_timer.variance = 2.f;
+
+	for(u32 i=0; i<num_mobs; ++i)
+	{
+		Vec2 position = random_point_on_circle();
+
+		Unit* new_unit = game_spawn_unit_at(Vec3(position, 0.f) * random_float(1.f, 10.f));
+		Mob* mob = game_create_mob_for_unit(new_unit);
+	}
 #endif
 
 	Prefab pref;
@@ -222,6 +229,7 @@ void game_update()
 
 #elif SERVER
 
+/*
 	if (thing_num(&game.players) > 0 &&
 		thing_num(&game.mobs) < min_mobs &&
 		timer_update(&game.ai_spawn_timer))
@@ -242,6 +250,7 @@ void game_update()
 		if (player_unit)
 			mob_set_agroo(mob, player_unit);
 	}
+*/
 
 #endif
 
@@ -458,10 +467,12 @@ void game_destroy_mob(Mob* mob)
 
 void game_create_item_drop(const Vec3& position, const Weapon_Instance& weapon)
 {
-	u32 drop_id = thing_find_first_free(&scene.drops);
+	Thing_Handle free_handle = thing_find_first_free_handle(&scene.drops);
+
 	channel_reset(game.channel);
-	channel_write_u8(game.channel, drop_id);
+	channel_write_u8(game.channel, EVENT_Drop_Create);
 	channel_write_vec3(game.channel, position);
+	channel_write_t(game.channel, free_handle);
 	channel_write_t(game.channel, weapon);
 	channel_broadcast(game.channel, true);
 }

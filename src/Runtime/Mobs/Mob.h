@@ -3,6 +3,8 @@
 #include "Runtime/Game/HandleTypes.h"
 #include "Runtime/Online/Channel.h"
 
+struct Unit;
+
 const float mob_shoot_range = 8.f;
 const float mob_aim_duration = 0.4f;
 const float mob_predict_lerp_speed = 10.f;

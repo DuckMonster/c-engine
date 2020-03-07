@@ -28,6 +28,14 @@ void player_shooting_update_local(Player* player)
 	Hit_Result ground_hit = test_ray_plane(mouse_ray, ground_plane);
 	shooting.aim_position = ground_hit.position;
 
+	if (timer_update(&shooting.aim_sync_timer))
+	{
+		channel_reset(player->channel);
+		channel_write_u8(player->channel, PLAYEREV_Set_Aim_Position);
+		channel_write_vec3(player->channel, shooting.aim_position);
+		channel_broadcast(player->channel, false);
+	}
+
 	/* Update pickups */
 	Item_Drop* drop = item_drop_get_closest(ground_hit.position, 1.f);
 	if (drop != shooting.hovered_drop && shooting.hovered_drop)
@@ -72,6 +80,10 @@ void player_shooting_update(Player* player)
 #if CLIENT
 		player_shooting_update_local(player);
 #endif
+	}
+	else
+	{
+		player->shooting.aim_position = lerp(player->shooting.aim_position, player->shooting.aim_position_remote, player_aim_lerp_speed * time_delta());
 	}
 
 	unit->aim_direction = normalize_safe(player->shooting.aim_position - unit_center(unit));

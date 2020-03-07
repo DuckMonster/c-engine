@@ -84,7 +84,7 @@ void unit_event_proc(Channel* chnl, Online_User* src)
 #endif
 
 			// Subtract health and die
-			//unit->health -= damage;
+			unit->health -= damage;
 			unit->health = max(unit->health, 0.f);
 			if (unit->health <= 0.f)
 			{
