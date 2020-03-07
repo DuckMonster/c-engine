@@ -10,8 +10,6 @@
 #include "Runtime/Weapon/WeaponType.h"
 #include "Runtime/Weapon/Projectile/Bullet.h"
 #include "Runtime/Online/Channel.h"
-#include "Pistol.h"
-#include "AssaultRifle.h"
 
 enum Weapon_Event
 {
@@ -45,9 +43,11 @@ void weapon_event_proc(Channel* chnl, Online_User* src)
 			for(u8 i=0; i<num_bullets; ++i)
 			{
 				Bullet_Params params;
+				u32 bullet_index;
 				channel_read_t(chnl, &params);
+				channel_read_t(chnl, &bullet_index);
 
-				scene_make_bullet(weapon->owner, params);
+				scene_make_bullet(bullet_index, weapon->owner, params);
 
 				// If we're only shooting one bullet, make that the muzzle flash direction
 				if (num_bullets == 1)
@@ -172,6 +172,9 @@ void weapon_fire(Weapon* weapon, const Vec3& target)
 		params.gravity = weapon->type_data->projectile_gravity;
 
 		channel_write_t(weapon->channel, params);
+		channel_write_u32(weapon->channel, weapon->projectile_index);
+
+		weapon->projectile_index++;
 	}
 
 	channel_broadcast(weapon->channel, true);

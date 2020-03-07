@@ -87,7 +87,7 @@ Channel* channel_open_remote(Online_User* user, const Channel_Id& id)
 	Channel* channel = channel_get(id);
 	if (channel)
 	{
-		if (channel->state != Channel_State::Open)
+		if (channel->state == Channel_State::Pending_Out)
 			channel->state = Channel_State::Open;
 
 #if SERVER

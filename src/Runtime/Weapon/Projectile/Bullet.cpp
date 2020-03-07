@@ -4,15 +4,42 @@
 #include "Engine/Collision/HitTest.h"
 #include "Runtime/Render/Drawable.h"
 #include "Runtime/Effect/LineDrawer.h"
+#include "Runtime/Online/Channel.h"
 #include "Runtime/Game/Game.h"
 #include "Runtime/Game/Scene.h"
 #include "Runtime/Game/SceneQuery.h"
 #include "Runtime/Unit/Unit.h"
 #include "Runtime/Fx/Fx.h"
 
-void bullet_init(Bullet* bullet, const Unit_Handle& owner, const Bullet_Params& params)
+enum Bullet_Events
 {
+	EVENT_Hit,
+};
+
+void handle_bullet_ev(Channel* chnl, Online_User* src)
+{
+	Bullet* bullet = (Bullet*)chnl->user_ptr;
+
+	u8 event_type;
+	channel_read(chnl, &event_type);
+
+	switch(event_type)
+	{
+		case EVENT_Hit:
+		{
+			scene_destroy_bullet(bullet);
+			break;
+		}
+	}
+}
+
+void bullet_init(Bullet* bullet, u32 index, const Unit_Handle& owner, const Bullet_Params& params)
+{
+	u32 chnl_id = (owner.index << 16) | index;
+
 	bullet->owner = owner;
+	bullet->channel = channel_open("BLET", chnl_id, handle_bullet_ev);
+	bullet->channel->user_ptr = bullet;
 
 	bullet->position = params.origin;
 	bullet->velocity = params.direction * params.speed;
@@ -41,6 +68,8 @@ void bullet_free(Bullet* bullet)
 
 	bullet->line_drawer->should_destroy = true;
 #endif
+
+	channel_close(bullet->channel);
 }
 
 void bullet_update(Bullet* bullet)
@@ -75,27 +104,26 @@ void bullet_update(Bullet* bullet)
 	Scene_Query_Result query_result = scene_query_line(move_trace, params);
 	if (query_result.hit.has_hit)
 	{
+#if SERVER
 		Unit* unit = query_result.unit;
-		if (unit && owner && unit_has_control(owner))
+		if (unit)
 		{
 			Vec3 impulse = normalize(constrain_to_plane(bullet->params.direction, Vec3_Z)) * 20.f;
 			unit_hit(unit, bullet->owner, bullet->params.damage, impulse);
 		}
-		else if (!unit)
-		{
-#if CLIENT
-			Vec3 normal = query_result.hit.normal;
-			Vec3 pos = query_result.hit.position + normal * 0.1f;
-			Vec3 velocity = reflect(bullet->velocity, normal) * 0.2f;
 #endif
-		}
 
 #if CLIENT
 		bullet->line_drawer->position = query_result.hit.position;
 #endif
 
-
+#if SERVER
+		channel_reset(bullet->channel);
+		channel_write_u8(bullet->channel, EVENT_Hit);
+		channel_broadcast(bullet->channel, true);
+#elif CLIENT
 		scene_destroy_bullet(bullet);
+#endif
 		return;
 	}
 

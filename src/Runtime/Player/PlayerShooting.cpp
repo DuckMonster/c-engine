@@ -7,8 +7,6 @@
 #include "Runtime/Weapon/ItemDrop.h"
 #include "Runtime/Weapon/WeaponType.h"
 #include "Runtime/Weapon/Weapon.h"
-#include "Runtime/Weapon/Pistol.h"
-#include "Runtime/Weapon/AssaultRifle.h"
 
 #if CLIENT
 void player_shooting_update_local(Player* player)
@@ -28,7 +26,7 @@ void player_shooting_update_local(Player* player)
 	Hit_Result ground_hit = test_ray_plane(mouse_ray, ground_plane);
 	shooting.aim_position = ground_hit.position;
 
-	if (timer_update(&shooting.aim_sync_timer))
+	if (timer_update(&shooting.aim_sync_timer) || distance_sqrd(shooting.aim_position, shooting.aim_position_remote) > square(0.2f))
 	{
 		channel_reset(player->channel);
 		channel_write_u8(player->channel, PLAYEREV_Set_Aim_Position);

@@ -3,7 +3,7 @@ struct Player;
 struct Item_Drop;
 
 const float player_item_hover_radius = 0.8f;
-const float player_aim_lerp_speed = 7.f;
+const float player_aim_lerp_speed = 12.f;
 
 struct Player_Shooting
 {

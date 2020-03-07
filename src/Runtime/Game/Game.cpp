@@ -179,7 +179,7 @@ void game_init()
 #endif
 
 #if SERVER
-	u32 num_mobs = 0;
+	u32 num_mobs = 4;
 	game.ai_spawn_timer.interval = 3.f;
 	game.ai_spawn_timer.variance = 2.f;
 

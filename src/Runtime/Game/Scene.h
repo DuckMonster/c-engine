@@ -67,7 +67,7 @@ Unit* scene_get_unit(const Unit_Handle& handle);
 Weapon* scene_make_weapon(Unit* owner, const Weapon_Instance& instance);
 void scene_destroy_weapon(Weapon* weapon);
 
-Bullet* scene_make_bullet(const Unit_Handle& owner, const Bullet_Params& params);
+Bullet* scene_make_bullet(u32 blt_index, const Unit_Handle& owner, const Bullet_Params& params);
 void scene_destroy_bullet(Bullet* bullet);
 
 Prop* scene_make_prop(const char* path);

@@ -123,10 +123,10 @@ void scene_destroy_weapon(Weapon* weapon)
 	thing_remove(&scene.weapons, weapon);
 }
 
-Bullet* scene_make_bullet(const Unit_Handle& owner, const Bullet_Params& params)
+Bullet* scene_make_bullet(u32 blt_index, const Unit_Handle& owner, const Bullet_Params& params)
 {
 	Bullet* bullet = thing_add(&scene.bullets);
-	bullet_init(bullet, owner, params);
+	bullet_init(bullet, blt_index, owner, params);
 
 	return bullet;
 }

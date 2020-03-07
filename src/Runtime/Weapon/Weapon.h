@@ -33,6 +33,9 @@ struct Weapon
 
 	float recoil_angle = 0.f;
 
+	// Counts upwards for every projectile shot, so it can be used for unique channel IDs
+	u16 projectile_index = 0;
+
 #if CLIENT
 	Billboard* billboard = nullptr;
 
