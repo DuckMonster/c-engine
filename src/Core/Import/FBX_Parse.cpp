@@ -203,7 +203,10 @@ Fbx_Node* fbx_read_node(Fbx_Buffer* buffer, Mem_Arena* mem_arena)
 	Fbx_Node* node = arena_malloc_t(mem_arena, Fbx_Node, 1);
 	node->name_len = header.name_len;
 	node->property_count = header.property_count;
-	node->properties = arena_malloc_t(mem_arena, Fbx_Property, header.property_count);
+	if (header.property_count > 0)
+		node->properties = arena_malloc_t(mem_arena, Fbx_Property, header.property_count);
+	else
+		node->properties = nullptr;
 
 	// Read name
 	node->name = (char*)arena_malloc(mem_arena, header.name_len);

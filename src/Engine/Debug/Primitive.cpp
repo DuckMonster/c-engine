@@ -105,22 +105,6 @@ void primitive_add(Primitive_Manager* manager, Primitive_Type type, void* ptr, f
 	manager->draw_list = draw;
 }
 
-void primitive_remove(Primitive_Manager* manager, Primitive_Draw* draw)
-{
-	// Re-link list
-	if (draw->prev)
-		draw->prev->next = draw->next;
-	if (draw->next)
-		draw->next->prev = draw->prev;
-
-	// If this is the first element, re-set it
-	if (manager->draw_list == draw)
-		manager->draw_list = draw->next;
-
-	delete draw->ptr;
-	delete draw;
-}
-
 void primitives_init(Primitive_Manager* manager)
 {
 	arena_init(&manager->arena);
@@ -249,11 +233,14 @@ void primitives_render(Primitive_Manager* manager, const Render_State& state)
 		Primitive_Draw* next = draw->next;
 
 		// Check if this primitive should be popped from the list
-		if (time > draw->remove_time)
-			primitive_remove(manager, draw);
+		//if (time > draw->remove_time)
+			//primitive_remove(manager, draw);
 
 		draw = next;
 	}
+
+	arena_clear(&manager->arena);
+	manager->draw_list = nullptr;
 }
 
 void primitive_draw_line(Primitive_Manager* manager, const Vec3& from, const Vec3& to, const Vec4& color, float duration)

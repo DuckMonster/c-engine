@@ -1,6 +1,7 @@
 #pragma once
 struct Arena_Buffer
 {
+	u32 index = 0;
 	u32 size = 0;
 	u16 cursor = 0;
 	u8* data = nullptr;
