@@ -22,8 +22,8 @@ inline float radians(float degrees) { return degrees / 180.f * PI; }
 inline float degrees(float radians) { return radians / PI * 180.f; }
 inline float square(float val) { return val * val; }
 inline int square(int val) { return val * val; }
-inline int min(int a, int b) { return a > b ? b : a; }
-inline int max(int a, int b) { return a < b ? b : a; }
+inline int max(i32 a, i32 b) { return a < b ? b : a; }
+inline int max(u32 a, u32 b) { return a < b ? b : a; }
 inline float min(float a, float b) { return a > b ? b : a; }
 inline float max(float a, float b) { return a < b ? b : a; }
 inline float sign(float a) { return a >= 0.f ? 1.f : -1.f; }

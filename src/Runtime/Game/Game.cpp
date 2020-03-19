@@ -179,7 +179,7 @@ void game_init()
 #endif
 
 #if SERVER
-	u32 num_mobs = 4;
+	u32 num_mobs = 0;
 	game.ai_spawn_timer.interval = 3.f;
 	game.ai_spawn_timer.variance = 2.f;
 
@@ -191,9 +191,6 @@ void game_init()
 		Mob* mob = game_create_mob_for_unit(new_unit);
 	}
 #endif
-
-	Prefab pref;
-	prefab_load(&pref, "Prefab/main.prefab");
 }
 
 void game_update()

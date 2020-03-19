@@ -89,7 +89,7 @@ Vec3* make_box_primitive_mesh(u32* num_verts)
 
 void primitive_add(Primitive_Manager* manager, Primitive_Type type, void* ptr, float duration)
 {
-	Primitive_Draw* draw = new Primitive_Draw();
+	Primitive_Draw* draw = arena_malloc_t(&manager->arena, Primitive_Draw, 1);
 	draw->type = type;
 	draw->ptr = ptr;
 	draw->remove_time = time_elapsed() + duration;
@@ -123,6 +123,8 @@ void primitive_remove(Primitive_Manager* manager, Primitive_Draw* draw)
 
 void primitives_init(Primitive_Manager* manager)
 {
+	arena_init(&manager->arena);
+
 	// Line stuff
 	manager->line_material = material_load("Material/Primitive/prim_line.mat");
 
@@ -256,7 +258,7 @@ void primitives_render(Primitive_Manager* manager, const Render_State& state)
 
 void primitive_draw_line(Primitive_Manager* manager, const Vec3& from, const Vec3& to, const Vec4& color, float duration)
 {
-	Primitive_Line* line = new Primitive_Line();
+	Primitive_Line* line = arena_malloc_t(&manager->arena, Primitive_Line, 1);
 	line->from = from;
 	line->to = to;
 	line->color = color;
@@ -266,7 +268,7 @@ void primitive_draw_line(Primitive_Manager* manager, const Vec3& from, const Vec
 
 void primitive_draw_point(Primitive_Manager* manager, const Vec3& position, const Vec4& color, float duration)
 {
-	Primitive_Point* point = new Primitive_Point();
+	Primitive_Point* point = arena_malloc_t(&manager->arena, Primitive_Point, 1);
 	point->position = position;
 	point->color = color;
 
@@ -275,7 +277,7 @@ void primitive_draw_point(Primitive_Manager* manager, const Vec3& position, cons
 
 void primitive_draw_sphere(Primitive_Manager* manager, const Vec3& origin, float radius, const Vec4& color, float duration)
 {
-	Primitive_Sphere* sphere = new Primitive_Sphere();
+	Primitive_Sphere* sphere = arena_malloc_t(&manager->arena, Primitive_Sphere, 1);
 	sphere->origin = origin;
 	sphere->radius = radius;
 	sphere->color = color;
@@ -285,7 +287,7 @@ void primitive_draw_sphere(Primitive_Manager* manager, const Vec3& origin, float
 
 void primitive_draw_box(Primitive_Manager* manager, const Vec3& position, const Vec3& size, const Quat& orientation, const Vec4& color, float duration)
 {
-	Primitive_Box* box = new Primitive_Box();
+	Primitive_Box* box = arena_malloc_t(&manager->arena, Primitive_Box, 1);
 	box->position = position;
 	box->size = size;
 	box->orientation = orientation;

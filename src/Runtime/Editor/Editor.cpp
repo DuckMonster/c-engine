@@ -10,7 +10,6 @@
 #include "Runtime/Game/Game.h"
 #include "Runtime/Prop/Prop.h"
 #include "Runtime/Render/Drawable.h"
-#include "Runtime/Prefab/Prefab.h"
 
 Editor editor;
 
@@ -20,6 +19,9 @@ Ray test_ray;
 void editor_init()
 {
 	gizmo_init(&editor.gizmo);
+
+	editor.cells = new Cell[editor.cell_grid_size * editor.cell_grid_size];
+	editor.edit_cell = &editor.cells[0];
 }
 
 void editor_update()
@@ -51,51 +53,71 @@ void editor_update()
 		editor_select_edit(nullptr);
 	}
 
-	// Creating new props
-	if (input_key_pressed(Key::N))
-	{
-		// Get path to open
-		Open_File_Params params;
-		params.filter = "Prop\0*.prop\0";
-		params.initial_directory = "Prop";
-
-		const char* path = prompt_open_file(params);
-
-		if (path != nullptr)
-		{
-			const char* relative_path = resource_absolute_to_relative_path(path);
-			Prop* new_prop = scene_make_prop(relative_path);
-
-			editor_select_edit(new_prop);
-		}
-	}
 
 	if (input_key_down(Key::LeftControl))
 	{
+		// Creating new props
+		if (input_key_pressed(Key::P))
+		{
+			// Get path to open
+			Open_File_Params params;
+			params.filter = "Prop\0*.prop\0";
+			params.initial_directory = "Prop";
+
+			const char* path = prompt_open_file(params);
+
+			if (path != nullptr)
+			{
+				const char* relative_path = resource_absolute_to_relative_path(path);
+				Prop* new_prop = cell_add_prop(editor.edit_cell, relative_path);
+
+				editor_select_edit(new_prop);
+			}
+		}
+
+		// New cell
+		if (input_key_pressed(Key::N))
+		{
+			bool should_free = true;
+			if (editor.edit_cell->is_dirty)
+				should_free = prompt_yes_no("Unsaved work", "The working cell has unsaved changes, really remove everything?");
+
+			if (should_free)
+			{
+				cell_free(editor.edit_cell);
+				editor_select_edit(nullptr);
+			}
+		}
 		// Saving
 		if (input_key_pressed(Key::S))
 		{
-			// Get path to save to
-			Save_File_Params params;
-			params.extension = "Prefab\0*.prefab\0";
-			params.initial_directory = "Prefab";
+			const char* path = editor.edit_cell->path;
+			if (path == nullptr || input_key_down(Key::LeftShift))
+			{
+				// Get path to save to
+				Save_File_Params params;
+				params.extension = "Cell\0*.cell\0";
+				params.initial_directory = "MapGen\\Cell";
 
-			const char* path = prompt_save_file(params);
+				path = prompt_save_file(params);
+				path = resource_absolute_to_relative_path(path);
+			}
+
 			if (path != nullptr)
-				prefab_save(&editor.prefab, path);
+				cell_save(editor.edit_cell, path);
 		}
 		// Loading
 		if (input_key_pressed(Key::O))
 		{
 			// Get path to open
 			Open_File_Params params;
-			params.filter = "*.prefab";
-			params.initial_directory = "Prefab";
+			params.filter = "*.cell";
+			params.initial_directory = "MapGen\\Cell";
 
 			const char* path = prompt_open_file(params);
 
 			if (path != nullptr)
-				prefab_load(&editor.prefab, path);
+				cell_load(editor.edit_cell, path);
 		}
 		// Duplicating
 		if (input_key_pressed(Key::D) && editor.edit_prop)
@@ -132,6 +154,17 @@ void editor_update()
 	scene_query_line(trace, params);
 }
 
+void draw_cell(u32 x, u32 y, bool selected)
+{
+	Vec3 offset = Vec3_X * x + Vec3_Y * y + Vec3_Z * (selected ? 0.3f : 0.2f);
+	Vec4 color = selected ? Color_White : Color_Gray;
+
+	scene_draw_line(Vec3_Zero + offset, Vec3_X + offset, color);
+	scene_draw_line(Vec3_Zero + offset, Vec3_Y + offset, color);
+	scene_draw_line(Vec3_X + Vec3_Y + offset, Vec3_X + offset, color);
+	scene_draw_line(Vec3_X + Vec3_Y + offset, Vec3_Y + offset, color);
+}
+
 void editor_render(const Render_State& state)
 {
 	// Draw origin lines
@@ -139,6 +172,14 @@ void editor_render(const Render_State& state)
 	scene_draw_line(Vec3_X * -50.f + offset, Vec3_X * 50.f + offset, Color_Red);
 	scene_draw_line(Vec3_Y * -50.f + offset, Vec3_Y * 50.f + offset, Color_Green);
 	scene_draw_line(Vec3_Z * -50.f + offset, Vec3_Z * 50.f + offset, Color_Blue);
+
+	for(u32 x=0; x<editor.cell_grid_size; ++x)
+	{
+		for(u32 y=0; y<editor.cell_grid_size; ++y)
+		{
+			draw_cell(x, y, &editor.cells[x + y * editor.cell_grid_size] == editor.edit_cell);
+		}
+	}
 
 	if (editor.edit_prop && !input_key_down(Key::LeftControl))
 		if (state.current_pass == PASS_Game)
@@ -155,7 +196,7 @@ void editor_select_edit(Prop* prop)
 
 void editor_duplicate_prop(Prop* src)
 {
-	Prop* new_prop = scene_make_prop(src->resource_path);
+	Prop* new_prop = cell_add_prop(editor.edit_cell, src->resource_path);
 	prop_set_transform(new_prop, src->transform);
 }
 

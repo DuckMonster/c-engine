@@ -1,9 +1,10 @@
 #pragma once
 #include "EdCamera.h"
 #include "TransformGizmo.h"
-#include "Runtime/Prefab/Prefab.h"
+#include "Runtime/MapGen/Cell.h"
 
 struct Prop;
+struct Cell;
 
 struct Editor
 {
@@ -11,7 +12,10 @@ struct Editor
 
 	Transform_Gizmo gizmo;
 	Prop* edit_prop = nullptr;
-	Prefab prefab;
+
+	u32 cell_grid_size = 10;
+	Cell* cells = nullptr;
+	Cell* edit_cell = nullptr;
 };
 extern Editor editor;
 

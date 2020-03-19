@@ -89,22 +89,6 @@ Scene_Query_Result scene_query_line(const Line_Trace& line, const Scene_Query_Pa
 		result = select_result(result, env_result);
 	}
 
-	/* DEBUG */
-#if CLIENT
-	if (params.debug_render)
-	{
-		Aligned_Box box;
-		box.position = Vec3(0.f, 20.f, 0.f);
-		box.size = Vec3(4.f, 3.f, 2.f);
-		scene_draw_box(box.position, box.size, Quat_Identity);
-
-		Scene_Query_Result debug_result;
-		debug_result.hit = test_line_trace_aligned_box(line, box);
-
-		result = select_result(result, debug_result);
-	}
-#endif
-
 #if CLIENT
 	if (params.debug_render)
 		scene_draw_line_query_result(line, result.hit, params.debug_render_duration);

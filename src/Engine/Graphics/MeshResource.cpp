@@ -20,6 +20,7 @@ void mesh_res_create(Resource* resource)
 		return;
 
 	defer { fbx_free(scene); };
+	return;
 
 	Fbx_Mesh& fbx_mesh = scene->meshes[0];
 

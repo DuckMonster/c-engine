@@ -1,4 +1,5 @@
 #pragma once
+#include "Core/Memory/Arena.h"
 #include "Engine/Graphics/Mesh.h"
 #include "Runtime/Render/Render.h"
 
@@ -70,6 +71,9 @@ struct Primitive_Manager
 
 	// Box stuff
 	Mesh box_mesh;
+
+	// Arena holding all the primitive data
+	Mem_Arena arena;
 };
 
 void primitives_init(Primitive_Manager* manager);
