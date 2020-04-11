@@ -90,8 +90,8 @@ void material_res_create(Resource* resource, Material* material)
 	const Shader* vertex_shdr = shader_load(GL_VERTEX_SHADER, vert_path);
 	const Shader* fragment_shdr = shader_load(GL_FRAGMENT_SHADER, frag_path);
 
-	resource_add_dependency(resource, vert_path);
-	resource_add_dependency(resource, frag_path);
+	resource_add_dependency(resource, resource_from_data(vertex_shdr));
+	resource_add_dependency(resource, resource_from_data(fragment_shdr));
 
 	bool shader_success = true;
 
@@ -105,7 +105,7 @@ void material_res_create(Resource* resource, Material* material)
 	if (dat_read(doc.root, "geometry", &geom_path))
 	{
 		const Shader* geometry_shdr = shader_load(GL_GEOMETRY_SHADER, geom_path);
-		resource_add_dependency(resource, geom_path);
+		resource_add_dependency(resource, resource_from_data(geometry_shdr));
 
 		material->geometry = shader_compile(geometry_shdr, defines, num_defines);
 		glAttachShader(material->program, material->geometry);
@@ -164,7 +164,7 @@ void material_res_create(Resource* resource, Material* material)
 	if (dat_read(doc.root, "texture", &texture_path))
 	{
 		const Texture* texture = texture_load(texture_path);
-		resource_add_dependency(resource, texture_path);
+		resource_add_dependency(resource, resource_from_data(texture));
 
 		material->texture = texture;
 	}

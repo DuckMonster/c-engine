@@ -29,11 +29,7 @@ void* arena_malloc(Mem_Arena* arena, u32 size)
 	// Keep iterating through buffers until we find/alloc one big enough
 	while (buffer == nullptr || (buffer->size - buffer->cursor) < size)
 	{
-		if (size > arena->buffer_size)
-		{
-			int apa = 0;
-		}
-		// arena->buffer_size = max(arena->buffer_size, size);
+		arena->buffer_size = max(arena->buffer_size, size);
 
 		// Theres already a next buffer (we've cleared the arena)
 		if (buffer && buffer->next != nullptr)

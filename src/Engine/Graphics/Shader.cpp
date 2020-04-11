@@ -91,7 +91,7 @@ void shader_res_create(Resource* resource, Shader* shader, GLenum type)
 			continue;
 		}
 
-		resource_add_dependency(resource, path_buffer);
+		resource_add_dependency(resource, resource_from_data(include_shader));
 		shader->includes[shader->num_includes] = include_shader;
 		shader->num_includes++;
 	}

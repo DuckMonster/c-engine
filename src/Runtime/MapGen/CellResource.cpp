@@ -34,7 +34,10 @@ void cell_res_create(Resource* res, Cell_Resource* cell)
 
 		// Load the prop resource
 		prop.resource = prop_resource_load(prop.path);
-		resource_add_dependency(res, prop.path);
+
+		// Add dependency..
+		Resource* prop_res = resource_from_data(prop.resource);
+		resource_add_dependency(res, prop_res);
 
 		// Read transform
 		fread(&prop.transform, sizeof(prop.transform), 1, file);

@@ -34,11 +34,11 @@ void prop_res_create(Resource* resource, Prop_Resource* prop)
 
 	prop->mesh = &mesh_resource->mesh;
 	prop->shape = &mesh_resource->shape;
-	resource_add_dependency(resource, mesh_path);
+	resource_add_dependency(resource, resource_from_data(mesh_resource));
 
 #if CLIENT
 	prop->material = material_load(material_path);
-	resource_add_dependency(resource, material_path);
+	resource_add_dependency(resource, resource_from_data(prop->material));
 #endif
 }
 

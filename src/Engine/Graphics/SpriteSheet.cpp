@@ -41,7 +41,8 @@ static void sprite_sheet_res_create(Resource* resource)
 	}
 
 	sheet->texture = texture_load(src_path);
-	resource_add_dependency(resource, src_path);
+	Resource* tex_res = resource_from_data(sheet->texture);
+	resource_add_dependency(resource, tex_res);
 
 	dat_read(doc.root, "padding", &sheet->padding);
 
@@ -88,17 +89,6 @@ static void sprite_sheet_res_create(Resource* resource)
 			anim++;
 		}
 	}
-
-	String_Builder str;
-	str_append_format(&str, "SpriteSheet '%s' animations:\n", resource->path);
-	for(u32 i=0; i<sheet->num_animations; ++i)
-	{
-		Sprite_Anim& anim = sheet->animations[i];
-		str_append_format(&str, "%s: [%d, %d], %d, %f\n", anim.name, anim.origin_x, anim.origin_y, anim.length, anim.duration);
-	}
-
-	debug_log(str.str);
-	str_free(&str);
 }
 
 static void sprite_sheet_res_destroy(Resource* resource)
