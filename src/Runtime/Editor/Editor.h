@@ -17,6 +17,8 @@ struct Editor
 	Cell* cells = nullptr;
 	Cell* edit_cell = nullptr;
 	Cell* brush_cell = nullptr;
+
+	Cell* last_brushed_cell = nullptr;
 };
 extern Editor editor;
 
@@ -26,6 +28,8 @@ void editor_update();
 void editor_render(const Render_State& state);
 void editor_select_edit(Prop* prop);
 void editor_duplicate_prop(Prop* src);
+
+Cell* editor_find_hovered_cell();
 
 Ray editor_mouse_ray();
 #endif

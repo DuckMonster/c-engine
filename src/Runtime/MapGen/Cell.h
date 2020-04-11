@@ -25,6 +25,7 @@ void cell_free(Cell* cell);
 void cell_empty(Cell* cell);
 void cell_load(Cell* cell, const char* path);
 void cell_save(Cell* cell, const char* path);
+void cell_copy(Cell* cell, Cell* other);
 
 void cell_set_transform(Cell* cell, const Transform& transform);
 void cell_update_transforms(Cell* cell);

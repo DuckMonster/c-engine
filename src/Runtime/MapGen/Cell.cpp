@@ -24,6 +24,7 @@ void cell_empty(Cell* cell)
 		Cell_Prop* next = prop->next;
 		if (prop->prop)
 			scene_destroy_prop(prop->prop);
+		delete prop->path;
 		delete prop;
 
 		prop = next;
@@ -104,6 +105,27 @@ void cell_save(Cell* cell, const char* path)
 	cell->is_dirty = false;
 }
 
+void cell_copy(Cell* cell, Cell* other)
+{
+	cell_free(cell);
+	cell_update_transforms(other);
+
+	cell->path = strcpy_malloc(other->path);
+	cell->is_dirty = other->is_dirty;
+
+	Cell_Prop* other_prop = other->props;
+
+	while(other_prop)
+	{
+		Prop* prop = cell_add_prop(cell, other_prop->path);
+		prop_set_transform(prop, cell->base_transform * other_prop->transform);
+
+		other_prop = other_prop->next;
+	}
+
+	cell_update_transforms(cell);
+}
+
 void cell_set_transform(Cell* cell, const Transform& transform)
 {
 	cell->base_transform = transform;
@@ -121,7 +143,6 @@ void cell_update_transforms(Cell* cell)
 		prop = prop->next;
 	}
 }
-
 
 Prop* cell_add_prop(Cell* cell, const char* prop_path)
 {

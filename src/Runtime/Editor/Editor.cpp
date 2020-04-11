@@ -105,9 +105,9 @@ void editor_update()
 		}
 
 		// Select brush
-		if (input_key_pressed(Key::B))
+		if (input_key_down(Key::B))
 		{
-			editor.brush_cell = editor.edit_cell;
+			editor.brush_cell = editor_find_hovered_cell();
 		}
 
 		// Saving
@@ -152,22 +152,17 @@ void editor_update()
 		// Select active cell
 		if (input_key_down(Key::C))
 		{
-			Ray mouse_ray = editor_mouse_ray();
-			Plane cell_plane = plane_make(Vec3_Z * 0.2f, Vec3_Z);
+			editor.edit_cell = editor_find_hovered_cell();
+		}
 
-			Hit_Result cell_hit = test_ray_plane(mouse_ray, cell_plane);
-			i32 hit_x = floor(cell_hit.position.x + 0.5f);
-			i32 hit_y = floor(cell_hit.position.y + 0.5f);
-
-			if (hit_x < 0 || hit_x >= editor.cell_grid_size ||
-				hit_y < 0 || hit_y >= editor.cell_grid_size)
+		// Draw!
+		if (input_key_down(Key::B) && editor.brush_cell)
+		{
+			Cell* draw_cell = editor_find_hovered_cell();
+			if (draw_cell != editor.last_brushed_cell || input_key_pressed(Key::B))
 			{
-				editor.edit_cell = nullptr;
-			}
-			else
-			{
-				u32 index = hit_x + hit_y * editor.cell_grid_size;
-				editor.edit_cell = &editor.cells[index];
+				editor.last_brushed_cell = draw_cell;
+				cell_copy(draw_cell, editor.brush_cell);
 			}
 		}
 	}
@@ -207,11 +202,14 @@ void draw_cell(Cell* cell)
 
 	// Selected ones are brighter and higher up
 	bool is_selected = (cell == editor.edit_cell);
+	bool is_brush = (cell == editor.brush_cell);
 
 	// Colors
-	Vec4 color = Color_White;
-	if (!is_selected)
-		color = color * 0.5f;
+	Vec4 color = Color_Gray;
+	if (is_selected)
+		color = Color_White;
+	if (is_brush)
+		color = Color_Blue;
 
 	Mat4 transform = transform_mat(cell->base_transform);
 
@@ -258,8 +256,32 @@ void editor_select_edit(Prop* prop)
 
 void editor_duplicate_prop(Prop* src)
 {
+	if (editor.edit_cell == nullptr)
+		return;
+
 	Prop* new_prop = cell_add_prop(editor.edit_cell, src->resource_path);
 	prop_set_transform(new_prop, src->transform);
+}
+
+Cell* editor_find_hovered_cell()
+{
+	Ray mouse_ray = editor_mouse_ray();
+	Plane cell_plane = plane_make(Vec3_Z * 0.2f, Vec3_Z);
+
+	Hit_Result cell_hit = test_ray_plane(mouse_ray, cell_plane);
+	i32 hit_x = floor(cell_hit.position.x + 0.5f);
+	i32 hit_y = floor(cell_hit.position.y + 0.5f);
+
+	if (hit_x < 0 || hit_x >= editor.cell_grid_size ||
+		hit_y < 0 || hit_y >= editor.cell_grid_size)
+	{
+		return nullptr;
+	}
+	else
+	{
+		u32 index = hit_x + hit_y * editor.cell_grid_size;
+		return &editor.cells[index];
+	}
 }
 
 Ray editor_mouse_ray()
