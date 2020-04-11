@@ -19,15 +19,8 @@ void texture_free(Texture* tex)
 	glDeleteTextures(1, &tex->handle);
 }
 
-void texture_res_create(Resource* resource)
+void texture_res_create(Resource* resource, Texture* texture)
 {
-	Texture* texture = (Texture*)resource->ptr;
-	if (texture == nullptr)
-	{
-		texture = new Texture();
-		resource->ptr = texture;
-	}
-
 	texture_create(texture);
 
 	Tga_File tga;
@@ -83,8 +76,7 @@ void texture_res_destroy(Resource* resource)
 
 const Texture* texture_load(const char* path)
 {
-	Resource* resource = resource_load(path, texture_res_create, texture_res_destroy);
-	return (Texture*)resource->ptr;
+	return resource_load_t(Texture, path, texture_res_create, texture_res_destroy);
 }
 
 void texture_data(Texture* texture, u32 elements, u32 width, u32 height, const void* data)

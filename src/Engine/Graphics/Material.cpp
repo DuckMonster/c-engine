@@ -9,15 +9,8 @@
 #include <stdio.h>
 
 /* MATERIAL */
-void material_res_create(Resource* resource)
+void material_res_create(Resource* resource, Material* material)
 {
-	Material* material = (Material*)resource->ptr;
-	if (!material)
-	{
-		material = new Material();
-		resource->ptr = material;
-	}
-
 	material->program = glCreateProgram();
 
 	// Read material dat file
@@ -177,9 +170,8 @@ void material_res_create(Resource* resource)
 	}
 }
 
-void material_res_destroy(Resource* resource)
+void material_res_destroy(Resource* resource, Material* material)
 {
-	Material* material = (Material*)resource->ptr;
 	glDeleteProgram(material->program);
 
 	if (material->vertex != GL_INVALID_INDEX)
@@ -194,9 +186,7 @@ void material_res_destroy(Resource* resource)
 
 const Material* material_load(const char* path)
 {
-	// Load resource
-	Resource* resource = resource_load(path, material_res_create, material_res_destroy);
-	return (Material*)resource->ptr;
+	return resource_load_t(Material, path, material_res_create, material_res_destroy);
 }
 
 void material_bind(const Material* mat)

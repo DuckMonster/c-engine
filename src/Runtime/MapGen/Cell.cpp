@@ -1,6 +1,7 @@
 #include "Cell.h"
 #include "Runtime/Game/Scene.h"
 #include "Runtime/Prop/Prop.h"
+#include "CellResource.h"
 #include <stdio.h>
 
 void cell_free(Cell* cell)
@@ -11,85 +12,55 @@ void cell_free(Cell* cell)
 		cell->path = nullptr;
 	}
 
-	Cell_Entry* entry = cell->entries;
+	cell_empty(cell);
+}
 
-	while(entry)
+void cell_empty(Cell* cell)
+{
+	Cell_Prop* prop = cell->props;
+
+	while(prop)
 	{
-		Cell_Entry* next = entry->next;
-		if (entry->prop)
-			scene_destroy_prop(entry->prop);
-		delete entry;
+		Cell_Prop* next = prop->next;
+		if (prop->prop)
+			scene_destroy_prop(prop->prop);
+		delete prop;
 
-		entry = next;
+		prop = next;
 	}
 
-	cell->entries = nullptr;
-	cell->is_dirty = false;
+	cell->props = nullptr;
+	cell->is_dirty = true;
 }
 
 void cell_load(Cell* cell, const char* path)
 {
-	cell_free(cell);
+	cell_empty(cell);
 
-	FILE* file = fopen(path, "rb");
-	if (file == nullptr)
+	// If the pointers are the same, we're just re-loading using the same path
+	if (cell->path != path)
 	{
-		msg_box("Failed to load cell '%s', file doesn't exist", path);
-		return;
+		if (cell->path != nullptr)
+			free(cell->path);
+
+		cell->path = strcpy_malloc(path);
 	}
 
-	cell->path = strcpy_malloc(path);
-
-	// Read number of entires
-	u32 num_entries;
-	fread(&num_entries, 4, 1, file);
-
-	Cell_Entry* last_entry = nullptr;
-
-	// Read entries!
-	for(u32 i=0; i<num_entries; ++i)
+	const Cell_Resource* resource = cell_resource_load(path);
+	for(u32 i=0; i<resource->num_props; ++i)
 	{
-		Cell_Entry* entry = new Cell_Entry;
-
-		// Read path
-		u32 path_len;
-		fread(&path_len, 4, 1, file);
-
-		char* path = (char*)malloc(path_len + 1);
-		path[path_len] = 0;
-		fread(path, path_len, 1, file);
-
-		entry->prop_path = path;
-
-		// Read transform
-		fread(&entry->transform, sizeof(Transform), 1, file);
-
-		// Create the prop
-		entry->prop = scene_make_prop(path);
-		prop_set_transform(entry->prop, entry->transform);
-
-		// Add to linked list
-		if (last_entry)
-		{
-			last_entry->next = entry;
-			entry->prev = last_entry;
-		}
-		// ... or create list, if this is the first entry
-		else
-		{
-			cell->entries = entry;
-		}
-
-		last_entry = entry;
+		Prop* prop = cell_add_prop(cell, resource->props[i].path);
+		prop_set_transform(prop, cell->base_transform * resource->props[i].transform);
 	}
 
-	fclose(file);
-
+	cell_update_transforms(cell);
 	cell->is_dirty = false;
 }
 
 void cell_save(Cell* cell, const char* path)
 {
+	cell_update_transforms(cell);
+
 	FILE* file = fopen(path, "wb");
 	if (cell->path != path)
 	{
@@ -99,35 +70,33 @@ void cell_save(Cell* cell, const char* path)
 		cell->path = strcpy_malloc(path);
 	}
 
-	// Count/write num entries
-	u32 entry_count = 0;
-	if (cell->entries)
+	// Count/write num props
+	u32 prop_count = 0;
+	if (cell->props)
 	{
-		Cell_Entry* entry = cell->entries;
-		while(entry)
+		Cell_Prop* prop = cell->props;
+		while(prop)
 		{
-			entry_count++;
-			entry = entry->next;
+			prop_count++;
+			prop = prop->next;
 		}
 	}
 
-	fwrite(&entry_count, 4, 1, file);
+	fwrite(&prop_count, 4, 1, file);
 
-	// Write all the entries
-	Cell_Entry* entry = cell->entries;
-	while(entry)
+	// Write all the props
+	Cell_Prop* prop = cell->props;
+	while(prop)
 	{
-		entry->transform = entry->prop->transform;
-
 		// Write path
-		u32 path_len = strlen(entry->prop_path);
+		u32 path_len = strlen(prop->path);
 		fwrite(&path_len, 4, 1, file);
-		fwrite(entry->prop_path, path_len, 1, file);
+		fwrite(prop->path, path_len, 1, file);
 
 		// Write transform
-		fwrite(&entry->transform, sizeof(Transform), 1, file);
+		fwrite(&prop->transform, sizeof(Transform), 1, file);
 
-		entry = entry->next;
+		prop = prop->next;
 	}
 
 	fclose(file);
@@ -135,32 +104,88 @@ void cell_save(Cell* cell, const char* path)
 	cell->is_dirty = false;
 }
 
+void cell_set_transform(Cell* cell, const Transform& transform)
+{
+	cell->base_transform = transform;
+	cell_update_transforms(cell);
+}
+
+void cell_update_transforms(Cell* cell)
+{
+	Transform base_inv = inverse(cell->base_transform);
+
+	Cell_Prop* prop = cell->props;
+	while(prop)
+	{
+		prop->transform = base_inv * prop->prop->transform;
+		prop = prop->next;
+	}
+}
+
+
 Prop* cell_add_prop(Cell* cell, const char* prop_path)
 {
-	Cell_Entry* entry = new Cell_Entry;
-	entry->prop_path = strcpy_malloc(prop_path);
-	entry->prop = scene_make_prop(prop_path);
-	entry->transform = Transform();
+	cell->is_dirty = true;
 
-	prop_set_transform(entry->prop, entry->transform);
+	Cell_Prop* prop = new Cell_Prop;
+	prop->path = strcpy_malloc(prop_path);
+	prop->prop = scene_make_prop(prop_path);
+	prop->transform = Transform();
+
+	prop_set_transform(prop->prop, cell->base_transform);
 
 	cell->is_dirty = true;
-	if (cell->entries == nullptr)
+	if (cell->props == nullptr)
 	{
-		cell->entries = entry;
+		cell->props = prop;
 	}
 	else
 	{
-		entry->next = cell->entries;
-		cell->entries->prev = entry;
+		prop->next = cell->props;
+		cell->props->prev = prop;
 
-		cell->entries = entry;
+		cell->props = prop;
 	}
 
-	return entry->prop;
+	return prop->prop;
 }
 
-void cell_remove_prop(Cell* cell, const Prop* prop)
+bool cell_contains_prop(Cell* cell, Prop* prop_to_find)
 {
-	cell->is_dirty = true;
+	Cell_Prop* prop = cell->props;
+	while(prop)
+	{
+		if (prop->prop == prop_to_find)
+			return true;
+
+		prop = prop->next;
+	}
+
+	return false;
+}
+
+void cell_remove_prop(Cell* cell, Prop* prop_to_remove)
+{
+	Cell_Prop* prop = cell->props;
+	while(prop)
+	{
+		if (prop->prop == prop_to_remove)
+		{
+			if (prop->prev)
+				prop->prev->next = prop->next;
+			if (prop->next)
+				prop->next->prev = prop->prev;
+
+			if (prop == cell->props)
+				cell->props = prop->next;
+
+			scene_destroy_prop(prop->prop);
+			delete prop;
+
+			cell->is_dirty = true;
+			return;
+		}
+
+		prop = prop->next;
+	}
 }

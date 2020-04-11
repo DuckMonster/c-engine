@@ -4,15 +4,8 @@
 #include "Engine/Graphics/Mesh.h"
 #include "Engine/Collision/CollisionTypes.h"
 
-void mesh_res_create(Resource* resource)
+void mesh_res_create(Resource* resource, Mesh_Resource* mesh_res)
 {
-	Mesh_Resource* mesh_res = (Mesh_Resource*)resource->ptr;
-	if (mesh_res == nullptr)
-	{
-		mesh_res = new Mesh_Resource();
-		resource->ptr = mesh_res;
-	}
-
 	Mesh* mesh = &mesh_res->mesh;
 
 	Fbx_Scene* scene = fbx_import(resource->path);
@@ -120,15 +113,13 @@ void mesh_res_create(Resource* resource)
 	}
 }
 
-void mesh_res_free(Resource* resource)
+void mesh_res_free(Resource* resource, Mesh_Resource* mesh)
 {
-	Mesh_Resource* mesh = (Mesh_Resource*)resource->ptr;
 	mesh_free(&mesh->mesh);
 	shape_free(&mesh->shape);
 }
 
 Mesh_Resource* mesh_resource_load(const char* path)
 {
-	Resource* resource = resource_load(path, mesh_res_create, mesh_res_free);
-	return (Mesh_Resource*)resource->ptr;
+	return resource_load_t(Mesh_Resource, path, mesh_res_create, mesh_res_free);
 }

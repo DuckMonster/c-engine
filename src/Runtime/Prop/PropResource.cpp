@@ -5,15 +5,8 @@
 #include "Engine/Graphics/MeshResource.h"
 #include "Engine/Graphics/Material.h"
 
-void prop_res_create(Resource* resource)
+void prop_res_create(Resource* resource, Prop_Resource* prop)
 {
-	Prop_Resource* prop = (Prop_Resource*)resource->ptr;
-	if (!prop)
-	{
-		prop = new Prop_Resource();
-		resource->ptr = prop;
-	}
-
 	Dat_Document doc;
 	if (!dat_load_file(&doc, resource->path))
 	{
@@ -49,12 +42,11 @@ void prop_res_create(Resource* resource)
 #endif
 }
 
-void prop_res_free(Resource* resource)
+void prop_res_free(Resource* resource, Prop_Resource* prop)
 {
 }
 
 Prop_Resource* prop_resource_load(const char* path)
 {
-	Resource* res = resource_load(path, prop_res_create, prop_res_free);
-	return (Prop_Resource*)res->ptr;
+	return resource_load_t(Prop_Resource, path, prop_res_create, prop_res_free);
 }

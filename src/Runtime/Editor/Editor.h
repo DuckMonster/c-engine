@@ -16,6 +16,7 @@ struct Editor
 	u32 cell_grid_size = 10;
 	Cell* cells = nullptr;
 	Cell* edit_cell = nullptr;
+	Cell* brush_cell = nullptr;
 };
 extern Editor editor;
 

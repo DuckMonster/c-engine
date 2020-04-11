@@ -15,30 +15,29 @@ void resource_init()
 }
 
 // Recursive function to load or create nodes
-static Resource_Node* resource_load_or_create_node(Resource_Node*& node, u32 hash, const char* path)
+static Resource_Node* resource_load_or_create_node(Resource_Node*& node, const Resource_Hash& hash, const char* path)
 {
 	// Null-node, which means we should create a new one!
 	if (node == nullptr)
 	{
-		debug_log("Resource '%s' (%x) created", path, hash);
+		debug_log("Resource '%s' (%llx) created", path, hash);
 
 		node = new Resource_Node();
 		node->hash = hash;
-		node->resource.path = strcpy_malloc(path);
-		node->resource.path_relative = strcpy_malloc(path);
+		node->last_modified = file_modified_time(path);
 		return node;
 	}
 
 	// Hash found! This resource is already created.
-	if (node->hash == hash)
+	if (node->hash.hash == hash.hash)
 	{
 #if DEBUG
-		if (strcmp(node->resource.path_relative, path) != 0)
+		if (strcmp(node->resource->path_relative, path) != 0)
 		{
 			error(
 				"Resources '%s' and '%s' had same hash %d but different paths!", 
-				node->resource.path_relative, path,
-				hash
+				node->resource->path_relative, path,
+				hash.parts.path
 			);
 		}
 
@@ -47,52 +46,68 @@ static Resource_Node* resource_load_or_create_node(Resource_Node*& node, u32 has
 	}
 
 	// Keep searching...
-	if (hash < node->hash)
+	if (hash.hash < node->hash.hash)
 		return resource_load_or_create_node(node->left, hash, path);
 	else
 		return resource_load_or_create_node(node->right, hash, path);
 }
 
-Resource* resource_load(const char* path, Res_Create_Func create_func, Res_Destroy_Func destroy_func)
+void* resource_load(
+	const char* path,
+	const char* type_str, u32 type_size, const void* type_default,
+	Res_Create_Func create_func, Res_Destroy_Func destroy_func)
 {
-	u32 path_hash = hash_fnv(path, strlen(path));
+	Resource_Hash hash;
+	hash.parts.path = hash_fnv(path, strlen(path));
+	hash.parts.type = hash_fnv(type_str, strlen(type_str));
 
-	Resource_Node* node = resource_load_or_create_node(resource_manager.root, path_hash, path);
-	node->resource.create_func = create_func;
-	node->resource.destroy_func = destroy_func;
+	Resource_Node* node = resource_load_or_create_node(resource_manager.root, hash, path);
 
-	// If the resource doesnt have any data, call the create function immediately
-	if (node->resource.ptr == nullptr)
+	// Resource hasn't been created yet
+	if (node->resource == nullptr)
 	{
-		node->last_modified = file_modified_time(node->resource.path);
-		create_func(&node->resource);
+		void* resource_block = malloc(sizeof(Resource) + type_size);
+		Resource* resource = (Resource*)resource_block;
+
+		void* resource_data = (u8*)resource_block + sizeof(Resource);
+		memcpy(resource_data, type_default, type_size);
+
+		resource->path = strcpy_malloc(path);
+		resource->path_relative = strcpy_malloc(path);
+		resource->ptr = resource_data;
+
+		resource->create_func = create_func;
+		resource->destroy_func = destroy_func;
+
+		resource->dependencies = nullptr;
+		resource->dependent = nullptr;
+
+		// Call the initial create!
+		resource->create_func(resource, resource_data);
+
+		node->resource = resource;
 	}
 
-	return &node->resource;
+	return node->resource->ptr;
 }
 
-static Resource_Node* resource_get_node(Resource_Node* node, u32 hash)
+static Resource_Node* resource_get_node(Resource_Node* node, const Resource_Hash& hash)
 {
 	if (node == nullptr)
 		return nullptr;
 
-	if (node->hash == hash)
+	if (node->hash.hash == hash.hash)
 		return node;
 
-	if (hash < node->hash)
+	if (hash.hash < node->hash.hash)
 		return resource_get_node(node->left, hash);
 	else
 		return resource_get_node(node->right, hash);
 }
 
-Resource* resource_get(const char* path)
+Resource* resource_from_data(const void* data)
 {
-	u32 path_hash = hash_fnv(path, strlen(path));
-	Resource_Node* node = resource_get_node(resource_manager.root, path_hash);
-	if (node == nullptr)
-		return nullptr;
-
-	return &node->resource;
+	return (Resource*)((const u8*)data - sizeof(Resource));
 }
 
 char* resource_relative_to_absolute_path(const char* relative_path)

@@ -16,12 +16,12 @@ static void resource_reload(Resource* res)
 	STACK_COUNT++;
 
 	if (res->destroy_func != nullptr)
-		res->destroy_func(res);
+		res->destroy_func(res, res->ptr);
 
 	resource_clear_dependencies(res);
 
 	if (res->create_func != nullptr)
-		res->create_func(res);
+		res->create_func(res, res->ptr);
 
 	/* Reload dependent resources */
 
@@ -45,10 +45,10 @@ static void resource_update_hotreload_recursive(Resource_Node* node)
 	if (node == nullptr)
 		return;
 
-	i64 modified_time = file_modified_time(node->resource.path);
+	i64 modified_time = file_modified_time(node->resource->path);
 	if (modified_time > node->last_modified)
 	{
-		resource_reload(&node->resource);
+		resource_reload(node->resource);
 		node->last_modified = modified_time;
 	}
 
@@ -63,7 +63,8 @@ void resource_update_hotreload()
 
 void resource_add_dependency(Resource* res, const char* dependency_path)
 {
-	Resource* dependency_res = resource_get(dependency_path);
+	return;
+	Resource* dependency_res = nullptr;//resource_get(dependency_path);
 	if (dependency_res == nullptr)
 		error("Tried to add dependency to resource '%s', which is not loaded yet", dependency_path);
 

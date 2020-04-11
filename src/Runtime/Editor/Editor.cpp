@@ -22,6 +22,18 @@ void editor_init()
 
 	editor.cells = new Cell[editor.cell_grid_size * editor.cell_grid_size];
 	editor.edit_cell = &editor.cells[0];
+
+	for(u32 x=0; x<editor.cell_grid_size; ++x)
+	{
+		for(u32 y=0; y<editor.cell_grid_size; ++y)
+		{
+			Transform transform;
+			transform.position = Vec3(x, y, 0.f);
+
+			Cell* cell = &editor.cells[x + y * editor.cell_grid_size];
+			cell_set_transform(cell, transform);
+		}
+	}
 }
 
 void editor_update()
@@ -43,16 +55,19 @@ void editor_update()
 		params.mask = QUERY_Props;
 
 		Scene_Query_Result result = scene_query_line(trace, params);
-		editor_select_edit(result.prop);
+
+		if (cell_contains_prop(editor.edit_cell, result.prop))
+			editor_select_edit(result.prop);
+		else
+			editor_select_edit(nullptr);
 	}
 
 	// Deleting props
 	if (input_key_pressed(Key::Delete) && editor.edit_prop)
 	{
-		scene_destroy_prop(editor.edit_prop);
+		cell_remove_prop(editor.edit_cell, editor.edit_prop);
 		editor_select_edit(nullptr);
 	}
-
 
 	if (input_key_down(Key::LeftControl))
 	{
@@ -88,6 +103,13 @@ void editor_update()
 				editor_select_edit(nullptr);
 			}
 		}
+
+		// Select brush
+		if (input_key_pressed(Key::B))
+		{
+			editor.brush_cell = editor.edit_cell;
+		}
+
 		// Saving
 		if (input_key_pressed(Key::S))
 		{
@@ -125,6 +147,30 @@ void editor_update()
 			editor_duplicate_prop(editor.edit_prop);
 		}
 	}
+	else
+	{
+		// Select active cell
+		if (input_key_down(Key::C))
+		{
+			Ray mouse_ray = editor_mouse_ray();
+			Plane cell_plane = plane_make(Vec3_Z * 0.2f, Vec3_Z);
+
+			Hit_Result cell_hit = test_ray_plane(mouse_ray, cell_plane);
+			i32 hit_x = floor(cell_hit.position.x + 0.5f);
+			i32 hit_y = floor(cell_hit.position.y + 0.5f);
+
+			if (hit_x < 0 || hit_x >= editor.cell_grid_size ||
+				hit_y < 0 || hit_y >= editor.cell_grid_size)
+			{
+				editor.edit_cell = nullptr;
+			}
+			else
+			{
+				u32 index = hit_x + hit_y * editor.cell_grid_size;
+				editor.edit_cell = &editor.cells[index];
+			}
+		}
+	}
 
 	if (editor.edit_prop)
 	{
@@ -154,15 +200,33 @@ void editor_update()
 	scene_query_line(trace, params);
 }
 
-void draw_cell(u32 x, u32 y, bool selected)
+void draw_cell(Cell* cell)
 {
-	Vec3 offset = Vec3_X * x + Vec3_Y * y + Vec3_Z * (selected ? 0.3f : 0.2f);
-	Vec4 color = selected ? Color_White : Color_Gray;
+	if (cell == nullptr)
+		return;
 
-	scene_draw_line(Vec3_Zero + offset, Vec3_X + offset, color);
-	scene_draw_line(Vec3_Zero + offset, Vec3_Y + offset, color);
-	scene_draw_line(Vec3_X + Vec3_Y + offset, Vec3_X + offset, color);
-	scene_draw_line(Vec3_X + Vec3_Y + offset, Vec3_Y + offset, color);
+	// Selected ones are brighter and higher up
+	bool is_selected = (cell == editor.edit_cell);
+
+	// Colors
+	Vec4 color = Color_White;
+	if (!is_selected)
+		color = color * 0.5f;
+
+	Mat4 transform = transform_mat(cell->base_transform);
+
+	float height = (is_selected ? 0.3f : 0.2f);
+	Vec3 verts[] = {
+		transform * Vec3(0.5f, 0.5f, height),
+		transform * Vec3(-0.5f, 0.5f, height),
+		transform * Vec3(-0.5f, -0.5f, height),
+		transform * Vec3(0.5f, -0.5f, height),
+	};
+
+	scene_draw_line(verts[0], verts[1], color);
+	scene_draw_line(verts[1], verts[2], color);
+	scene_draw_line(verts[2], verts[3], color);
+	scene_draw_line(verts[3], verts[0], color);
 }
 
 void editor_render(const Render_State& state)
@@ -173,12 +237,10 @@ void editor_render(const Render_State& state)
 	scene_draw_line(Vec3_Y * -50.f + offset, Vec3_Y * 50.f + offset, Color_Green);
 	scene_draw_line(Vec3_Z * -50.f + offset, Vec3_Z * 50.f + offset, Color_Blue);
 
-	for(u32 x=0; x<editor.cell_grid_size; ++x)
+	u32 num_cells = editor.cell_grid_size * editor.cell_grid_size;
+	for(u32 i=0; i<num_cells; ++i)
 	{
-		for(u32 y=0; y<editor.cell_grid_size; ++y)
-		{
-			draw_cell(x, y, &editor.cells[x + y * editor.cell_grid_size] == editor.edit_cell);
-		}
+		draw_cell(&editor.cells[i]);
 	}
 
 	if (editor.edit_prop && !input_key_down(Key::LeftControl))

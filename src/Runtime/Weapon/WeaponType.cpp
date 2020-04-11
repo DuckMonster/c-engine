@@ -43,8 +43,7 @@ void weapon_res_create(Resource* resource)
 
 const Weapon_Type_Data* weapon_type_data_load(const char* path)
 {
-	Resource* resource = resource_load(path, weapon_res_create, nullptr);
-	return (Weapon_Type_Data*)resource->ptr;
+	return resource_load_t(Weapon_Type_Data, path, weapon_res_create, nullptr);
 }
 
 static Weapon_Type_Data data_make(u32 tile_x, u32 tile_y)

@@ -36,11 +36,8 @@ i32 parse_include_directive(const char* directive, char* out_path, u32* out_path
 	return (new_line - directive);
 }
 
-void shader_res_create(Resource* resource, GLenum type)
+void shader_res_create(Resource* resource, Shader* shader, GLenum type)
 {
-	Shader* shader = new Shader();
-	resource->ptr = shader;
-
 	shader->path = resource->path;
 	shader->type = type;
 
@@ -100,43 +97,34 @@ void shader_res_create(Resource* resource, GLenum type)
 	}
 }
 
-void shader_res_create_vert(Resource* resource) { shader_res_create(resource, GL_VERTEX_SHADER); }
-void shader_res_create_geom(Resource* resource) { shader_res_create(resource, GL_GEOMETRY_SHADER); }
-void shader_res_create_frag(Resource* resource) { shader_res_create(resource, GL_FRAGMENT_SHADER); }
+void shader_res_create_vert(Resource* resource, Shader* shader) { shader_res_create(resource, shader, GL_VERTEX_SHADER); }
+void shader_res_create_geom(Resource* resource, Shader* shader) { shader_res_create(resource, shader, GL_GEOMETRY_SHADER); }
+void shader_res_create_frag(Resource* resource, Shader* shader) { shader_res_create(resource, shader, GL_FRAGMENT_SHADER); }
 
 void shader_res_destroy(Resource* resource)
 {
 	Shader* shader = (Shader*)resource->ptr;
 	if (shader->source)
 		free(shader->source);
-	free(shader);
-
-	resource->ptr = nullptr;
 }
 
 const Shader* shader_load(GLenum type, const char* path)
 {
-	Resource* resource = nullptr;
 	switch(type)
 	{
 		case GL_VERTEX_SHADER:
-			resource = resource_load(path, shader_res_create_vert, shader_res_destroy);
-			break;
+			return resource_load_t(Shader, path, shader_res_create_vert, shader_res_destroy);
 
 		case GL_GEOMETRY_SHADER:
-			resource = resource_load(path, shader_res_create_geom, shader_res_destroy);
-			break;
+			return resource_load_t(Shader, path, shader_res_create_geom, shader_res_destroy);
 
 		case GL_FRAGMENT_SHADER:
-			resource = resource_load(path, shader_res_create_frag, shader_res_destroy);
-			break;
+			return resource_load_t(Shader, path, shader_res_create_frag, shader_res_destroy);
 
 		default:
 			error("'%s' trying to load invalid shader type %d", path, type);
-			break;
+			return nullptr;
 	}
-
-	return (Shader*)resource->ptr;
 }
 
 struct Shader_Include_Stack

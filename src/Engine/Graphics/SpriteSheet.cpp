@@ -108,8 +108,7 @@ static void sprite_sheet_res_destroy(Resource* resource)
 
 const Sprite_Sheet* sprite_sheet_load(const char* path)
 {
-	Resource* resource = resource_load(path, sprite_sheet_res_create, sprite_sheet_res_destroy);
-	return (Sprite_Sheet*)resource->ptr;
+	return resource_load_t(Sprite_Sheet, path, sprite_sheet_res_create, sprite_sheet_res_destroy);
 }
 
 const Sprite_Anim* sprite_sheet_get_animation(const Sprite_Sheet* sheet, const char* name)

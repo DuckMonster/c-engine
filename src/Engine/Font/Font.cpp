@@ -107,11 +107,8 @@ void glyph_pack_range(Glyph_Packer* packer, char start, char end)
 		glyph_pack(packer, c);
 }
 
-void font_res_create(Resource* resource)
+void font_res_create(Resource* resource, Font* font)
 {
-	Font* font = new Font();
-	resource->ptr = font;
-
 	ft_init();
 
 	FT_Face face;
@@ -130,16 +127,14 @@ void font_res_create(Resource* resource)
 	glyph_packer_free(&packer);
 }
 
-void font_res_destroy(Resource* resource)
+void font_res_destroy(Resource* resource, Font* font)
 {
-	Font* font = (Font*)resource->ptr;
 	texture_free(&font->atlas);
 }
 
 const Font* font_load(const char* path)
 {
-	Resource* res = resource_load(path, font_res_create, font_res_destroy);
-	return (Font*)res->ptr;
+	return resource_load_t(Font, path, font_res_create, font_res_destroy);
 }
 
 void font_debug_draw(const Font* font)
